@@ -1,0 +1,115 @@
+version: '3.9'
+
+volumes:
+  pg-data:
+  shared-dbt-docs:
+
+networks:
+  backend:
+  frontend:
+
+x-postgres-vars: &postgres-vars
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+  POSTGRES_DB: analytics
+
+x-postgres-vars-dbt: &postgres-vars-dbt
+  <<: *postgres-vars
+  POSTGRES_HOST: postgres
+  POSTGRES_PORT: 5432
+
+x-restart-policy: &restart_policy
+  restart: unless-stopped
+
+services:
+  postgres:
+    container_name: metaqs-postgres
+    image: postgres:14
+    <<: *restart_policy
+    environment:
+      <<: *postgres-vars
+    networks: [ backend ]
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+
+  nginx:
+    container_name: metaqs-nginx
+    image: nginx:stable-alpine
+    <<: *restart_policy
+    depends_on:
+      - fastapi
+    environment:
+      NGINX_HOST: "${NGINX_HOST}"
+      API_VERSION: "${API_VERSION}"
+    volumes:
+      - ./nginx/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro
+      - ../mkdocs/site:/usr/share/nginx/html/docs:ro
+      - shared-dbt-docs:/usr/share/nginx/html/dbt-docs:ro
+    networks: [ frontend ]
+    ports:
+      - "80:80"
+
+  fastapi:
+    container_name: metaqs-fastapi
+    build:
+      context: ../fastapi/
+      network: host
+    image: community.docker.edu-sharing.com/metaqs-fastapi:latest
+    <<: *restart_policy
+    depends_on:
+      - postgres
+      - dbt
+      - languagetool
+    environment:
+      <<: *postgres-vars
+      POSTGRES_HOST: postgres
+      API_VERSION: "${API_VERSION}"
+      API_KEY: "${API_KEY}"
+      ALLOWED_HOSTS: "${ALLOWED_HOSTS}"
+      BACKGROUND_TASK_ANALYTICS_INTERVAL: "${BACKGROUND_TASK_ANALYTICS_INTERVAL:-0}"
+      BACKGROUND_TASK_SEARCH_STATS_INTERVAL: "${BACKGROUND_TASK_SEARCH_STATS_INTERVAL:-0}"
+      BACKGROUND_TASK_SPELLCHECK_INTERVAL: "${BACKGROUND_TASK_SPELLCHECK_INTERVAL:-0}"
+      LOG_LEVEL: "${LOG_LEVEL}"
+      LOGGER: uvicorn
+      ELASTICSEARCH_URL: "${ELASTICSEARCH_URL}"
+      ELASTICSEARCH_TIMEOUT: 20
+    networks:
+      - backend
+      - frontend
+
+  dbt:
+    build:
+      context: ../dbt/
+      network: host
+    image: community.docker.edu-sharing.com/metaqs-dbt:latest
+    container_name: metaqs-dbt
+    depends_on:
+      - postgres
+    environment:
+      <<: *postgres-vars-dbt
+    networks: [ backend ]
+    expose:
+      - 8580
+    command: [ "dbt", "rpc" ]
+
+  languagetool:
+    container_name: metaqs-languagetool
+    image: erikvl87/languagetool
+    <<: *restart_policy
+    environment:
+      Java_Xms: 512m
+      Java_Xmx: 2g
+    networks: [ backend ]
+
+  dbt-docs:
+    image: community.docker.edu-sharing.com/metaqs-dbt:latest
+    container_name: metaqs-dbt-docs
+    depends_on:
+      - postgres
+    environment:
+      <<: *postgres-vars-dbt
+    volumes:
+      - shared-dbt-docs:/dbt/target
+    networks: [ backend ]
+    command: [ "dbt", "docs", "generate" ]
