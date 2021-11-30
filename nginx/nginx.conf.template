@@ -27,9 +27,9 @@ server {
   gzip_vary on;
   gzip_comp_level  6;
 
-  location /api/${API_VERSION} {
+  location /metaqs-api/${API_VERSION} {
 
-    rewrite /api/${API_VERSION}/(.*) /$1 break;
+    rewrite /metaqs-api/${API_VERSION}/(.*) /$1 break;
 
     proxy_pass  http://fastapi-80;
     http2_push_preload on;
