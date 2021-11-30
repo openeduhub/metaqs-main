@@ -2,6 +2,7 @@ version: '3.9'
 
 volumes:
   pg-data:
+  superset-data:
   shared-dbt-docs:
 
 networks:
@@ -18,14 +19,14 @@ x-postgres-vars-dbt: &postgres-vars-dbt
   POSTGRES_HOST: postgres
   POSTGRES_PORT: 5432
 
-x-restart-policy: &restart_policy
+x-restart-policy: &restart-policy
   restart: unless-stopped
 
 services:
   postgres:
     container_name: metaqs-postgres
     image: postgres:14
-    <<: *restart_policy
+    <<: *restart-policy
     environment:
       <<: *postgres-vars
     networks: [ backend ]
@@ -35,7 +36,7 @@ services:
   nginx:
     container_name: metaqs-nginx
     image: nginx:stable-alpine
-    <<: *restart_policy
+    <<: *restart-policy
     depends_on:
       - fastapi
     environment:
@@ -56,7 +57,7 @@ services:
       context: ../fastapi/
       network: host
     image: community.docker.edu-sharing.com/metaqs-fastapi:latest
-    <<: *restart_policy
+    <<: *restart-policy
     depends_on:
       - postgres
       - dbt
@@ -79,11 +80,12 @@ services:
       - frontend
 
   dbt:
+    container_name: metaqs-dbt
     build:
       context: ../dbt/
       network: host
     image: community.docker.edu-sharing.com/metaqs-dbt:latest
-    container_name: metaqs-dbt
+    <<: *restart-policy
     depends_on:
       - postgres
     environment:
@@ -96,11 +98,27 @@ services:
   languagetool:
     container_name: metaqs-languagetool
     image: erikvl87/languagetool
-    <<: *restart_policy
+    <<: *restart-policy
     environment:
       Java_Xms: 512m
       Java_Xmx: 2g
     networks: [ backend ]
+
+  superset:
+    container_name: metaqs-superset
+    build:
+      context: ./superset/
+      network: host
+    image: community.docker.edu-sharing.com/metaqs-superset:latest
+    <<: *restart-policy
+    depends_on:
+      - postgres
+    volumes:
+      - superset-data:/app/superset_home
+    networks: [ frontend, backend ]
+    expose:
+      - 8088
+
 
   dbt-docs:
     image: community.docker.edu-sharing.com/metaqs-dbt:latest
