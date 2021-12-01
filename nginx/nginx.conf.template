@@ -1,90 +1,85 @@
 upstream fastapi-80 {
-  server fastapi:80 fail_timeout=0;
+    server fastapi:80 fail_timeout=0;
 }
 
 upstream superset-8088 {
-  server superset:8088 fail_timeout=0;
+    server superset:8088 fail_timeout=0;
 }
 
 server {
+    listen [::]:80;
+    listen 80;
+    server_name ${NGINX_HOST};
+    root /usr/share/nginx/html;
 
-  listen      80;
-  listen      [::]:80;
+    access_log /var/log/nginx/access.log;
+    error_log  /var/log/nginx/error.log;
+    keepalive_timeout 65;
 
-  server_name ${NGINX_HOST};
+    gzip             on;
+    include gzip_params;
 
-  root /usr/share/nginx/html;
+    location /docs {
+        auth_basic "OpenEduHub";
+        auth_basic_user_file /etc/nginx/.htpasswd;
+        try_files $uri $uri/ =404;
+        index index.html;
+    }
 
-  access_log  /var/log/nginx/access.log;
-  error_log   /var/log/nginx/error.log;
+    location /dbt-docs {
+        auth_basic "OpenEduHub";
+        auth_basic_user_file /etc/nginx/.htpasswd;
+        try_files $uri $uri/ =404;
+        index index.html;
+    }
 
-  keepalive_timeout   70;
+    location /metaqs-api/${API_VERSION} {
+        rewrite /metaqs-api/${API_VERSION}/(.*) /$1 break;
 
-  gzip on;
-  gzip_min_length  1100;
-  gzip_buffers  4 32k;
-  gzip_types    text/css text/javascript text/xml text/plain text/x-component application/javascript application/x-javascript application/json application/xml  application/rss+xml font/truetype application/x-font-ttf font/opentype application/vnd.ms-fontobject image/svg+xml;
-  gzip_vary on;
-  gzip_comp_level  6;
+        proxy_pass  http://fastapi-80;
+        include proxy_params;
+    }
 
-  location /metaqs-api/${API_VERSION} {
-
-    rewrite /metaqs-api/${API_VERSION}/(.*) /$1 break;
-
-    proxy_pass  http://fastapi-80;
-    http2_push_preload on;
-    proxy_http_version 1.1;
-    proxy_read_timeout 60s;
-    proxy_buffer_size 4096;
-    proxy_buffering on;
-    proxy_buffers 8 4096;
-    proxy_busy_buffers_size 8192;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection $http_connection;
-    proxy_set_header Host $http_host;
-    proxy_set_header X-Forwarded-For $remote_addr;
-    proxy_set_header X-Forwarded-Port $server_port;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_set_header X-Request-Start $msec;
-
-  }
-
-  location / {
-
-    proxy_pass  http://superset-8088;
-    http2_push_preload on;
-    proxy_http_version 1.1;
-    proxy_read_timeout 60s;
-    proxy_buffer_size 4096;
-    proxy_buffering on;
-    proxy_buffers 8 4096;
-    proxy_busy_buffers_size 8192;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection $http_connection;
-    proxy_set_header Host $http_host;
-    proxy_set_header X-Forwarded-For $remote_addr;
-    proxy_set_header X-Forwarded-Port $server_port;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_set_header X-Request-Start $msec;
-
-  }
-
-  location /docs {
-
-    try_files $uri $uri/ =404;
-
-    auth_basic "OpenEduHub";
-    auth_basic_user_file /etc/nginx/.htpasswd;
-
-  }
-
-  location /dbt-docs {
-
-    try_files $uri $uri/ =404;
-
-    auth_basic "OpenEduHub";
-    auth_basic_user_file /etc/nginx/.htpasswd;
-
-  }
-
+    location / {
+        proxy_pass  http://superset-8088;
+        include proxy_params;
+    }
 }
+
+#server {
+#    listen [::]:80;
+#    listen 80;
+#    server_name api.${NGINX_HOST};
+#
+#    access_log /var/log/nginx/access.log;
+#    error_log  /var/log/nginx/error.log;
+#    keepalive_timeout 65;
+#
+#    gzip on;
+#    include gzip_params;
+#
+#    location /${API_VERSION} {
+#        rewrite /${API_VERSION}/(.*) /$1 break;
+#
+#        proxy_pass  http://fastapi-80;
+#        include proxy_params;
+#    }
+#}
+
+#server {
+#    listen [::]:80;
+#    listen 80;
+#    server_name superset.${NGINX_HOST};
+#
+#    access_log /var/log/nginx/access.log;
+#    error_log  /var/log/nginx/error.log;
+#    keepalive_timeout 65;
+#
+#    gzip on;
+#    include gzip_params;
+#
+#    location / {
+#        proxy_pass  http://superset-8088;
+#        include proxy_params;
+#    }
+#}

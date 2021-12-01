@@ -45,6 +45,8 @@ services:
     volumes:
       - ./nginx/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
       - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro
+      - ./nginx/gzip_params:/etc/nginx/gzip_params:ro
+      - ./nginx/proxy_params:/etc/nginx/proxy_params:ro
       - ../mkdocs/site:/usr/share/nginx/html/docs:ro
       - shared-dbt-docs:/usr/share/nginx/html/dbt-docs:ro
     networks: [ frontend ]
