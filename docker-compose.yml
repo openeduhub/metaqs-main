@@ -41,7 +41,7 @@ services:
       - fastapi
     environment:
       NGINX_HOST: "${NGINX_HOST}"
-      ROOT_PATH: "/metaqs/${API_VERSION}"
+      ROOT_PATH: "/metaqs-api/${API_VERSION}"
     volumes:
       - ./nginx/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
       - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro
