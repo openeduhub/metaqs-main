@@ -78,6 +78,7 @@ services:
       LOGGER: uvicorn
       ELASTICSEARCH_URL: "${ELASTICSEARCH_URL}"
       ELASTICSEARCH_TIMEOUT: 20
+      WEB_CONCURRENCY: 1
     networks:
       - backend
       - frontend
