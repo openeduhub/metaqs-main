@@ -41,7 +41,7 @@ services:
       - fastapi
     environment:
       NGINX_HOST: "${NGINX_HOST}"
-      API_VERSION: "${API_VERSION}"
+      ROOT_PATH: "/metaqs/${API_VERSION}"
     volumes:
       - ./nginx/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
       - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro
@@ -67,6 +67,7 @@ services:
     environment:
       <<: *postgres-vars
       POSTGRES_HOST: postgres
+      ROOT_PATH: "/metaqs-api/${API_VERSION}"
       API_VERSION: "${API_VERSION}"
       API_KEY: "${API_KEY}"
       ALLOWED_HOSTS: "${ALLOWED_HOSTS}"
