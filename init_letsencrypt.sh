@@ -5,7 +5,8 @@ if ! [ -x "$(command -v docker-compose)" ]; then
   exit 1
 fi
 
-domains=("$NGINX_HOST")
+COMPOSE_COMMAND=docker-compose
+domains=($NGINX_HOST)
 rsa_key_size=4096
 data_path="./nginx/certbot"
 email="" # Adding a valid address is strongly recommended

@@ -43,7 +43,9 @@ services:
       NGINX_HOST: "${NGINX_HOST}"
       ROOT_PATH: "/metaqs-api/${API_VERSION}"
     volumes:
-      - ./nginx/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./nginx/nginx-ssl.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot
       - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro
       - ./nginx/gzip_params:/etc/nginx/gzip_params:ro
       - ./nginx/proxy_params:/etc/nginx/proxy_params:ro
@@ -52,6 +54,28 @@ services:
     networks: [ frontend ]
     ports:
       - "80:80"
+      - "443:443"
+
+  certbot:
+    <<: *restart-policy
+    container_name: metaqs-certbot
+    image: certbot/certbot
+    depends_on:
+      - nginx
+    volumes:
+      - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot
+    entrypoint:
+      - /bin/sh
+      - -c
+    command:
+      - |
+        trap exit TERM
+        while :; do
+          echo "renewing certs"
+          certbot renew
+          sleep 12h & wait $${!}
+        done
 
   fastapi:
     container_name: metaqs-fastapi
