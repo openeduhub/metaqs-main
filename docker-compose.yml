@@ -22,11 +22,19 @@ x-postgres-vars-dbt: &postgres-vars-dbt
 x-restart-policy: &restart-policy
   restart: unless-stopped
 
+x-logging-config: &logging-config
+  logging:
+    driver: 'json-file'
+    options:
+      max-file: '5'
+      max-size: '100M'
+
 services:
   postgres:
     container_name: metaqs-postgres
     image: postgres:14
     <<: *restart-policy
+    <<: *logging-config
     environment:
       <<: *postgres-vars
     networks: [ backend ]
@@ -37,6 +45,7 @@ services:
     container_name: metaqs-nginx
     image: nginx:stable-alpine
     <<: *restart-policy
+    <<: *logging-config
     depends_on:
       - fastapi
     environment:
@@ -58,6 +67,7 @@ services:
 
   certbot:
     <<: *restart-policy
+    <<: *logging-config
     container_name: metaqs-certbot
     image: certbot/certbot
     depends_on:
@@ -84,6 +94,7 @@ services:
       network: host
     image: community.docker.edu-sharing.com/metaqs-fastapi:latest
     <<: *restart-policy
+    <<: *logging-config
     depends_on:
       - postgres
       - dbt
@@ -115,6 +126,7 @@ services:
       network: host
     image: community.docker.edu-sharing.com/metaqs-dbt:latest
     <<: *restart-policy
+    <<: *logging-config
     depends_on:
       - postgres
     environment:
@@ -140,6 +152,7 @@ services:
       network: host
     image: community.docker.edu-sharing.com/metaqs-superset:latest
     <<: *restart-policy
+    <<: *logging-config
     depends_on:
       - postgres
     volumes:
