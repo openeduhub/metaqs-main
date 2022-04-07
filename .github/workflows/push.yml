@@ -3,7 +3,7 @@ name: MetaQS DBT Docker Image
 on:
   push:
     branches:
-      - *
+      - "*"
 
 jobs:
   build-dbt:
