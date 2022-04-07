@@ -1,4 +1,4 @@
-name: MetaQS DBT Docker Image
+name: MetaQS push actions
 
 on:
   push:

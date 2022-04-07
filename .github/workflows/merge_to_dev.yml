@@ -1,9 +1,12 @@
-name: MetaQS Action after merge to main
+name: MetaQS Action after merge to dev
 
 on:
+  push:
+    branches:
+      - combining_ci_cd
   pull_request:
     branches:
-      - main
+      - dev
 
 jobs:
   dependency-review:
@@ -25,7 +28,7 @@ jobs:
         run: docker login community.docker.edu-sharing.com -u ${{ secrets.DOCKER_EDU_HUB_REGISTRY_USERNAME }} -p ${{ secrets.DOCKER_EDU_HUB_REGISTRY_PASSWORD }}
 
       - name: Build the container
-        run: docker build -t community.docker.edu-sharing.com/metaqs-api-fastapi:latest .
+        run: docker build -t community.docker.edu-sharing.com/metaqs-api-fastapi_dev:latest .
 
       - name: Push the Docker image
-        run: docker push community.docker.edu-sharing.com/metaqs-api-fastapi:latest
+        run: docker push community.docker.edu-sharing.com/metaqs-api-fastapi_dev:latest
