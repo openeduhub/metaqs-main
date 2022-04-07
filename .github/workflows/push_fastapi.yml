@@ -1,9 +1,6 @@
 name: MetaQS API FastApi Docker Image
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
     branches:
       - main
