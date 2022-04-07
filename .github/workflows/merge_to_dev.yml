@@ -37,7 +37,7 @@ jobs:
       - name: Log in to edu sharing
         run: docker login community.docker.edu-sharing.com -u ${{ secrets.DOCKER_EDU_HUB_REGISTRY_USERNAME }} -p ${{ secrets.DOCKER_EDU_HUB_REGISTRY_PASSWORD }}
       - name: Build
-        run: docker build -t community.docker.edu-sharing.com/metaqs-superset_dev:latest ../superset
+        run: docker build -t community.docker.edu-sharing.com/metaqs-superset_dev:latest ./superset
       - name: Push
         run: docker push community.docker.edu-sharing.com/metaqs-superset_dev:latest
 
@@ -49,6 +49,6 @@ jobs:
       - name: Log in to edu sharing
         run: docker login community.docker.edu-sharing.com -u ${{ secrets.DOCKER_EDU_HUB_REGISTRY_USERNAME }} -p ${{ secrets.DOCKER_EDU_HUB_REGISTRY_PASSWORD }}
       - name: Build
-        run: docker build -t community.docker.edu-sharing.com/metaqs-dbt_dev:latest ../dbt
+        run: docker build -t community.docker.edu-sharing.com/metaqs-dbt_dev:latest ./dbt
       - name: Push
         run: docker push community.docker.edu-sharing.com/metaqs-dbt_dev:latest
