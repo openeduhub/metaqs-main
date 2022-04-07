@@ -7,11 +7,25 @@ on:
 
 jobs:
   build-dbt:
-    name: Build Docker image to community edu hub
+    name: Build Docker image for DBT
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
-
       - name: Build the container
         run: docker build -t community.docker.edu-sharing.com/metaqs-dbt:latest ./dbt
+
+  build-fastapi:
+    name: Build Docker image for FastAPI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build the container
+        run: docker build -t community.docker.edu-sharing.com/metaqs-fastapi:latest ./src
+
+  build-superset:
+    name: Build Docker image for superset
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build the container
+        run: docker build -t community.docker.edu-sharing.com/metaqs-superset:latest ./superset
