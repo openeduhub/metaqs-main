@@ -1,0 +1,38 @@
+name: 'wlo_fachportale'
+version: '0.1'
+profile: 'wlo_fachportale'
+config-version: 2
+require-dbt-version: ">=0.21.0"
+
+source-paths: [ "models" ]
+snapshot-paths: [ "snapshots" ]
+analysis-paths: [ "analysis" ]
+test-paths: [ "tests" ]
+data-paths: [ "seeds" ]
+macro-paths: [ "macros" ]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_modules"
+  - "logs"
+
+vars:
+  portal_root_id: '5e40e372-735c-4b17-bbf7-e827a5702b57'
+
+models:
+  +schema: staging
+  +materialized: table
+  +full_refresh: true
+
+snapshots:
+  +target_schema: store
+
+sources:
+  +enabled: true
+
+seeds:
+  +enabled: true
+  +schema: raw
+  +full_refresh: true
+  +quote_columns: false

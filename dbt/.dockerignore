@@ -1,0 +1,5 @@
+.git/
+.idea/
+Dockerfile
+docker-compose.*
+__pycache__

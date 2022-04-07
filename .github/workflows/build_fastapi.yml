@@ -1,0 +1,23 @@
+name: MetaQS API FastApi Docker Image
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - dev
+
+jobs:
+  build-fastapi:
+    name: Build docker image
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Log in to edu sharing
+        run: docker login community.docker.edu-sharing.com -u ${{ secrets.DOCKER_EDU_HUB_REGISTRY_USERNAME }} -p ${{ secrets.DOCKER_EDU_HUB_REGISTRY_PASSWORD }}
+
+      - name: Build the container
+        run: docker build -t community.docker.edu-sharing.com/metaqs-api-fastapi:latest .

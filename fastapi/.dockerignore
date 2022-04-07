@@ -1,0 +1,11 @@
+assets/
+README.md
+Dockerfile
+docker-compose.*
+.github/
+.idea/
+.git/
+.gitignore
+__pycache__/
+*.ipynb
+.ipynb_checkpoints/

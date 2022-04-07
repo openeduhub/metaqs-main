@@ -1,0 +1,74 @@
+version: '3.9'
+
+volumes:
+  pg-data:
+
+networks:
+  backend:
+  frontend:
+
+x-postgres-vars: &postgres-vars
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+  POSTGRES_DB: analytics
+
+services:
+  postgres:
+    container_name: metaqs-postgres
+    image: postgres:13
+    environment:
+      <<: *postgres-vars
+    networks: [ backend ]
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+
+  nginx:
+    container_name: metaqs-nginx
+    image: nginx:stable-alpine
+    depends_on:
+      - fastapi
+    environment:
+      NGINX_HOST: localhost
+      API_VERSION: "${API_VERSION:-v1}"
+    volumes:
+      - ./nginx/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+    networks: [ frontend ]
+    ports:
+      - "127.0.0.1:${API_PORT:-8080}:80"
+
+  fastapi:
+    container_name: metaqs-api-fastapi
+    build: ./
+    image: community.docker.edu-sharing.com/metaqs-api-fastapi:latest
+    depends_on:
+      - postgres
+      - languagetool
+    environment:
+      <<: *postgres-vars
+      POSTGRES_HOST: postgres
+      API_VERSION: "${API_VERSION:-v1}"
+      API_KEY: "${API_KEY:-openeduhub}"
+      ALLOWED_HOSTS: "${ALLOWED_HOSTS:-*}"
+      BACKGROUND_TASK_ANALYTICS_INTERVAL: "${BACKGROUND_TASK_ANALYTICS_INTERVAL:-0}"
+      BACKGROUND_TASK_SEARCH_STATS_INTERVAL: "${BACKGROUND_TASK_SEARCH_STATS_INTERVAL:-0}"
+      BACKGROUND_TASK_SPELLCHECK_INTERVAL: "${BACKGROUND_TASK_SPELLCHECK_INTERVAL:-0}"
+      LOG_LEVEL: "${LOG_LEVEL:-debug}"
+      LOGGER: uvicorn
+      ELASTICSEARCH_URL:
+      ELASTICSEARCH_TIMEOUT: 20
+    networks: [ frontend, backend ]
+    volumes:
+      - ./:/app
+    command: ["/start-reload.sh"]
+
+  languagetool:
+    container_name: metaqs-languagetool
+    image: erikvl87/languagetool
+    environment:
+      Java_Xms: 512m
+      Java_Xmx: 2g
+    networks: [ backend ]
+    ports:
+      - "127.0.0.1:${LANGUAGETOOL_PORT:-8010}:8010"

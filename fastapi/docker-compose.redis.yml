@@ -1,0 +1,43 @@
+version: '3.9'
+
+volumes:
+  redis-data:
+  redisinsight-data:
+
+services:
+  nginx:
+    depends_on:
+      - redis
+      - redisinsight
+
+  fastapi:
+    depends_on:
+      - redis
+
+  redis:
+    container_name: metaqs-redis
+    image: redis:alpine
+    environment:
+      - REDIS_PASSWORD="${REDIS_PASSWORD}"
+      - REDIS_REPLICATION_MODE=master
+    networks: [ backend ]
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis-data:/data
+    command:
+      # Save if 100 keys are added in every 10 seconds
+      - "--save 10 100"
+      # Set password
+      - "--requirepass ${REDIS_PASSWORD}"
+
+  redisinsight: # redis db visualization dashboard
+    container_name: redisinsight
+    image: redislabs/redisinsight
+    depends_on:
+      - redis
+    networks: [ frontend, backend ]
+    ports:
+      - "127.0.0.1:8001:8001"
+    volumes:
+      - redisinsight-data:/db

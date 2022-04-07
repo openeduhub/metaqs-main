@@ -1,0 +1,1035 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.2.3, mkdocs-material-8.0.0b2" name="generator"/>
+<title>Info - MetaQS Documentation</title>
+<link href="../assets/stylesheets/main.0c73cc44.min.css" rel="stylesheet"/>
+<link href="../assets/stylesheets/palette.9204c3b2.min.css" rel="stylesheet"/>
+<meta content="#00bdd6" name="theme-color"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>function __md_scope(e,t,_){return new URL(_||(t===localStorage?"..":".."),location).pathname+"."+e}function __md_get(e,t=localStorage,_){return JSON.parse(t.getItem(__md_scope(e,t,_)))}function __md_set(e,t,_=localStorage,o){try{_.setItem(__md_scope(e,_,o),JSON.stringify(t))}catch(e){}}</script>
+</head>
+<body data-md-color-accent="" data-md-color-primary="cyan" data-md-color-scheme="slate" dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#macros-plugin-environment">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="MetaQS Documentation" class="md-header__button md-logo" data-md-component="logo" href=".." title="MetaQS Documentation">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            MetaQS Documentation
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Info
+            
+          </span>
+</div>
+</div>
+</div>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="MetaQS Documentation" class="md-nav__button md-logo" data-md-component="logo" href=".." title="MetaQS Documentation">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"></path></svg>
+</a>
+    MetaQS Documentation
+  </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="..">
+        Overview
+      </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../services/">
+        Service Architecture
+      </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../setup/">
+        Setup
+      </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../operations/">
+        Operations
+      </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../backup/">
+        Data Backup
+      </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../recovery/">
+        Recovery
+      </a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7">
+          FastAPI
+          <span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-label="FastAPI" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+          FastAPI
+        </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../fastapi/">
+        Overview
+      </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../fastapi/background_tasks/">
+        Analytics Background Tasks
+      </a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" id="__nav_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8">
+          Analytics
+          <span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-label="Analytics" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+          Analytics
+        </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../analytics/">
+        Analytics overview
+      </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../analytics/data_import/">
+        Data import and processing
+      </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../analytics/sql_processing/">
+        Data import and processing
+      </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../analytics/spellcheck_processing/">
+        Spellcheck processing
+      </a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard/">
+        Dashboard
+      </a>
+</li>
+<li class="md-nav__item md-nav__item--active">
+<input class="md-nav__toggle md-toggle" data-md-toggle="toc" id="__toc" type="checkbox"/>
+<label class="md-nav__link md-nav__link--active" for="__toc">
+          Info
+          <span class="md-nav__icon md-icon"></span>
+</label>
+<a class="md-nav__link md-nav__link--active" href="./">
+        Info
+      </a>
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#general-list">
+    General List
+  </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#config-information">
+    Config Information
+  </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#macros">
+    Macros
+  </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#git-information">
+    Git Information
+  </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#page-attributes">
+    Page Attributes
+  </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#plugin-filters">
+    Plugin Filters
+  </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#builtin-jinja2-filters">
+    Builtin Jinja2 Filters
+  </a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#general-list">
+    General List
+  </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#config-information">
+    Config Information
+  </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#macros">
+    Macros
+  </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#git-information">
+    Git Information
+  </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#page-attributes">
+    Page Attributes
+  </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#plugin-filters">
+    Plugin Filters
+  </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#builtin-jinja2-filters">
+    Builtin Jinja2 Filters
+  </a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="macros-plugin-environment">Macros Plugin Environment</h1>
+<h2 id="general-list">General List</h2>
+<p>All available variables and filters within the macros plugin:</p>
+<table class="pretty" style="background-color: #F0FFFF; border:1px solid #DCDCDC; padding: 5px">
+<th style="border:1px solid #DCDCDC; padding: 5px">Variable</th>
+<th style="border:1px solid #DCDCDC; padding: 5px">Type</th>
+<th style="border:1px solid #DCDCDC; padding: 5px">Content</th>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>extra</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>dict</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">mermaid_box_bg = 'var(--md-footer-bg-color--dark)'</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>config</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>Config</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">config_file_path = '/docs/mkdocs.yml', site_name = 'MetaQS Documentation', <b>nav</b> [<i>NoneType</i>], <b>pages</b> [<i>NoneType</i>], site_url = '', <b>site_description</b> [<i>NoneType</i>], <b>site_author</b> [<i>NoneType</i>], <b>theme</b> [<i>Theme</i>], docs_dir = '/docs/docs', site_dir = '/docs/site', <b>copyright</b> [<i>NoneType</i>], <b>google_analytics</b> [<i>NoneType</i>], <b>dev_addr</b> [<i>Address</i>], use_directory_urls = True, repo_url = '', repo_name = '', edit_uri = '', extra_css = ['assets/_mkdocstrings.css'], extra_javascript = ['https://unpkg.com/mermaid/dist/mermaid.min.js'], extra_templates = [], markdown_extensions = ['toc', 'tables', 'fenced_code', 'admonition', 'attr_list', 'def_list', 'pymdownx.tasklist', 'pymdownx.snippets', 'pymdownx.highlight', 'pymdownx.inlinehilite', 'pymdownx.superfences', <mkdocstrings.extension.mkdocstringsextension 0x7f5a74e00400="" at="" object="">, <mkdocs_autorefs.references.autorefsextension 0x7f5a748b1700="" at="" object="">], <b>mdx_configs</b> [<i>dict</i>], strict = False, remote_branch = 'gh-pages', remote_name = 'origin', <b>extra</b> [<i>SubConfig</i>], <b>plugins</b> [<i>PluginCollection</i>]</mkdocs_autorefs.references.autorefsextension></mkdocstrings.extension.mkdocstringsextension></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>environment</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>dict</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">system = 'Linux', system_version = '5.4.0-90-generic', python_version = '3.9.2', mkdocs_version = '1.2.3', macros_plugin_version = '0.6.3', jinja2_version = '3.0.3'</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>plugin</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>Config</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">module_name = 'main', modules = [], include_dir = '', include_yaml = [], j2_block_start_string = '', j2_block_end_string = '', j2_variable_start_string = '', j2_variable_end_string = '', verbose = False</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>git</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>dict</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">status = False, <b>date</b> [<i>NoneType</i>], short_commit = '', commit = '', author = '', tag = '', date_ISO = '', message = '', raw = '', root_dir = ''</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>mermaid_box_bg</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>str</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">'var(--md-footer-bg-color--dark)'</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>macros</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>SuperDict</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>context</b> [<i>function</i>], <b>macros_info</b> [<i>function</i>], <b>now</b> [<i>function</i>], <b>fix_url</b> [<i>function</i>]</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>filters</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>dict</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>pretty</b> [<i>function</i>]</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>filters_builtin</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>dict</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>abs</b> [<i>builtin_function_or_method</i>], <b>attr</b> [<i>function</i>], <b>batch</b> [<i>function</i>], <b>capitalize</b> [<i>function</i>], <b>center</b> [<i>function</i>], <b>count</b> [<i>builtin_function_or_method</i>], <b>d</b> [<i>function</i>], <b>default</b> [<i>function</i>], <b>dictsort</b> [<i>function</i>], <b>e</b> [<i>builtin_function_or_method</i>], <b>escape</b> [<i>builtin_function_or_method</i>], <b>filesizeformat</b> [<i>function</i>], <b>first</b> [<i>function</i>], <b>float</b> [<i>function</i>], <b>forceescape</b> [<i>function</i>], <b>format</b> [<i>function</i>], <b>groupby</b> [<i>function</i>], <b>indent</b> [<i>function</i>], <b>int</b> [<i>function</i>], <b>join</b> [<i>function</i>], <b>last</b> [<i>function</i>], <b>length</b> [<i>builtin_function_or_method</i>], <b>list</b> [<i>function</i>], <b>lower</b> [<i>function</i>], <b>map</b> [<i>function</i>], <b>min</b> [<i>function</i>], <b>max</b> [<i>function</i>], <b>pprint</b> [<i>function</i>], <b>random</b> [<i>function</i>], <b>reject</b> [<i>function</i>], <b>rejectattr</b> [<i>function</i>], <b>replace</b> [<i>function</i>], <b>reverse</b> [<i>function</i>], <b>round</b> [<i>function</i>], <b>safe</b> [<i>function</i>], <b>select</b> [<i>function</i>], <b>selectattr</b> [<i>function</i>], <b>slice</b> [<i>function</i>], <b>sort</b> [<i>function</i>], <b>string</b> [<i>builtin_function_or_method</i>], <b>striptags</b> [<i>function</i>], <b>sum</b> [<i>function</i>], <b>title</b> [<i>function</i>], <b>trim</b> [<i>function</i>], <b>truncate</b> [<i>function</i>], <b>unique</b> [<i>function</i>], <b>upper</b> [<i>function</i>], <b>urlencode</b> [<i>function</i>], <b>urlize</b> [<i>function</i>], <b>wordcount</b> [<i>function</i>], <b>wordwrap</b> [<i>function</i>], <b>xmlattr</b> [<i>function</i>], <b>tojson</b> [<i>function</i>]</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>navigation</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>Navigation</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">Page(title='Overview', url='.')<br/>Page(title=[blank], url='services/')<br/>Page(title=[blank], url='setup/')<br/>Page(title=[blank], url='operations/')<br/>Page(title='Data Backup', url='backup/')<br/>Page(title=[blank], url='recovery/')<br/>Section(title='FastAPI')<br/>    Page(title=[blank], url='fastapi/')<br/>    Page(title=[blank], url='fastapi/background_tasks/')<br/>Section(title='Analytics')<br/>    Page(title=[blank], url='analytics/')<br/>    Page(title=[blank], url='analytics/data_import/')<br/>    Page(title=[blank], url='analytics/sql_processing/')<br/>    Page(title=[blank], url='analytics/spellcheck_processing/')<br/>Page(title='Dashboard', url='dashboard/')<br/>Page(title='Info', url='info/')</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>files</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>Files</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><mkdocs.structure.files.files 0x7f5a76872790="" at="" object=""></mkdocs.structure.files.files></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>page</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>Page</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">Page(title='Info', url='info/')</td>
+</tr>
+</table>
+<h2 id="config-information">Config Information</h2>
+<p>Standard MkDocs configuration information. Do not try to modify.</p>
+<p>e.g. <code>{{ config.docs_dir }}</code></p>
+<p>See also the <a href="https://www.MkDocs.org/user-guide/custom-themes/#config">MkDocs documentation on the config object</a>.</p>
+<table class="pretty" style="background-color: #F0FFFF; border:1px solid #DCDCDC; padding: 5px">
+<th style="border:1px solid #DCDCDC; padding: 5px">Variable</th>
+<th style="border:1px solid #DCDCDC; padding: 5px">Type</th>
+<th style="border:1px solid #DCDCDC; padding: 5px">Content</th>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>config_file_path</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>str</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">'/docs/mkdocs.yml'</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>site_name</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>str</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">'MetaQS Documentation'</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>nav</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>NoneType</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">None</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>pages</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>NoneType</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">None</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>site_url</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>str</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">''</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>site_description</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>NoneType</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">None</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>site_author</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>NoneType</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">None</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>theme</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>Theme</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">Theme(name='material', dirs=['/usr/local/lib/python3.9/site-packages/material', '/usr/local/lib/python3.9/site-packages/mkdocs/templates'], static_templates=['404.html', 'sitemap.xml'], locale=Locale(language='en', territory=''), language='en', direction=None, features=[], palette={'scheme': 'slate', 'primary': 'cyan'}, font={'text': 'Roboto', 'code': 'Roboto Mono'}, icon=None, favicon='assets/images/favicon.png', include_search_page=False, search_index_only=True)</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>docs_dir</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>str</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">'/docs/docs'</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>site_dir</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>str</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">'/docs/site'</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>copyright</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>NoneType</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">None</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>google_analytics</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>NoneType</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">None</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>dev_addr</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>Address</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">Address(host='127.0.0.1', port=8000)</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>use_directory_urls</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>bool</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">True</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>repo_url</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>str</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">''</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>repo_name</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>str</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">''</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>edit_uri</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>str</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">''</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>extra_css</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>list</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">['assets/_mkdocstrings.css']</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>extra_javascript</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>list</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">['https://unpkg.com/mermaid/dist/mermaid.min.js']</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>extra_templates</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>list</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">[]</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>markdown_extensions</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>list</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">['toc', 'tables', 'fenced_code', 'admonition', 'attr_list', 'def_list', 'pymdownx.tasklist', 'pymdownx.snippets', 'pymdownx.highlight', 'pymdownx.inlinehilite', 'pymdownx.superfences', <mkdocstrings.extension.mkdocstringsextension 0x7f5a74e00400="" at="" object="">, <mkdocs_autorefs.references.autorefsextension 0x7f5a748b1700="" at="" object="">]</mkdocs_autorefs.references.autorefsextension></mkdocstrings.extension.mkdocstringsextension></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>mdx_configs</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>dict</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>pymdownx.tasklist</b> [<i>dict</i>], <b>pymdownx.superfences</b> [<i>dict</i>]</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>strict</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>bool</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">False</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>remote_branch</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>str</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">'gh-pages'</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>remote_name</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>str</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">'origin'</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>extra</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>SubConfig</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">{'mermaid_box_bg': 'var(--md-footer-bg-color--dark)'}</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>plugins</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>PluginCollection</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>search</b> [<i>SearchPlugin</i>], <b>mkdocstrings</b> [<i>MkdocstringsPlugin</i>], <b>awesome-pages</b> [<i>AwesomePagesPlugin</i>], <b>macros</b> [<i>MacrosPlugin</i>], <b>mermaid2</b> [<i>MarkdownMermaidPlugin</i>], <b>autorefs</b> [<i>AutorefsPlugin</i>]</td>
+</tr>
+</table>
+<h2 id="macros">Macros</h2>
+<p>These macros have been defined programmatically for this environment
+(module or pluglets). </p>
+<table class="pretty" style="background-color: #F0FFFF; border:1px solid #DCDCDC; padding: 5px">
+<th style="border:1px solid #DCDCDC; padding: 5px">Variable</th>
+<th style="border:1px solid #DCDCDC; padding: 5px">Type</th>
+<th style="border:1px solid #DCDCDC; padding: 5px">Content</th>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>context</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>obj, e</i>)<br/> <p><em>Default mkdocs_macro</em> List the defined variables</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>macros_info</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i></i>)<br/> <p>Test/debug function:         list useful documentation on the mkdocs_macro environment.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>now</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i></i>)<br/> <p>Get the current time (returns a datetime object).          Used alone, it provides a timestamp.         To get the year use <code>now().year</code>, for the month number          <code>now().month</code>, etc.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>fix_url</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>url, r</i>)<br/> <p>If url is relative, fix it so that it points to the docs diretory.     This is necessary because relative links in markdown must be adapted     in html ('img/foo.png' =&gt; '../img/img.png').</p></td>
+</tr>
+</table>
+<h2 id="git-information">Git Information</h2>
+<p>Information available on the last commit and the git repository containing the
+documentation project:</p>
+<p>e.g. <code>{{ git.message }}</code></p>
+<table class="pretty" style="background-color: #F0FFFF; border:1px solid #DCDCDC; padding: 5px">
+<th style="border:1px solid #DCDCDC; padding: 5px">Variable</th>
+<th style="border:1px solid #DCDCDC; padding: 5px">Type</th>
+<th style="border:1px solid #DCDCDC; padding: 5px">Content</th>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>status</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>bool</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">False</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>date</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>NoneType</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">None</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>short_commit</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>str</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">''</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>commit</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>str</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">''</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>author</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>str</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">''</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>tag</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>str</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">''</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>date_ISO</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>str</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">''</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>message</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>str</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">''</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>raw</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>str</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">''</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>root_dir</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>str</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">''</td>
+</tr>
+</table>
+<h2 id="page-attributes">Page Attributes</h2>
+<p>Provided by MkDocs. These attributes change for every page
+(the attributes shown are for this page).</p>
+<p>e.g. <code>{{ page.title }}</code></p>
+<p>See also the <a href="https://www.MkDocs.org/user-guide/custom-themes/#page">MkDocs documentation on the page object</a>.</p>
+<table class="pretty" style="background-color: #F0FFFF; border:1px solid #DCDCDC; padding: 5px">
+<th style="border:1px solid #DCDCDC; padding: 5px">Variable</th>
+<th style="border:1px solid #DCDCDC; padding: 5px">Type</th>
+<th style="border:1px solid #DCDCDC; padding: 5px">Content</th>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>file</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>File</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>page</b> [<i>Page</i>], src_path = 'info.md', abs_src_path = '/docs/docs/info.md', name = 'info', dest_path = 'info/index.html', abs_dest_path = '/docs/site/info/index.html', url = 'info/'</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>title</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>str</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">'Info'</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>parent</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>NoneType</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">None</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>children</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>NoneType</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">None</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>previous_page</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>Page</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">Page(title='Dashboard', url='dashboard/')</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>next_page</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>NoneType</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">None</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>_Page__active</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>bool</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">False</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>is_section</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>bool</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">False</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>is_page</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>bool</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">True</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>is_link</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>bool</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">False</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>update_date</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>str</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">'2021-11-30'</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>canonical_url</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>NoneType</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">None</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>abs_url</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>NoneType</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">None</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>edit_url</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>NoneType</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">None</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>markdown</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>str</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">'{{ macros_info() }}'</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>content</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>NoneType</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">None</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>toc</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>list</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">[]</td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>meta</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>dict</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"></td>
+</tr>
+</table>
+<p>To have all titles of all pages, use:</p>
+<div class="highlight"><pre><span></span><code>{% for page in navigation.pages %}
+- {{ page.title }}
+{% endfor% }
+</code></pre></div>
+<h2 id="plugin-filters">Plugin Filters</h2>
+<p>These filters are provided as a standard by the macros plugin.</p>
+<table class="pretty" style="background-color: #F0FFFF; border:1px solid #DCDCDC; padding: 5px">
+<th style="border:1px solid #DCDCDC; padding: 5px">Variable</th>
+<th style="border:1px solid #DCDCDC; padding: 5px">Type</th>
+<th style="border:1px solid #DCDCDC; padding: 5px">Content</th>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>pretty</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>var_list, rows, header, e</i>)<br/> <p><em>Default mkdocs_macro</em> Prettify a dictionary or object          (used for environment documentation, or debugging).</p></td>
+</tr>
+</table>
+<h2 id="builtin-jinja2-filters">Builtin Jinja2 Filters</h2>
+<p>These filters are provided by Jinja2 as a standard.</p>
+<p>See also the <a href="https://jinja.palletsprojects.com/en/2.11.x/templates/#builtin-filters">Jinja2 documentation on builtin filters</a>).</p>
+<table class="pretty" style="background-color: #F0FFFF; border:1px solid #DCDCDC; padding: 5px">
+<th style="border:1px solid #DCDCDC; padding: 5px">Variable</th>
+<th style="border:1px solid #DCDCDC; padding: 5px">Type</th>
+<th style="border:1px solid #DCDCDC; padding: 5px">Content</th>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>abs</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>builtin_function_or_method</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><p>Return the absolute value of the argument.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>attr</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>environment, obj, name, value</i>)<br/> <p>Get an attribute of an object.  <code>foo|attr("bar")</code> works like     <code>foo.bar</code> just that always an attribute is returned and items are not     looked up.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>batch</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>value, linecount, fill_with, tmp, item</i>)<br/> <p>A filter that batches items. It works pretty much like <code>slice</code>     just the other way round. It returns a list of lists with the     given number of items. If you provide a second parameter this     is used to fill up missing items. See this example.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>capitalize</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>s</i>)<br/> <p>Capitalize a value. The first character will be uppercase, all others     lowercase.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>center</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>value, width</i>)<br/> <p>Centers the value in a field of a given width.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>count</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>builtin_function_or_method</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><p>Return the number of items in a container.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>d</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>value, default_value, boolean</i>)<br/> <p>If the value is undefined it will return the passed default value,     otherwise the value of the variable.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>default</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>value, default_value, boolean</i>)<br/> <p>If the value is undefined it will return the passed default value,     otherwise the value of the variable.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>dictsort</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>value, case_sensitive, by, reverse, sort_func</i>)<br/> <p>Sort a dict and yield (key, value) pairs. Python dicts may not     be in the order you want to display them in, so sort them first.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>e</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>builtin_function_or_method</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><p>Replace the characters <code>&amp;</code>, <code>&lt;</code>, <code>&gt;</code>, <code>'</code>, and <code>"</code> in the string with HTML-safe sequences. Use this if you need to display text that might contain such characters in HTML.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>escape</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>builtin_function_or_method</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><p>Replace the characters <code>&amp;</code>, <code>&lt;</code>, <code>&gt;</code>, <code>'</code>, and <code>"</code> in the string with HTML-safe sequences. Use this if you need to display text that might contain such characters in HTML.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>filesizeformat</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>value, binary, bytes, base, prefixes, i, prefix, unit</i>)<br/> <p>Format the value like a 'human-readable' file size (i.e. 13 kB,     4.1 MB, 102 Bytes, etc).  Per default decimal prefixes are used (Mega,     Giga, etc.), if the second parameter is set to <code>True</code> the binary     prefixes are used (Mebi, Gibi).</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>first</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>args, kwargs, b</i>)<br/> <p>Return the first item of a sequence.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>float</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>value, default</i>)<br/> <p>Convert the value into a floating point number. If the     conversion doesn't work it will return <code>0.0</code>. You can     override this default using the first parameter.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>forceescape</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>value</i>)<br/> <p>Enforce HTML escaping.  This will probably double escape variables.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>format</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>value, args, kwargs</i>)<br/> <p>Apply the given values to a <code>printf-style</code>_ format string, like     <code>string % values</code>.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>groupby</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>args, kwargs, b</i>)<br/> <p>Group a sequence of objects by an attribute using Python's     :func:<code>itertools.groupby</code>. The attribute can use dot notation for     nested access, like <code>"address.city"</code>. Unlike Python's <code>groupby</code>,     the values are sorted first so only one group is returned for each     unique value.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>indent</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>s, width, first, blank, newline, rv, lines</i>)<br/> <p>Return a copy of the string with each line indented by 4 spaces. The     first line and blank lines are not indented by default.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>int</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>value, default, base</i>)<br/> <p>Convert the value into an integer. If the     conversion doesn't work it will return <code>0</code>. You can     override this default using the first parameter. You     can also override the default base (10) in the second     parameter, which handles input with prefixes such as     0b, 0o and 0x for bases 2, 8 and 16 respectively.     The base is ignored for decimal numbers and non-string values.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>join</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>args, kwargs, b</i>)<br/> <p>Return a string which is the concatenation of the strings in the     sequence. The separator between elements is an empty string per     default, you can define it with the optional parameter.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>last</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>environment, seq</i>)<br/> <p>Return the last item of a sequence.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>length</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>builtin_function_or_method</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><p>Return the number of items in a container.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>list</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>args, kwargs, b</i>)<br/> <p>Convert the value into a list.  If it was a string the returned list     will be a list of characters.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>lower</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>s</i>)<br/> <p>Convert a value to lowercase.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>map</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>args, kwargs, b</i>)<br/> <p>Applies a filter on a sequence of objects or looks up an attribute.     This is useful when dealing with lists of objects but you are really     only interested in a certain value of it.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>min</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>environment, value, case_sensitive, attribute</i>)<br/> <p>Return the smallest item from the sequence.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>max</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>environment, value, case_sensitive, attribute</i>)<br/> <p>Return the largest item from the sequence.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>pprint</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>value</i>)<br/> <p>Pretty print a variable. Useful for debugging.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>random</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>context, seq</i>)<br/> <p>Return a random item from the sequence.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>reject</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>args, kwargs, b</i>)<br/> <p>Filters a sequence of objects by applying a test to each object,     and rejecting the objects with the test succeeding.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>rejectattr</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>args, kwargs, b</i>)<br/> <p>Filters a sequence of objects by applying a test to the specified     attribute of each object, and rejecting the objects with the test     succeeding.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>replace</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>eval_ctx, s, old, new, count</i>)<br/> <p>Return a copy of the value with all occurrences of a substring     replaced with a new one. The first argument is the substring     that should be replaced, the second is the replacement string.     If the optional third argument <code>count</code> is given, only the first     <code>count</code> occurrences are replaced.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>reverse</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>value, rv, e</i>)<br/> <p>Reverse the object or return an iterator that iterates over it the other     way round.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>round</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>value, precision, method, func</i>)<br/> <p>Round the number to a given precision. The first     parameter specifies the precision (default is <code>0</code>), the     second the rounding method.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>safe</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>value</i>)<br/> <p>Mark the value as safe which means that in an environment with automatic     escaping enabled this variable will not be escaped.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>select</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>args, kwargs, b</i>)<br/> <p>Filters a sequence of objects by applying a test to each object,     and only selecting the objects with the test succeeding.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>selectattr</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>args, kwargs, b</i>)<br/> <p>Filters a sequence of objects by applying a test to the specified     attribute of each object, and only selecting the objects with the     test succeeding.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>slice</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>args, kwargs, b</i>)<br/> <p>Slice an iterator and return a list of lists containing     those items. Useful if you want to create a div containing     three ul tags that represent columns.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>sort</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>environment, value, reverse, case_sensitive, attribute, key_func</i>)<br/> <p>Sort an iterable using Python's :func:<code>sorted</code>.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>string</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>builtin_function_or_method</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><p>Convert an object to a string if it isn't already. This preserves a :class:<code>Markup</code> string rather than converting it back to a basic string, so it will still be marked as safe and won't be escaped again.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>striptags</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>value</i>)<br/> <p>Strip SGML/XML tags and replace adjacent whitespace by one space.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>sum</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>args, kwargs, b</i>)<br/> <p>Returns the sum of a sequence of numbers plus the value of parameter     'start' (which defaults to 0).  When the sequence is empty it returns     start.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>title</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>s</i>)<br/> <p>Return a titlecased version of the value. I.e. words will start with     uppercase letters, all remaining characters are lowercase.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>trim</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>value, chars</i>)<br/> <p>Strip leading and trailing characters, by default whitespace.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>truncate</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>env, s, length, killwords, end, leeway, result</i>)<br/> <p>Return a truncated copy of the string. The length is specified     with the first parameter which defaults to <code>255</code>. If the second     parameter is <code>true</code> the filter will cut the text at length. Otherwise     it will discard the last word. If the text was in fact     truncated it will append an ellipsis sign (<code>"..."</code>). If you want a     different ellipsis sign than <code>"..."</code> you can specify it using the     third parameter. Strings that only exceed the length by the tolerance     margin given in the fourth parameter will not be truncated.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>unique</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>environment, value, case_sensitive, attribute, getter, seen, item, key</i>)<br/> <p>Returns a list of unique items from the given iterable.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>upper</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>s</i>)<br/> <p>Convert a value to uppercase.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>urlencode</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>value, items</i>)<br/> <p>Quote data for use in a URL path or query using UTF-8.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>urlize</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>eval_ctx, value, trim_url_limit, nofollow, target, rel, extra_schemes, policies, rel_parts, scheme, rv</i>)<br/> <p>Convert URLs in text into clickable links.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>wordcount</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>s</i>)<br/> <p>Count the words in that string.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>wordwrap</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>environment, s, width, break_long_words, wrapstring, break_on_hyphens</i>)<br/> <p>Wrap a string to the given width. Existing newlines are treated     as paragraphs to be wrapped separately.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>xmlattr</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>eval_ctx, d, autospace, rv</i>)<br/> <p>Create an SGML/XML attribute string based on the items in a dict.     All values that are neither <code>none</code> nor <code>undefined</code> are automatically     escaped.</p></td>
+</tr>
+<tr>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><b>tojson</b></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px"><i>function</i></td>
+<td style="vertical-align:top; border:1px solid #DCDCDC; padding: 5px">(<i>eval_ctx, value, indent, policies, dumps, kwargs</i>)<br/> <p>Serialize an object to a string of JSON, and mark it safe to     render in HTML. This filter is only for use in HTML documents.</p></td>
+</tr>
+</table>
+</article>
+</div>
+</div>
+</main>
+<footer class="md-footer">
+<nav aria-label="Footer" class="md-footer__inner md-grid">
+<a aria-label="Previous: Dashboard" class="md-footer__link md-footer__link--prev" href="../dashboard/" rel="prev">
+<div class="md-footer__button md-icon">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"></path></svg>
+</div>
+<div class="md-footer__title">
+<div class="md-ellipsis">
+<span class="md-footer__direction">
+                Previous
+              </span>
+              Dashboard
+            </div>
+</div>
+</a>
+</nav>
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.01824240.min.js", "version": null}</script>
+<script src="../assets/javascripts/bundle.0885dc41.min.js"></script>
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</body>
+</html>

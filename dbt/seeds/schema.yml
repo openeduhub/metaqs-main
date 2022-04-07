@@ -1,0 +1,38 @@
+version: 2
+
+seeds:
+
+  - name: 01.raw_collections
+    config:
+      enabled: false
+      alias: collections
+      column_types:
+        id: uuid
+        doc: jsonb
+      post-hook:
+        - "alter table raw.collections add primary key (id)"
+
+  - name: 02.raw_materials
+    config:
+      enabled: false
+      alias: materials
+      column_types:
+        id: uuid
+        doc: jsonb
+      post-hook:
+        - "alter table raw.materials add primary key (id)"
+
+  - name: 03.spellcheck
+    config:
+      enabled: true
+      alias: spellcheck
+      schema: store
+      column_types:
+        resource_id: uuid
+        resource_field: text
+        resource_type: text
+        text_content: text
+        derived_at: timestamp
+        error: jsonb
+      post-hook:
+        - "alter table store.spellcheck add primary key (resource_id, resource_field)"

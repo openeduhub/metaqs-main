@@ -1,0 +1,62 @@
+version: '3.9'
+
+volumes:
+  elastic-data:
+
+services:
+  nginx:
+    depends_on:
+      - elasticsearch
+#      - kibana
+
+  fastapi:
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+
+  elasticsearch:
+    container_name: metaqs-elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.13.4
+    ulimits:
+      memlock:
+        hard: -1
+        soft: -1
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+    networks: [ backend ]
+    ports:
+      - "127.0.0.1:${ELASTICSEARCH_PORT:-9200}:9200"
+    volumes:
+      - elastic-data:/usr/share/elasticsearch/data
+
+#  kibana:
+#    container_name: metaqs-kibana
+#    image: docker.elastic.co/kibana/kibana:7.13.4
+#    environment:
+#      - ELASTICSEARCH_HOSTS=["${ELASTICSEARCH_URL:-http://elasticsearch:9200}"]
+#    depends_on:
+#      - elasticsearch
+#    networks: [ frontend, backend ]
+#    ports:
+#      - "127.0.0.1:5601:5601"
+
+#  importer:
+#    container_name: metaqs-importer
+#    image: elasticdump/elasticsearch-dump
+#    depends_on:
+#      - elasticsearch
+#    networks: [ backend ]
+#    volumes:
+#      - "${PWD}/wlo.json.gz:/tmp/dump.json.gz"
+#    command:
+#      - /bin/bash
+#      - -c
+#      - |
+#        apt-get update \
+#        && apt-get install -y curl \
+#        && curl -X PUT -H "Content-Type: application/json" -d '{"index_patterns" : ["workspace"],"order" : 1,"settings" : {"index.mapping.total_fields.limit" : "2000"}}' http://elasticsearch:9200/_template/workspace 2>/dev/null | grep -q '{"acknowledged":true}' \
+#        && elasticdump --input=/tmp/dump.json.gz --output=http://elasticsearch:9200/workspace --fsCompress
