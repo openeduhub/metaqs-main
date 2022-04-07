@@ -90,7 +90,7 @@ services:
   fastapi:
     container_name: metaqs-fastapi
     build:
-      context: ../fastapi/
+      context: ./src/
       network: host
     image: community.docker.edu-sharing.com/metaqs-fastapi:latest
     <<: *restart-policy
@@ -122,7 +122,7 @@ services:
   dbt:
     container_name: metaqs-dbt
     build:
-      context: ../dbt/
+      context: ./dbt/
       network: host
     image: community.docker.edu-sharing.com/metaqs-dbt:latest
     <<: *restart-policy
