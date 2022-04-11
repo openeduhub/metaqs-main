@@ -137,7 +137,7 @@ services:
     networks: [ backend ]
     expose:
       - 8580
-    # command: [ "dbt", "rpc" ]
+    command: [ "dbt", "rpc" ]
 
   languagetool:
     container_name: metaqs-languagetool
