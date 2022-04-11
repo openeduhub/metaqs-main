@@ -51,10 +51,11 @@ services:
     depends_on:
       - fastapi
     environment:
-      NGINX_HOST: "${NGINX_HOST:-localhost}"
+      NGINX_HOST: "${NGINX_HOST:-metaqs_localhost}"
       ROOT_PATH: "/metaqs-api/${API_VERSION:-v1}"
     volumes:
-      - ./nginx/nginx-ssl.conf.template:/etc/nginx/templates/default.conf.template:ro
+      # - ./nginx/nginx-ssl.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./nginx/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
       - ./nginx/certbot/conf:/etc/letsencrypt
       - ./nginx/certbot/www:/var/www/certbot
       - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro
@@ -136,7 +137,7 @@ services:
     networks: [ backend ]
     expose:
       - 8580
-    command: [ "dbt", "rpc" ]
+    # command: [ "dbt", "rpc" ]
 
   languagetool:
     container_name: metaqs-languagetool

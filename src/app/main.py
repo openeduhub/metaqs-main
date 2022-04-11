@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from pydantic import BaseModel, Field
@@ -23,8 +25,11 @@ from app.core.config import (
     ROOT_PATH,
 )
 from app.core.errors import http_422_error_handler, http_error_handler
+from app.core.logging import logger
 from app.elastic.utils import close_elastic_connection, connect_to_elastic
 from app.http import close_client
+
+API_PORT = 8081
 
 OPEN_API_VERSION = "2.1.0"
 fastapi_app = FastAPI(
@@ -37,7 +42,7 @@ fastapi_app = FastAPI(
     version=OPEN_API_VERSION,
     debug=DEBUG,
 )
-
+logger.debug(f"Launching FastAPI on root path {ROOT_PATH}")
 
 class Ping(BaseModel):
     status: str = Field(
@@ -121,7 +126,7 @@ if __name__ == "__main__":
 
     conf = {
         "host": "0.0.0.0",
-        "port": 80,
+        "port": API_PORT,
         "reload": True,
         "reload_dirs": [f"{os.getcwd()}/app"],
         "log_level": LOG_LEVEL,

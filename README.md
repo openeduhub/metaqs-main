@@ -170,6 +170,14 @@ CREATE TABLE [raw.collections]
 
 ## Launch environment
 
+Nginx must be configured with letsencrypt. Run
+
+```bash
+./init_letsencrypt.sh   
+```
+
+enter your desired domain. You need write permissions on that domain.
+
 ```bash
 docker-compose up
 ```
