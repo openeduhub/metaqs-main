@@ -7,9 +7,9 @@ from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
 from starlette_context.middleware import RawContextMiddleware
 
 import app.api as api
-from app.analytics.analytics import background_task as analytics_background_task
-from app.analytics.search_stats import background_task as search_stats_background_task
-from app.analytics.spellcheck import background_task as spellcheck_background_task
+# from app.analytics.analytics import background_task as analytics_background_task
+# from app.analytics.search_stats import background_task as search_stats_background_task
+# from app.analytics.spellcheck import background_task as spellcheck_background_task
 from app.api.languagetool import router as languagetool_router
 from app.core.config import (
     ALLOWED_HOSTS,
@@ -26,6 +26,7 @@ from app.core.errors import http_422_error_handler, http_error_handler
 from app.elastic.utils import close_elastic_connection, connect_to_elastic
 from app.http import close_client
 
+OPEN_API_VERSION = "2.1.0"
 fastapi_app = FastAPI(
     root_path=ROOT_PATH,
     title=f"{PROJECT_NAME} API",
@@ -33,7 +34,7 @@ fastapi_app = FastAPI(
 * [**Analytics API**]({ROOT_PATH}/analytics/docs)
 * [**LanguageTool API**]({ROOT_PATH}/languagetool/docs)
     """,
-    version=API_VERSION,
+    version=OPEN_API_VERSION,
     debug=DEBUG,
 )
 
@@ -57,17 +58,18 @@ async def ping_api():
 
 fastapi_app.include_router(api.real_time_router, prefix=f"/real-time")
 
-analytics_app = FastAPI(
-    title=f"{PROJECT_NAME} Analytics API",
-    description=f"""
-* [**Real-Time API**]({ROOT_PATH}/docs)
-* [**LanguageTool API**]({ROOT_PATH}/languagetool/docs)
-    """,
-    version=API_VERSION,
-    debug=DEBUG,
-)
-analytics_app.include_router(api.analytics_router)
-fastapi_app.mount(path="/analytics", app=analytics_app)
+if False:
+    analytics_app = FastAPI(
+        title=f"{PROJECT_NAME} Analytics API",
+        description=f"""
+    * [**Real-Time API**]({ROOT_PATH}/docs)
+    * [**LanguageTool API**]({ROOT_PATH}/languagetool/docs)
+        """,
+        version=OPEN_API_VERSION,
+        debug=DEBUG,
+    )
+    analytics_app.include_router(api.analytics_router)
+    fastapi_app.mount(path="/analytics", app=analytics_app)
 
 languagetool_app = FastAPI(
     title=f"{PROJECT_NAME} LanguageTool API",
@@ -76,6 +78,7 @@ languagetool_app = FastAPI(
 * [**Analytics API**]({ROOT_PATH}/analytics/docs)
     """,
     debug=DEBUG,
+    version=OPEN_API_VERSION
 )
 languagetool_app.include_router(languagetool_router)
 fastapi_app.mount(path="/languagetool", app=languagetool_app)
@@ -89,12 +92,13 @@ fastapi_app.add_middleware(RawContextMiddleware)
 fastapi_app.add_event_handler("startup", connect_to_elastic)
 fastapi_app.add_event_handler("shutdown", close_elastic_connection)
 
-if BACKGROUND_TASK_ANALYTICS_INTERVAL:
-    fastapi_app.add_event_handler("startup", analytics_background_task)
-if BACKGROUND_TASK_SEARCH_STATS_INTERVAL:
-    fastapi_app.add_event_handler("startup", search_stats_background_task)
-if BACKGROUND_TASK_SPELLCHECK_INTERVAL:
-    fastapi_app.add_event_handler("startup", spellcheck_background_task)
+if False:
+    if BACKGROUND_TASK_ANALYTICS_INTERVAL:
+        fastapi_app.add_event_handler("startup", analytics_background_task)
+    if BACKGROUND_TASK_SEARCH_STATS_INTERVAL:
+        fastapi_app.add_event_handler("startup", search_stats_background_task)
+    if BACKGROUND_TASK_SPELLCHECK_INTERVAL:
+        fastapi_app.add_event_handler("startup", spellcheck_background_task)
 
 fastapi_app.add_exception_handler(HTTPException, http_error_handler)
 fastapi_app.add_exception_handler(HTTP_422_UNPROCESSABLE_ENTITY, http_422_error_handler)
@@ -109,7 +113,6 @@ app = CORSMiddleware(
     allow_headers=["*"],
     expose_headers=["X-Total-Count"],
 )
-
 
 if __name__ == "__main__":
     import os

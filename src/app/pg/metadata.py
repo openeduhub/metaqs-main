@@ -8,6 +8,7 @@ from app.core.config import DATABASE_URL
 
 engine = sa.create_engine(str(DATABASE_URL), future=True)
 Base = declarative_base()
+print("has_collections:", engine.dialect.has_table(engine, "collections"))
 
 
 @unique
@@ -62,7 +63,6 @@ search_stats = sa.Table(
     autoload_with=engine,
 )
 
-
 spellcheck_queue = sa.Table(
     "spellcheck_queue",
     Base.metadata,
@@ -73,7 +73,6 @@ spellcheck_queue = sa.Table(
     schema="staging",
     autoload_with=engine,
 )
-
 
 spellcheck = sa.Table(
     "spellcheck",

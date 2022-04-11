@@ -91,3 +91,85 @@ Superset
 docker-compose build superset
 docker push community.docker.edu-sharing.com/metaqs-superset:latest
 ```
+
+## Preparing SQL
+
+Launch postgres container and connect to `analytics` database.
+
+```bash
+docker-compose up -d postgres
+docker-compose exec -u postgres postgres psql -d analytics
+```
+
+List all tables
+
+```postgresql
+\l
+\dt
+```
+
+Get all relevant tables
+```postgresql
+SELECT * FROM pg_catalog.pg_tables
+WHERE schemaname != 'information_schema' AND
+schemaname != 'pg_catalog';
+```
+
+Create necessary tables
+
+
+
+in prod:
+
+analytics=# \l
+                                 List of databases
+   Name    |  Owner   | Encoding |  Collate   |   Ctype    |   Access privileges   
+-----------+----------+----------+------------+------------+-----------------------
+ analytics | postgres | UTF8     | en_US.utf8 | en_US.utf8 | 
+ postgres  | postgres | UTF8     | en_US.utf8 | en_US.utf8 | 
+ template0 | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =c/postgres          +
+           |          |          |            |            | postgres=CTc/postgres
+ template1 | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =c/postgres          +
+           |          |          |            |            | postgres=CTc/postgres
+(4 rows)
+
+analytics=# \dt
+              List of relations
+ Schema |      Name       | Type  |  Owner   
+--------+-----------------+-------+----------
+ public | alembic_version | table | postgres
+(1 row)
+
+
+ schemaname |                 tablename                 | tableowner | tablespace | hasindexes | hasrules | hastriggers | rowsecurity 
+------------+-------------------------------------------+------------+------------+------------+----------+-------------+-------------
+ public     | alembic_version                           | postgres   |            | t          | f        | f           | f
+ raw        | collections_previous_run                  | postgres   |            | f          | f        | f           | f
+ raw        | collections                               | postgres   |            | t          | f        | f           | f
+ raw        | materials_previous_run                    | postgres   |            | f          | f        | f           | f
+ store      | spellcheck                                | postgres   |            | t          | f        | f           | f
+ store      | search_stats                              | postgres   |            | t          | f        | f           | f
+ staging    | missing_fields                            | postgres   |            | f          | f        | f           | f
+ staging    | collections                               | postgres   |            | f          | f        | f           | f
+ staging    | pruned_resource_ids                       | postgres   |            | f          | f        | f           | f
+ staging    | collection_material                       | postgres   |            | f          | f        | f           | f
+ staging    | materials                                 | postgres   |            | f          | f        | f           | f
+ staging    | spellcheck_queue                          | postgres   |            | f          | f        | f           | f
+ staging    | collection_material_ext                   | postgres   |            | f          | f        | f           | f
+ raw        | materials                                 | postgres   |            | t          | f        | f           | f
+ staging    | spellcheck                                | postgres   |            | f          | f        | f           | f
+ staging    | material_counts                           | postgres   |            | f          | f        | f           | f
+ staging    | material_counts_by_error_field            | postgres   |            | f          | f        | f           | f
+ staging    | material_counts_by_learning_resource_type | postgres   |            | f          | f        | f           | f
+ staging    | materials_by_missing_field                | postgres   |            | f          | f        | f           | f
+
+TODO: Create tables in pg
+```postgresql
+CREATE TABLE [raw.collections]
+```
+
+## Launch environment
+
+```bash
+docker-compose up
+```

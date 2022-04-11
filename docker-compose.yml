@@ -33,6 +33,8 @@ services:
   postgres:
     container_name: metaqs-postgres
     image: postgres:14
+    ports:
+      - "5432:5432"
     <<: *restart-policy
     <<: *logging-config
     environment:
@@ -49,8 +51,8 @@ services:
     depends_on:
       - fastapi
     environment:
-      NGINX_HOST: "${NGINX_HOST}"
-      ROOT_PATH: "/metaqs-api/${API_VERSION}"
+      NGINX_HOST: "${NGINX_HOST:-localhost}"
+      ROOT_PATH: "/metaqs-api/${API_VERSION:-v1}"
     volumes:
       - ./nginx/nginx-ssl.conf.template:/etc/nginx/templates/default.conf.template:ro
       - ./nginx/certbot/conf:/etc/letsencrypt
@@ -102,17 +104,17 @@ services:
     environment:
       <<: *postgres-vars
       POSTGRES_HOST: postgres
-      ROOT_PATH: "/metaqs-api/${API_VERSION}"
-      API_VERSION: "${API_VERSION}"
-      API_KEY: "${API_KEY}"
-      ALLOWED_HOSTS: "${ALLOWED_HOSTS}"
+      ROOT_PATH: "/metaqs-api/${API_VERSION:-v1}"
+      API_VERSION: "${API_VERSION:-v1}"
+      API_KEY: "${API_KEY:-openeduhub}"
+      ALLOWED_HOSTS: "${ALLOWED_HOSTS:-*}"
       BACKGROUND_TASK_ANALYTICS_INTERVAL: "${BACKGROUND_TASK_ANALYTICS_INTERVAL:-0}"
       BACKGROUND_TASK_SEARCH_STATS_INTERVAL: "${BACKGROUND_TASK_SEARCH_STATS_INTERVAL:-0}"
       BACKGROUND_TASK_SEARCH_STATS_SLEEP_INTERVAL: "${BACKGROUND_TASK_SEARCH_STATS_SLEEP_INTERVAL:-0}"
       BACKGROUND_TASK_SPELLCHECK_INTERVAL: "${BACKGROUND_TASK_SPELLCHECK_INTERVAL:-0}"
-      LOG_LEVEL: "${LOG_LEVEL}"
+      LOG_LEVEL: "${LOG_LEVEL:-debug}"
       LOGGER: uvicorn
-      ELASTICSEARCH_URL: "${ELASTICSEARCH_URL}"
+      ELASTICSEARCH_URL: "${ELASTICSEARCH_URL:-http://10.254.1.31:9200}"
       ELASTICSEARCH_TIMEOUT: 20
       WEB_CONCURRENCY: 1
     networks:

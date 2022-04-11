@@ -7,5 +7,7 @@ RUN apt-get update \
     && cd /usr/local/bin \
     && ln -s /opt/poetry/bin/poetry \
     && poetry config virtualenvs.create false
-COPY ./ /app
+COPY pyproject.toml /app/pyproject.toml
+COPY poetry.lock /app/poetry.lock
 RUN poetry install --no-root
+COPY ./ /app
