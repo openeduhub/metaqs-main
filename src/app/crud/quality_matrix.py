@@ -10,7 +10,7 @@ from app.models.elastic import ElasticResourceAttribute
 async def get_quality_matrix():
     s = Search().query(qbool(filter=[*base_filter]))
 
-    response: Response = s.source()[:ELASTIC_MAX_SIZE].execute()
+    response: Response = s.source()[:100].execute()
 
     if response.success():
         return response
