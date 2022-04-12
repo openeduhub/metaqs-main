@@ -1,5 +1,6 @@
 from typing import List, Dict
 
+from elasticsearch_dsl import AttrDict
 from elasticsearch_dsl.response import Response
 
 from app.core.logging import logger
@@ -10,10 +11,11 @@ REPLICATION_SOURCE = "ccm:replicationsource"
 PROPERTIES = "properties"
 
 
-def extract_replication_source(data: List) -> Dict:
+def extract_replication_source(data: List[AttrDict]) -> Dict:
     result = {}
     # TODO: Rewrite functional
-    for element in data:
+    for attribute_element in data:
+        element = attribute_element.to_dict()
         logger.debug(f"Evaluating element: {element}")
         logger.debug(f"Evaluating element, properties: {element[PROPERTIES]}")
 
