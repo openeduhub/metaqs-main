@@ -1,11 +1,12 @@
 from elasticsearch_dsl.response import Response
 
-from app.crud.elastic import base_filter, replication_source_filter
-from app.elastic import Search, qbool
+from app.crud.elastic import base_filter
+from app.elastic import Search, qbool, qexists
 
 
 async def get_quality_matrix():
-    s = Search().query(qbool(filter=base_filter))
+    qfilter = [*base_filter, qexists("ccm:replicationsource")]
+    s = Search().query(qbool(filter=qfilter))
 
     response: Response = s.source()[:1].execute()
 
