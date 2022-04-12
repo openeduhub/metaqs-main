@@ -15,18 +15,15 @@ def extract_replication_source(data: List) -> Dict:
     # TODO: Rewrite functional
     for element in data:
         logger.debug(f"Evaluating element: {element}")
+        logger.debug(f"Evaluating element, properties: {element[PROPERTIES]}")
 
-        if "_d_" in element.keys():
-            print(element["_d_"])
-            if "properties" in element["_d_"].keys():
-                print(element["_d_"]["properties"])
-        if REPLICATION_SOURCE in element["_source"][PROPERTIES].keys():
-            replication_source = element["_source"][PROPERTIES][REPLICATION_SOURCE]
+        if REPLICATION_SOURCE in element[PROPERTIES].keys():
+            replication_source = element[PROPERTIES][REPLICATION_SOURCE]
             print(replication_source)
             if replication_source not in result.keys():
                 result.update({replication_source: {"entries": 0}})
             result[replication_source]["entries"] += 1
-            for key, content in element["_source"][PROPERTIES].items():
+            for key, content in element[PROPERTIES].items():
                 content_value = 0
                 # TODO differentiate depending on type, e.g., string or list
                 if content != "":
