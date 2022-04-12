@@ -15,14 +15,13 @@ import app.api as api
 from app.api.languagetool import router as languagetool_router
 from app.core.config import (
     ALLOWED_HOSTS,
-    API_VERSION,
     BACKGROUND_TASK_ANALYTICS_INTERVAL,
     BACKGROUND_TASK_SEARCH_STATS_INTERVAL,
     BACKGROUND_TASK_SPELLCHECK_INTERVAL,
     DEBUG,
     LOG_LEVEL,
     PROJECT_NAME,
-    ROOT_PATH,
+    ROOT_PATH, ENABLE_ANALYTICS,
 )
 from app.core.errors import http_422_error_handler, http_error_handler
 from app.core.logging import logger
@@ -63,7 +62,7 @@ async def ping_api():
 
 fastapi_app.include_router(api.real_time_router, prefix=f"/real-time")
 
-if False:
+if ENABLE_ANALYTICS:
     analytics_app = FastAPI(
         title=f"{PROJECT_NAME} Analytics API",
         description=f"""
@@ -97,7 +96,7 @@ fastapi_app.add_middleware(RawContextMiddleware)
 fastapi_app.add_event_handler("startup", connect_to_elastic)
 fastapi_app.add_event_handler("shutdown", close_elastic_connection)
 
-if False:
+if ENABLE_ANALYTICS:
     if BACKGROUND_TASK_ANALYTICS_INTERVAL:
         fastapi_app.add_event_handler("startup", analytics_background_task)
     if BACKGROUND_TASK_SEARCH_STATS_INTERVAL:

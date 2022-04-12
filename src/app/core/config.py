@@ -74,3 +74,5 @@ PORTAL_ROOT_PATH = "/".join(
         "5e40e372-735c-4b17-bbf7-e827a5702b57",
     ]
 )
+
+ENABLE_ANALYTICS = False
