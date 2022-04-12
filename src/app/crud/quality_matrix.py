@@ -5,7 +5,7 @@ from app.elastic import Search, qbool
 
 
 async def get_quality_matrix():
-    s = Search().query(qbool(filter=[*base_filter, *replication_source_filter]))
+    s = Search().query(qbool(filter=base_filter))
 
     response: Response = s.source()[:5].execute()
 
