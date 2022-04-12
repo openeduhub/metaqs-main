@@ -5,10 +5,10 @@ from app.elastic import Search, qbool, qexists
 
 
 async def get_quality_matrix():
-    qfilter = [*base_filter, qexists("ccm:replicationsource")]
+    qfilter = [*base_filter]
     s = Search().query(qbool(filter=qfilter))
 
-    response: Response = s.source()[:1].execute()
+    response: Response = s.source(includes=['_source.properties.*'], excludes=[])[:100].execute()
 
     if response.success():
         return response.hits
