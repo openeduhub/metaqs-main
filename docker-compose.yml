@@ -98,7 +98,7 @@ services:
     <<: *restart-policy
     <<: *logging-config
     depends_on:
-      - postgres
+      # - postgres
       - dbt
       - languagetool
     environment:
