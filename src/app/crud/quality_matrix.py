@@ -1,5 +1,8 @@
+from typing import List, Dict
+
 from elasticsearch_dsl.response import Response
 
+from app.core.logging import logger
 from app.crud.elastic import base_filter
 from app.elastic import Search, qbool, qexists
 
@@ -7,10 +10,16 @@ REPLICATION_SOURCE = "ccm:replicationsource"
 PROPERTIES = "properties"
 
 
-def extract_replication_source(data):
+def extract_replication_source(data: List) -> Dict:
     result = {}
     # TODO: Rewrite functional
-    for element in data["hits"]:
+    for element in data:
+        logger.debug(f"Evaluating element: {element}")
+
+        if "_d_" in element.keys():
+            print(element["_d_"])
+            if "properties" in element["_d_"].keys():
+                print(element["_d_"]["properties"])
         if REPLICATION_SOURCE in element["_source"][PROPERTIES].keys():
             replication_source = element["_source"][PROPERTIES][REPLICATION_SOURCE]
             print(replication_source)
