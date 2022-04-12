@@ -84,11 +84,15 @@ type_filter = {
     ],
 }
 
+replication_source_filter = {"REPLICATION_SOURCE": [
+    qterm(qfield=ElasticResourceAttribute.REPLICATION_SOURCE_DE, value="ccm:replicationsource"),
+]}
+
 
 # TODO: eliminate; use query_many instead
 def get_many_base_query(
-    resource_type: ResourceType,
-    ancestor_id: Optional[UUID] = None,
+        resource_type: ResourceType,
+        ancestor_id: Optional[UUID] = None,
 ) -> dict:
     query_dict = {"filter": [*base_filter, *type_filter[resource_type]]}
 

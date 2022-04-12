@@ -28,6 +28,7 @@ class ElasticResourceAttribute(Field):
     KEYWORDS = ("properties.cclom:general_keyword", FieldType.TEXT)
     EDU_CONTEXT = ("properties.ccm:educationalcontext", FieldType.TEXT)
     EDU_CONTEXT_DE = ("i18n.de_DE.ccm:educationalcontext", FieldType.TEXT)
+    REPLICATION_SOURCE_DE = ("replicationsource", FieldType.TEXT)
 
 
 class ElasticConfig:
