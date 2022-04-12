@@ -54,8 +54,7 @@ services:
       NGINX_HOST: "${NGINX_HOST:-metaqs_localhost}"
       ROOT_PATH: "/metaqs-api/${API_VERSION:-v1}"
     volumes:
-      # - ./nginx/nginx-ssl.conf.template:/etc/nginx/templates/default.conf.template:ro
-      - ./nginx/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./nginx/nginx.conf.dev.template:/etc/nginx/templates/default.conf.template:ro
       - ./nginx/certbot/conf:/etc/letsencrypt
       - ./nginx/certbot/www:/var/www/certbot
       - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro
