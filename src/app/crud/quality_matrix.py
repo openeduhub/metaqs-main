@@ -71,6 +71,12 @@ async def get_quality_matrix():
 
     response: Response = s.source(includes=[f'{PROPERTIES}.*'], excludes=[])[:ELASTIC_MAX_SIZE].execute()
 
+    element_counter = 0
+    for hit in s.source(includes=[f'{PROPERTIES}.*'], excludes=[]).scan():
+        element_counter += 1
+
+    logger.info(f"element_counter: {element_counter}")
+
     # test aggregate
     if response.success():
         return extract_replication_source(response.hits)
