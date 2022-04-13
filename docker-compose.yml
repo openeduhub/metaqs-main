@@ -97,6 +97,8 @@ services:
     image: community.docker.edu-sharing.com/metaqs-fastapi_dev:latest
     <<: *restart-policy
     <<: *logging-config
+    volumes:
+      - ./:/tmp
     depends_on:
       # - postgres
       - dbt

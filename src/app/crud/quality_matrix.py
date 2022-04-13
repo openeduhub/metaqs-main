@@ -47,7 +47,7 @@ async def get_quality_matrix():
 
     second_response: Response = s.source(includes=[f'{PROPERTIES}.*'], excludes=[])[:ELASTIC_MAX_SIZE].execute()
     logger.info(f"second_response: {second_response}")
-    with open("test_file1", "a+") as outfile:
+    with open("/tmp/test_file1", "a+") as outfile:
         json.dump([hit.to_dict() for hit in second_response.hits], outfile)
 
     qfilter = [*base_filter]
@@ -56,9 +56,12 @@ async def get_quality_matrix():
 
     second_response: Response = s.source(includes=[f'{PROPERTIES}.*'], excludes=[])[:ELASTIC_MAX_SIZE].execute()
     logger.info(f"second_response: {second_response}")
-    with open("test_file2", "a+") as outfile:
+    with open("/tmp/test_file2", "a+") as outfile:
         json.dump([hit.to_dict() for hit in second_response.hits], outfile)
 
+    # direct query
+    search_param = {}
+    response = Search().search(index="some_index", body=search_param)
     # test aggregate
     if second_response.success():
         return extract_replication_source(second_response.hits)
