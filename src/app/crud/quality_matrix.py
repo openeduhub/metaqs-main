@@ -6,7 +6,7 @@ from elasticsearch_dsl.response import Response
 from app.core.config import ELASTIC_MAX_SIZE
 from app.core.logging import logger
 from app.crud.elastic import base_filter
-from app.elastic import Search, qbool, qexists
+from app.elastic import Search, qbool, qexists, aterms
 
 REPLICATION_SOURCE = "ccm:replicationsource"
 PROPERTIES = "properties"
@@ -45,5 +45,13 @@ async def get_quality_matrix():
 
     response: Response = s.source(includes=[f'{PROPERTIES}.*'], excludes=[])[:ELASTIC_MAX_SIZE].execute()
 
+    # test aggregate
+
+    qfilter = [*base_filter]
+    s = Search().query(qbool(filter=qfilter))
+    s.aggs.bucket(aterms(qfield="properties"))
+
+    second_response: Response = s.source(includes=[f'{PROPERTIES}.*'], excludes=[])[:ELASTIC_MAX_SIZE].execute()
+    logger.debug(f"second_response: {second_response}")
     if response.success():
         return extract_replication_source(response.hits)
