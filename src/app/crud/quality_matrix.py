@@ -2,7 +2,7 @@ import json
 from typing import List, Dict
 
 from elasticsearch_dsl import AttrDict
-from elasticsearch_dsl.response import Response
+from elasticsearch_dsl.response import Response, Hit
 
 from app.core.config import ELASTIC_MAX_SIZE
 from app.core.logging import logger
@@ -48,7 +48,7 @@ async def get_quality_matrix():
     second_response: Response = s.source(includes=[f'{PROPERTIES}.*'], excludes=[])[:ELASTIC_MAX_SIZE].execute()
     logger.info(f"second_response: {second_response}")
     with open("test_file1", "a+") as outfile:
-        json.dump([hit for hit in second_response.hits], outfile)
+        json.dump([hit.to_dict() for hit in second_response.hits], outfile)
 
     qfilter = [*base_filter]
     s = Search().query(qbool(filter=qfilter))
@@ -57,7 +57,7 @@ async def get_quality_matrix():
     second_response: Response = s.source(includes=[f'{PROPERTIES}.*'], excludes=[])[:ELASTIC_MAX_SIZE].execute()
     logger.info(f"second_response: {second_response}")
     with open("test_file2", "a+") as outfile:
-        json.dump([hit for hit in second_response.hits], outfile)
+        json.dump([hit.to_dict() for hit in second_response.hits], outfile)
 
     # test aggregate
     if second_response.success():
