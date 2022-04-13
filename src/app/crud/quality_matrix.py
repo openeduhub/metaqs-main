@@ -45,14 +45,14 @@ async def get_quality_matrix():
     s.aggs.bucket("property_count", aterms(qfield="properties"))
 
     second_response: Response = s.source(includes=[f'{PROPERTIES}.*'], excludes=[])[:ELASTIC_MAX_SIZE].execute()
-    logger.debug(f"second_response: {second_response}")
+    logger.info(f"second_response: {second_response}")
 
     qfilter = [*base_filter]
     s = Search().query(qbool(filter=qfilter))
     s.aggs.bucket("entry_count", aterms(qfield="ccm:replicationsource"))
 
     second_response: Response = s.source(includes=[f'{PROPERTIES}.*'], excludes=[])[:ELASTIC_MAX_SIZE].execute()
-    logger.debug(f"second_response: {second_response}")
+    logger.info(f"second_response: {second_response}")
 
     # test aggregate
     if second_response.success():

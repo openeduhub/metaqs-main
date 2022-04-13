@@ -8,7 +8,7 @@ API_KEY = os.getenv("API_KEY")
 API_KEY_NAME = "X-API-KEY"
 ALLOWED_HOSTS = CommaSeparatedStrings(os.getenv("ALLOWED_HOSTS", "*"))
 LOG_LEVEL = os.getenv("LOG_LEVEL")
-DEBUG = os.getenv("LOG_LEVEL", "").strip().lower() == "debug"
+DEBUG = False # os.getenv("LOG_LEVEL", "").strip().lower() == "debug"
 
 BACKGROUND_TASK_ANALYTICS_INTERVAL = int(
     os.getenv("BACKGROUND_TASK_ANALYTICS_INTERVAL", 0)
