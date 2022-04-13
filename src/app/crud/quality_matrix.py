@@ -1,7 +1,7 @@
 import json
 from typing import List, Dict
 
-from elasticsearch_dsl import AttrDict
+from elasticsearch_dsl import AttrDict, Q
 from elasticsearch_dsl.response import Response, Hit
 
 from app.core.config import ELASTIC_MAX_SIZE
@@ -39,6 +39,11 @@ def extract_replication_source(data: List[AttrDict]) -> Dict:
     return result
     # TODO: Potentially some sources do not have all properties
 
+def write_to_json(filename: str, response):
+    logger.info(f"filename: {response}")
+    with open(f"/tmp/{filename}.json", "a+") as outfile:
+        json.dump([hit.to_dict() for hit in response.hits], outfile)
+
 
 async def get_quality_matrix():
     qfilter = [*base_filter]
@@ -46,26 +51,24 @@ async def get_quality_matrix():
     s.aggs.bucket("property_count", aterms(qfield="properties"))
 
     second_response: Response = s.source(includes=[f'{PROPERTIES}.*'], excludes=[])[:ELASTIC_MAX_SIZE].execute()
-    logger.info(f"second_response: {second_response}")
-    with open("/tmp/test_file1", "a+") as outfile:
-        json.dump([hit.to_dict() for hit in second_response.hits], outfile)
+    write_to_json("test_file1", second_response)
 
     qfilter = [*base_filter]
     s = Search().query(qbool(filter=qfilter))
     s.aggs.bucket("entry_count", aterms(qfield="ccm:replicationsource"))
 
     second_response: Response = s.source(includes=[f'{PROPERTIES}.*'], excludes=[])[:ELASTIC_MAX_SIZE].execute()
-    logger.info(f"second_response: {second_response}")
-    with open("/tmp/test_file2", "a+") as outfile:
-        json.dump([hit.to_dict() for hit in second_response.hits], outfile)
+    write_to_json("test_file2", second_response)
 
-    # direct query
-    search_param = {}
-    response = Search().search(index="some_index", body=search_param)
-    # test aggregate
-    if second_response.success():
-        return extract_replication_source(second_response.hits)
+    query = Q("multi_match", query="test_multiple", fields=["cm:creator", "ccm:replicationsource"])
+    second_response = Search().query(query)[:ELASTIC_MAX_SIZE].execute()
+    write_to_json("test_file3", second_response)
 
+    query = Q("match", title='ccm:replicationsource') & Q("match", title='')
+    second_response = Search().query(query)[:ELASTIC_MAX_SIZE].execute()
+    write_to_json("test_file4", second_response)
+
+    # original query
     qfilter = [*base_filter]
     s = Search().query(qbool(filter=qfilter))
 
