@@ -17,7 +17,7 @@ def extract_replication_source(data: List[AttrDict]) -> Dict:
     # TODO: Rewrite functional
     for attribute_element in data:
         element = attribute_element.to_dict()
-        #logger.debug(f"Evaluating element: {element}")
+        # logger.debug(f"Evaluating element: {element}")
 
         if REPLICATION_SOURCE in element[PROPERTIES].keys():
             replication_source = element[PROPERTIES][REPLICATION_SOURCE]
@@ -34,7 +34,7 @@ def extract_replication_source(data: List[AttrDict]) -> Dict:
                     result[replication_source].update({key: content_value})
                 else:
                     result[replication_source][key] = content_value + result[replication_source][key]
-                #logger.debug(content, content_value, result[replication_source][key])
+                # logger.debug(content, content_value, result[replication_source][key])
     return result
     # TODO: Potentially some sources do not have all properties
 
@@ -42,16 +42,27 @@ def extract_replication_source(data: List[AttrDict]) -> Dict:
 async def get_quality_matrix():
     qfilter = [*base_filter]
     s = Search().query(qbool(filter=qfilter))
+    s.aggs.bucket("property_count", aterms(qfield="properties"))
+
+    second_response: Response = s.source(includes=[f'{PROPERTIES}.*'], excludes=[])[:ELASTIC_MAX_SIZE].execute()
+    logger.debug(f"second_response: {second_response}")
+
+    qfilter = [*base_filter]
+    s = Search().query(qbool(filter=qfilter))
+    s.aggs.bucket("entry_count", aterms(qfield="ccm:replicationsource"))
+
+    second_response: Response = s.source(includes=[f'{PROPERTIES}.*'], excludes=[])[:ELASTIC_MAX_SIZE].execute()
+    logger.debug(f"second_response: {second_response}")
+
+    # test aggregate
+    if second_response.success():
+        return extract_replication_source(second_response.hits)
+
+    qfilter = [*base_filter]
+    s = Search().query(qbool(filter=qfilter))
 
     response: Response = s.source(includes=[f'{PROPERTIES}.*'], excludes=[])[:ELASTIC_MAX_SIZE].execute()
 
     # test aggregate
-
-    qfilter = [*base_filter]
-    s = Search().query(qbool(filter=qfilter))
-    s.aggs.bucket(aterms(qfield="properties"))
-
-    second_response: Response = s.source(includes=[f'{PROPERTIES}.*'], excludes=[])[:ELASTIC_MAX_SIZE].execute()
-    logger.debug(f"second_response: {second_response}")
     if response.success():
         return extract_replication_source(response.hits)
