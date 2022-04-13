@@ -77,6 +77,7 @@ async def get_quality_matrix():
     element_counter = 0
     for hit in s.source(includes=[f'{PROPERTIES}.*'], excludes=[]).scan():
         element_counter += 1
+        logger.info(f"element_counter: {element_counter}")
 
     logger.info(f"element_counter: {element_counter}")
 
