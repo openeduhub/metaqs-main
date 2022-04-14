@@ -2,6 +2,7 @@ import json
 from typing import List, Dict
 
 from elasticsearch_dsl import AttrDict, Q
+from elasticsearch_dsl.aggs import Agg
 from elasticsearch_dsl.response import Response, Hit
 
 from app.core.config import ELASTIC_MAX_SIZE
@@ -46,8 +47,14 @@ def write_to_json(filename: str, response):
         json.dump([hit.to_dict() for hit in response.hits], outfile)
 
 
+def aggregate_by_source() -> Agg:
+    return aterms(
+        qfield="properties.ccm:replicationsource.keyword",
+    )
+
+
 async def get_quality_matrix():
-    s = Search(Q("terms", field="properties.ccm:replicationsource.keyword")).aggs.bucket("uniquefields")
+    s = Search().aggs.bucket("uniquefields", aggregate_by_source())
     response: Response = s.source().execute()
     write_to_json("sources", response)
 
