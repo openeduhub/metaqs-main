@@ -54,7 +54,7 @@ def aggregate_by_source() -> Agg:
 
 
 async def get_quality_matrix():
-    s = Search().aggs.bucket("uniquefields", aggregate_by_source())
+    s = Search(Q("match_all")).aggs.bucket("uniquefields", aggregate_by_source())
     response: Response = s.source().execute()
     write_to_json("sources", response)
 
