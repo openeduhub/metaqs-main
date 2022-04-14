@@ -47,15 +47,10 @@ def write_to_json(filename: str, response):
         json.dump([hit.to_dict() for hit in response.hits], outfile)
 
 
-def aggregate_by_source() -> Agg:
-    return aterms(
-        qfield="properties.ccm:replicationsource.keyword",
-    )
-
-
 async def get_quality_matrix():
-    s = Search(Q("match_all")).aggs.bucket("uniquefields", aggregate_by_source())
-    response: Response = s.source().execute()
+    s = Search(Q("match_all")).aggs.bucket("uniquefields", "terms", field="properties.ccm:replicationsource.keyword")
+    print(s.to_dict())
+    response: Response = s.execute()
     write_to_json("sources", response)
 
     qfilter = [*base_filter]
