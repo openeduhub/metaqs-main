@@ -42,19 +42,19 @@ def extract_replication_source(data: List[AttrDict]) -> Dict:
 
 
 def write_to_json(filename: str, response):
-    logger.info(f"filename: {response}")
+    logger.info(f"filename: {filename}")
     with open(f"/tmp/{filename}.json", "a+") as outfile:
         json.dump([hit.to_dict() for hit in response.hits], outfile)
 
 
 async def get_quality_matrix():
-    s = Search()
+    qfilter = [*base_filter]
+    s = Search().filter("bool", must=qfilter)
     s.aggs.bucket("uniquefields", "terms", field="properties.ccm:replicationsource.keyword")
     print(s.to_dict())
     response: Response = s.execute()
     write_to_json("sources", response)
 
-    qfilter = [*base_filter]
     sources = ["learning_apps_spider"]
     fields_to_check = ["cm:creator"]
     output = {}
@@ -67,9 +67,11 @@ async def get_quality_matrix():
             match_for_empty_entry = qmatch(**{f"{PROPERTIES}.{field}": ""})
 
             s = Search().filter("bool", must=[match_for_source, *qfilter], must_not=[match_for_empty_entry])
+            print(f"First counting: {s.to_dict()}")
             count: int = s.source().count()
 
             s = Search().filter("bool", must=[match_for_source, *qfilter])
+            print(f"Second counting: {s.to_dict()}")
             total_count: int = s.source().count()
             output[source].update({f"{PROPERTIES}.{field}": {"not_empty": count, "total_count": total_count}})
 
