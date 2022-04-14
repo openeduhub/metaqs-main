@@ -55,7 +55,8 @@ async def get_quality_matrix():
     response: Response = s.execute()
     write_to_json("sources", response)
 
-    sources = ["learning_apps_spider"]
+    sources = ["learning_apps_spider", "geogebra_spider", "youtube_spider", "bpb_spider", "br_rss_spider",
+               "rpi_virtuell_spider", "tutory_spider", "oai_sodis_spider", "zum_spider", "memucho_spider"]
     fields_to_check = ["cm:creator"]
     output = {}
 
@@ -75,4 +76,10 @@ async def get_quality_matrix():
             total_count: int = s.source().count()
             output[source].update({f"{PROPERTIES}.{field}": {"not_empty": count, "total_count": total_count}})
 
+    """
+    {'query': {'bool': {'filter': [{'bool': {'must': [{'term': {'permissions.Read.keyword': 'GROUP_EVERYONE'}}, {'term': {'properties.cm:edu_metadataset.keyword': 'mds_oeh'}}, {'term': {'nodeRef.storeRef.protocol': 'workspace'}}]}}]}}, 'aggs': {'uniquefields': {'terms': {'field': 'properties.ccm:replicationsource.keyword'}}}}
+metaqs-fastapi  | First counting: {'query': {'bool': {'filter': [{'bool': {'must': [{'match': {'ccm:replicationsource': 'learning_apps_spider'}}, {'term': {'permissions.Read.keyword': 'GROUP_EVERYONE'}}, {'term': {'properties.cm:edu_metadataset.keyword': 'mds_oeh'}}, {'term': {'nodeRef.storeRef.protocol': 'workspace'}}], 'must_not': [{'match': {'properties.cm:creator': ''}}]}}]}}}
+metaqs-fastapi  | Second counting: {'query': {'bool': {'filter': [{'bool': {'must': [{'match': {'ccm:replicationsource': 'learning_apps_spider'}}, {'term': {'permissions.Read.keyword': 'GROUP_EVERYONE'}}, {'term': {'properties.cm:edu_metadataset.keyword': 'mds_oeh'}}, {'term': {'nodeRef.storeRef.protocol': 'workspace'}}]}}]}}}
+
+    """
     return output
