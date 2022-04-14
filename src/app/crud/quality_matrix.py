@@ -7,7 +7,7 @@ from elasticsearch_dsl.response import Response, Hit
 from app.core.config import ELASTIC_MAX_SIZE
 from app.core.logging import logger
 from app.crud.elastic import base_filter
-from app.elastic import Search, qbool, qexists, aterms
+from app.elastic import Search, qbool, qexists, aterms, qmatch
 
 REPLICATION_SOURCE = "ccm:replicationsource"
 PROPERTIES = "properties"
@@ -39,6 +39,7 @@ def extract_replication_source(data: List[AttrDict]) -> Dict:
     return result
     # TODO: Potentially some sources do not have all properties
 
+
 def write_to_json(filename: str, response):
     logger.info(f"filename: {response}")
     with open(f"/tmp/{filename}.json", "a+") as outfile:
@@ -46,40 +47,16 @@ def write_to_json(filename: str, response):
 
 
 async def get_quality_matrix():
-    qfilter = [*base_filter]
-    s = Search().query(qbool(filter=qfilter))
-    s.aggs.bucket("property_count", aterms(qfield="properties"))
-
-    second_response: Response = s.source(includes=[f'{PROPERTIES}.*'], excludes=[])[:ELASTIC_MAX_SIZE].execute()
-    write_to_json("test_file1", second_response)
-
-    qfilter = [*base_filter]
-    s = Search().query(qbool(filter=qfilter))
-    s.aggs.bucket("entry_count", aterms(qfield="ccm:replicationsource"))
-
-    second_response: Response = s.source(includes=[f'{PROPERTIES}.*'], excludes=[])[:ELASTIC_MAX_SIZE].execute()
-    write_to_json("test_file2", second_response)
-
-    query = Q("multi_match", query="test_multiple", fields=["cm:creator", "ccm:replicationsource"])
-    second_response = Search().query(query)[:ELASTIC_MAX_SIZE].execute()
-    write_to_json("test_file3", second_response)
-
-    query = Q("match", title='ccm:replicationsource') & Q("match", title='')
-    second_response = Search().query(query)[:ELASTIC_MAX_SIZE].execute()
-    write_to_json("test_file4", second_response)
-
     # original query
     qfilter = [*base_filter]
-    s = Search().query(qbool(filter=qfilter))
+    match_for_source = qmatch(**{
+        "properties.ccm:replicationsource": "learning_apps_spider"})
+    match_for_empty_entry = qmatch(**{
+        "properties.cm:creator": ""
+    })
+    s = Search().filter("bool", must=[match_for_source, *qfilter], must_not=[match_for_empty_entry])
 
-    response: Response = s.source(includes=[f'{PROPERTIES}.*'], excludes=[])[:ELASTIC_MAX_SIZE].execute()
-
-    element_counter = 0
-    for hit in s.source(includes=[f'{PROPERTIES}.*'], excludes=[]).scan():
-        element_counter += 1
-        logger.info(f"element_counter: {element_counter}")
-
-    logger.info(f"element_counter: {element_counter}")
+    response: Response = s.source().count()
 
     # test aggregate
     if response.success():
