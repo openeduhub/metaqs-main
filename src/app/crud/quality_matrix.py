@@ -48,7 +48,8 @@ def write_to_json(filename: str, response):
 
 
 async def get_quality_matrix():
-    s = Search(Q("match_all")).aggs.bucket("uniquefields", "terms", field="properties.ccm:replicationsource.keyword")
+    s = Search(Q("match_all"))
+    s.aggs.bucket("uniquefields", "terms", field="properties.ccm:replicationsource.keyword")
     print(s.to_dict())
     response: Response = s.execute()
     write_to_json("sources", response)
