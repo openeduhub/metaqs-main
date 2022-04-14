@@ -59,5 +59,4 @@ async def get_quality_matrix():
     response: Response = s.source().count()
 
     # test aggregate
-    if response.success():
-        return extract_replication_source(response.hits)
+    return response
