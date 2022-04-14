@@ -47,14 +47,15 @@ def write_to_json(filename: str, response):
         json.dump([hit.to_dict() for hit in response.hits], outfile)
 
 
-async def get_quality_matrix():
-    qfilter = [*base_filter]
-    s = Search().filter("bool", must=qfilter)
+async def get_sources():
+    s = Search().filter("bool", must=base_filter)
     s.aggs.bucket("uniquefields", "terms", field="properties.ccm:replicationsource.keyword")
     print(s.to_dict())
     response: Response = s[:ELASTIC_MAX_SIZE].execute()
     write_to_json("sources", response)
 
+
+async def get_quality_matrix():
     sources = ["learning_apps_spider", "geogebra_spider", "youtube_spider", "bpb_spider", "br_rss_spider",
                "rpi_virtuell_spider", "tutory_spider", "oai_sodis_spider", "zum_spider", "memucho_spider"]
     fields_to_check = ["cm:creator"]
@@ -67,11 +68,11 @@ async def get_quality_matrix():
                 REPLICATION_SOURCE: source})
             match_for_empty_entry = qmatch(**{f"{PROPERTIES}.{field}": ""})
 
-            s = Search().filter("bool", must=[match_for_source, *qfilter], must_not=[match_for_empty_entry])
+            s = Search().filter("bool", must=[match_for_source, *base_filter], must_not=[match_for_empty_entry])
             print(f"First counting: {s.to_dict()}")
             count: int = s.source().count()
 
-            s = Search().filter("bool", must=[match_for_source, *qfilter])
+            s = Search().filter("bool", must=[match_for_source, *base_filter])
             print(f"Second counting: {s.to_dict()}")
             total_count: int = s.source().count()
             output[source].update({f"{PROPERTIES}.{field}": {"not_empty": count, "total_count": total_count}})

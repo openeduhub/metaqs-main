@@ -17,6 +17,7 @@ from app.api.util import (
 from app.core.logging import logger
 from app.crud import MissingCollectionAttributeFilter, quality_matrix
 from app.crud.elastic import ResourceType
+from app.crud.quality_matrix import get_sources
 from app.crud.util import build_portal_tree
 from app.models.collection import (
     Collection,
@@ -36,6 +37,7 @@ router = APIRouter()
     tags=["Statistics"],
 )
 async def get_quality_matrix():
+    await get_sources()
     quality_data = await quality_matrix.get_quality_matrix()
     logger.debug(f"Found quality: {quality_data}")
     return quality_data
