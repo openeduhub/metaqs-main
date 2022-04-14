@@ -49,15 +49,24 @@ def write_to_json(filename: str, response):
 async def get_quality_matrix():
     # original query
     qfilter = [*base_filter]
-    match_for_source = qmatch(**{
-        "properties.ccm:replicationsource": "learning_apps_spider"})
-    match_for_empty_entry = qmatch(**{
-        "properties.cm:creator": ""
-    })
-    s = Search().filter("bool", must=[match_for_source, *qfilter], must_not=[match_for_empty_entry])
+    sources = ["learning_apps_spider"]
+    fields_to_check = ["properties.cm:creator"]
+    output = {}
 
-    response: Response = s.source().execute()
-    write_to_json("executed.json", response)
-    response: Response = s.source().count()
+    for source in sources:
+        output.update({source: {}})
+        for field in fields_to_check:
+            match_for_source = qmatch(**{
+                "properties.ccm:replicationsource": source})
+            match_for_empty_entry = qmatch(**{field: ""})
+            s = Search().filter("bool", must=[match_for_source, *qfilter], must_not=[match_for_empty_entry])
+            response: Response = s.source().execute()
+            write_to_json(f"executed_{source}_{field}", response)
+            count: int = s.source().count()
+
+            s = Search().filter("bool", must=[match_for_source, *qfilter])
+            total_count: int = s.source().count()
+            output[source].update({field: {"not_empty": count, "total_count": total_count}})
     # test aggregate
-    return response
+    write_to_json(f"output", output)
+    return output
