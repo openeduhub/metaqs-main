@@ -56,7 +56,8 @@ async def get_quality_matrix():
     })
     s = Search().filter("bool", must=[match_for_source, *qfilter], must_not=[match_for_empty_entry])
 
+    response: Response = s.source().execute()
+    write_to_json("executed.json", response)
     response: Response = s.source().count()
-
     # test aggregate
     return response
