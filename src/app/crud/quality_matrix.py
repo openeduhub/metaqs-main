@@ -68,5 +68,6 @@ async def get_quality_matrix():
             total_count: int = s.source().count()
             output[source].update({field: {"not_empty": count, "total_count": total_count}})
     # test aggregate
-    write_to_json(f"output", output)
+    with open(f"/tmp/{output}.json", "a+") as outfile:
+        json.dump(output, outfile)
     return output
