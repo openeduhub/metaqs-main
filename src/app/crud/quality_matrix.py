@@ -47,27 +47,27 @@ def write_to_json(filename: str, response):
 
 
 async def get_quality_matrix():
-    # original query
+    s = Search(Q("terms", field="properties.ccm:replicationsource.keyword")).aggs.bucket("uniquefields")
+    response: Response = s.source().execute()
+    write_to_json("sources", response)
+
     qfilter = [*base_filter]
     sources = ["learning_apps_spider"]
-    fields_to_check = ["properties.cm:creator"]
+    fields_to_check = ["cm:creator"]
     output = {}
 
     for source in sources:
         output.update({source: {}})
         for field in fields_to_check:
             match_for_source = qmatch(**{
-                "properties.ccm:replicationsource": source})
-            match_for_empty_entry = qmatch(**{field: ""})
+                REPLICATION_SOURCE: source})
+            match_for_empty_entry = qmatch(**{f"{PROPERTIES}.{field}": ""})
+
             s = Search().filter("bool", must=[match_for_source, *qfilter], must_not=[match_for_empty_entry])
-            response: Response = s.source().execute()
-            write_to_json(f"executed_{source}_{field}", response)
             count: int = s.source().count()
 
             s = Search().filter("bool", must=[match_for_source, *qfilter])
             total_count: int = s.source().count()
-            output[source].update({field: {"not_empty": count, "total_count": total_count}})
-    # test aggregate
-    with open(f"/tmp/{output}.json", "a+") as outfile:
-        json.dump(output, outfile)
+            output[source].update({f"{PROPERTIES}.{field}": {"not_empty": count, "total_count": total_count}})
+
     return output
