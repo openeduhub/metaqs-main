@@ -52,7 +52,7 @@ async def get_quality_matrix():
     s = Search().filter("bool", must=qfilter)
     s.aggs.bucket("uniquefields", "terms", field="properties.ccm:replicationsource.keyword")
     print(s.to_dict())
-    response: Response = s.execute()
+    response: Response = s[:ELASTIC_MAX_SIZE].execute()
     write_to_json("sources", response)
 
     sources = ["learning_apps_spider", "geogebra_spider", "youtube_spider", "bpb_spider", "br_rss_spider",
