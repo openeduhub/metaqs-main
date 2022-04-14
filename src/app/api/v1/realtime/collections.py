@@ -37,10 +37,17 @@ router = APIRouter()
     tags=["Statistics"],
 )
 async def get_quality_matrix():
-    await get_sources()
-    quality_data = await quality_matrix.get_quality_matrix()
-    logger.debug(f"Found quality: {quality_data}")
-    return quality_data
+    return await quality_matrix.get_quality_matrix()
+
+
+@router.get(
+    "/sources",
+    status_code=HTTP_200_OK,
+    responses={HTTP_404_NOT_FOUND: {"description": "Sources not determinable"}},
+    tags=["Statistics"],
+)
+async def get_replication_sources():
+    return await get_sources()
 
 
 @router.get(
