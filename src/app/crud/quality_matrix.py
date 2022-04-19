@@ -1,4 +1,5 @@
 import json
+import time
 from typing import List, Dict
 
 from elasticsearch_dsl import AttrDict, Q
@@ -48,11 +49,17 @@ def write_to_json(filename: str, response):
 
 
 async def get_sources():
+    time1 = time.perf_counter()
     s = Search().filter("bool", must=base_filter)
+    time2 = time.perf_counter()
     s.aggs.bucket("uniquefields", "terms", field="properties.ccm:replicationsource.keyword")
+    time3 = time.perf_counter()
     print(s.to_dict())
-    response: Response = s[:ELASTIC_MAX_SIZE].execute()
+    response: Response = s[:ELASTIC_MAX_SIZE].source(includes=["properties.ccm:replicationsource"]).execute()
+    time4 = time.perf_counter()
+    print(f"Timing: {time1}, {time2}, {time3}, {time4}")
     write_to_json("sources", response)
+    return response
 
 
 async def get_quality_matrix():
