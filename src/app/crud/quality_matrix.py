@@ -17,33 +17,6 @@ REPLICATION_SOURCE = "ccm:replicationsource"
 PROPERTIES = "properties"
 
 
-def extract_replication_source(data: List[AttrDict]) -> Dict:
-    result = {}
-    # TODO: Rewrite functional
-    for attribute_element in data:
-        element = attribute_element.to_dict()
-        # logger.debug(f"Evaluating element: {element}")
-
-        if REPLICATION_SOURCE in element[PROPERTIES].keys():
-            replication_source = element[PROPERTIES][REPLICATION_SOURCE]
-            if replication_source not in result.keys():
-                result |= {replication_source: {"entries": 0}}
-            result[replication_source]["entries"] += 1
-            for key, content in element[PROPERTIES].items():
-                content_value = 0
-                # TODO differentiate depending on type, e.g., string or list
-                if content != "":
-                    content_value = 1
-
-                if key not in result[replication_source].keys():
-                    result[replication_source].update({key: content_value})
-                else:
-                    result[replication_source][key] = content_value + result[replication_source][key]
-                # logger.debug(content, content_value, result[replication_source][key])
-    return result
-    # TODO: Potentially some sources do not have all properties
-
-
 def write_to_json(filename: str, response):
     logger.info(f"filename: {filename}")
     with open(f"/tmp/{filename}.json", "a+") as outfile:
@@ -60,7 +33,7 @@ async def get_sources() -> list:
 
     with open(f"/tmp/{filename}_raw.json", "a+") as outfile:
         json.dump(response.to_dict(), outfile)
-    entries = [entry["doc_count"] for entry in response.aggregations.to_dict()["uniquefields"]["buckets"]]
+    entries = [entry["key"] for entry in response.aggregations.to_dict()["uniquefields"]["buckets"]]
     with open(f"/tmp/{filename}.json", "a+") as outfile:
         json.dump({filename: entries}, outfile)
     return entries
@@ -73,7 +46,8 @@ def extract_properties(hits: list[AttrDict]) -> list:
             if hit.to_dict():
                 json.dump(hit.to_dict(), outfile)
                 return hit.to_dict()[PROPERTIES].keys()
-
+    return ["cm:creator", "cm:content", "cm:contentPropertyName", "cm:created", "cm:isContentIndexed",
+            "cm:isIndexed", "cm:modified", "cm:modifie", "cm:name", "cm:thumbnailName", "cm:description"]
 
 
 def get_properties():
@@ -107,6 +81,7 @@ def get_properties():
     print(f"Get properties: {s.to_dict()}")
     response = s.source().execute()
     print(f"Response {response}")
+    print(f"Hits {[hit.to_dict() for hit in response.hits]}")
     return extract_properties(response.hits)
 
 
