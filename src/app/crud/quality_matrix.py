@@ -51,7 +51,6 @@ def write_to_json(filename: str, response):
 
 
 async def get_sources():
-    time1 = time.perf_counter()
     print("get_sources")
     non_empty_entries = {
         "aggs": {
@@ -65,19 +64,23 @@ async def get_sources():
                     ]
     }
     s = Search().from_dict(non_empty_entries)
-    time3 = time.perf_counter()
+
     print(s.to_dict())
     response: Response = s.execute(ignore_cache=True)
-    time4 = time.perf_counter()
-    print(f"Timing: {time1}, {time3}, {time4}")
     print(f"Response: {response}")
     print(f"Response: {[hit.to_dict() for hit in response.hits]}")
+
+    s = Search()
+    s.aggs.bucket("uniquefields", "terms", field="properties.ccm:replicationsource.keyword")
+    response: Response = s.execute(ignore_cache=True)
+    print(f"Response2: {response}")
+    print(f"Response2: {[hit.to_dict() for hit in response.hits]}")
     # write_to_json("sources", response)
     return {}
 
 
 def extract_properties(hits: list[AttrDict]) -> list:
-    return hits[0][PROPERTIES].keys
+    return hits[0].to_dict()[PROPERTIES].keys
 
 
 def get_properties():
