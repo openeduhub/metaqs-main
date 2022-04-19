@@ -10,6 +10,7 @@ from app.core.config import ELASTIC_MAX_SIZE
 from app.core.logging import logger
 from app.crud.elastic import base_filter, base_match_filter
 from app.elastic import Search, qbool, qexists, aterms, qmatch
+from app.models.elastic import ElasticResourceAttribute
 
 REPLICATION_SOURCE = "ccm:replicationsource"
 PROPERTIES = "properties"
@@ -50,14 +51,23 @@ def write_to_json(filename: str, response):
 
 async def get_sources():
     time1 = time.perf_counter()
-    s = Search().filter("bool", must=base_filter)
-    time2 = time.perf_counter()
-    s.aggs.bucket("uniquefields", "terms", field="properties.ccm:replicationsource.keyword")
+    non_empty_entries = {
+        "aggs": {
+            "uniquefields": {
+                "terms": {
+                    "field": "properties.ccm:replicationsource.keyword"
+                }
+            }
+        },
+        "_source": ["properties.ccm:replicationsource"
+                    ]
+    }
+    s = Search().from_dict(non_empty_entries)
     time3 = time.perf_counter()
     print(s.to_dict())
-    response: Response = s[:ELASTIC_MAX_SIZE].execute()
+    response: Response = s.execute()
     time4 = time.perf_counter()
-    print(f"Timing: {time1}, {time2}, {time3}, {time4}")
+    print(f"Timing: {time1}, {time3}, {time4}")
     print(f"Response: {response}")
     # write_to_json("sources", response)
     return response
@@ -72,21 +82,19 @@ async def get_quality_matrix():
     for source in sources:
         output.update({source: {}})
         for field in fields_to_check:
-            match_for_source = qmatch(**{
-                REPLICATION_SOURCE: source})
-            match_for_empty_entry = qmatch(**{f"{PROPERTIES}.{field}": ""})
-
             s = Search().query("match", **{
-                REPLICATION_SOURCE: source}).exclude("match", **{f"{PROPERTIES}.{field}": ""})
-            print(f"First counting: {s.to_dict()}")
+                REPLICATION_SOURCE: source, ElasticResourceAttribute.PERMISSION_READ: "GROUP_EVERYONE",
+                ElasticResourceAttribute.EDU_METADATASET: "mds_oeh",
+                ElasticResourceAttribute.PROTOCOL: "workspace"}).exclude(
+                "match", **{f"{PROPERTIES}.{field}": ""})
+            print(f"Not empty counting: {s.to_dict()}")
             count: int = s.source().count()
 
-            s = Search().filter("bool", must=[match_for_source], must_not=[match_for_empty_entry])
-            print(f"without base filter: {s.to_dict()}")
-            without_base_filter_count: int = s.source().count()
-
-            s = Search().filter("bool", must=[match_for_source, *base_filter])
-            print(f"Second counting: {s.to_dict()}")
+            s = Search().query("match", **{
+                REPLICATION_SOURCE: source, ElasticResourceAttribute.PERMISSION_READ: "GROUP_EVERYONE",
+                ElasticResourceAttribute.EDU_METADATASET: "mds_oeh",
+                ElasticResourceAttribute.PROTOCOL: "workspace"})
+            print(f"Total counting: {s.to_dict()}")
             total_count: int = s.source().count()
 
             non_empty_entries = {
@@ -128,13 +136,6 @@ async def get_quality_matrix():
             print(f"From dict counting: {s.to_dict()}")
             dict_counting: int = s.source().count()
             output[source].update({f"{PROPERTIES}.{field}": {"not_empty": count, "total_count": total_count,
-                                                             "without_base_filter_count": without_base_filter_count,
                                                              "dict_counting": dict_counting}})
 
-    """
-    {'query': {'bool': {'filter': [{'bool': {'must': [{'term': {'permissions.Read.keyword': 'GROUP_EVERYONE'}}, {'term': {'properties.cm:edu_metadataset.keyword': 'mds_oeh'}}, {'term': {'nodeRef.storeRef.protocol': 'workspace'}}]}}]}}, 'aggs': {'uniquefields': {'terms': {'field': 'properties.ccm:replicationsource.keyword'}}}}
-metaqs-fastapi  | First counting: {'query': {'bool': {'filter': [{'bool': {'must': [{'match': {'ccm:replicationsource': 'learning_apps_spider'}}, {'term': {'permissions.Read.keyword': 'GROUP_EVERYONE'}}, {'term': {'properties.cm:edu_metadataset.keyword': 'mds_oeh'}}, {'term': {'nodeRef.storeRef.protocol': 'workspace'}}], 'must_not': [{'match': {'properties.cm:creator': ''}}]}}]}}}
-metaqs-fastapi  | Second counting: {'query': {'bool': {'filter': [{'bool': {'must': [{'match': {'ccm:replicationsource': 'learning_apps_spider'}}, {'term': {'permissions.Read.keyword': 'GROUP_EVERYONE'}}, {'term': {'properties.cm:edu_metadataset.keyword': 'mds_oeh'}}, {'term': {'nodeRef.storeRef.protocol': 'workspace'}}]}}]}}}
-
-    """
     return output
