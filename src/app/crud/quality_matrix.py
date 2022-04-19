@@ -51,6 +51,7 @@ def write_to_json(filename: str, response):
 
 async def get_sources():
     time1 = time.perf_counter()
+    print("get_sources")
     non_empty_entries = {
         "aggs": {
             "uniquefields": {
@@ -70,7 +71,7 @@ async def get_sources():
     print(f"Timing: {time1}, {time3}, {time4}")
     print(f"Response: {response}")
     # write_to_json("sources", response)
-    return response
+    return {}
 
 
 async def get_quality_matrix():
