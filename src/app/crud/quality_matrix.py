@@ -58,7 +58,8 @@ async def get_sources():
     response: Response = s[:ELASTIC_MAX_SIZE].execute()
     time4 = time.perf_counter()
     print(f"Timing: {time1}, {time2}, {time3}, {time4}")
-    write_to_json("sources", response)
+    print(f"Response: {response}")
+    # write_to_json("sources", response)
     return response
 
 
@@ -75,7 +76,8 @@ async def get_quality_matrix():
                 REPLICATION_SOURCE: source})
             match_for_empty_entry = qmatch(**{f"{PROPERTIES}.{field}": ""})
 
-            s = Search().filter("bool", must=[match_for_source, *base_filter], must_not=[match_for_empty_entry])
+            s = Search().query("match", **{
+                REPLICATION_SOURCE: source}).exclude("match", **{f"{PROPERTIES}.{field}": ""})
             print(f"First counting: {s.to_dict()}")
             count: int = s.source().count()
 
