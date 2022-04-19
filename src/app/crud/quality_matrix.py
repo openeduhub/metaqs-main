@@ -2,11 +2,12 @@ import json
 import time
 from typing import List, Dict
 
+from elasticsearch import Elasticsearch
 from elasticsearch_dsl import AttrDict, Q
 from elasticsearch_dsl.aggs import Agg
 from elasticsearch_dsl.response import Response, Hit
 
-from app.core.config import ELASTIC_MAX_SIZE
+from app.core.config import ELASTIC_MAX_SIZE, ELASTIC_INDEX
 from app.core.logging import logger
 from app.crud.elastic import base_filter, base_match_filter
 from app.elastic import Search, qbool, qexists, aterms, qmatch
@@ -63,6 +64,8 @@ async def get_sources():
         "_source": ["properties.ccm:replicationsource"
                     ]
     }
+    response = Elasticsearch().search(index=ELASTIC_INDEX, body=non_empty_entries)
+    print(f"Response raw: {response}")
     s = Search().from_dict(non_empty_entries)
     time3 = time.perf_counter()
     print(s.to_dict())
