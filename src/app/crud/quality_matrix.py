@@ -87,6 +87,7 @@ async def get_quality_matrix():
     for source in sources:
         output.update({source: {}})
         for field in fields_to_check:
+            """"
             s = Search().query("match", qbool(**{
                 f"{PROPERTIES}.{REPLICATION_SOURCE}": source, PERMISSION_READ: "GROUP_EVERYONE",
                 EDU_METADATASET: "mds_oeh", PROTOCOL: "workspace"})).exclude(
@@ -99,7 +100,7 @@ async def get_quality_matrix():
                 EDU_METADATASET: "mds_oeh", PROTOCOL: "workspace"}))
             print(f"Total counting: {s.to_dict()}")
             total_count: int = s.source().count()
-
+            """
             non_empty_entries = {
                 "query": {
                     "bool": {
@@ -137,8 +138,39 @@ async def get_quality_matrix():
             }
             s = Search().from_dict(non_empty_entries)
             print(f"From dict counting: {s.to_dict()}")
-            dict_counting: int = s.source().count()
-            output[source].update({f"{PROPERTIES}.{field}": {"not_empty": count, "total_count": total_count,
-                                                             "dict_counting": dict_counting}})
+            count: int = s.source().count()
+
+            all_entries = {
+                "query": {
+                    "bool": {
+                        "must": [
+                            {
+                                "match": {
+                                    "properties.ccm:replicationsource": source
+                                }
+                            },
+                            {
+                                "match": {
+                                    "permissions.Read": "GROUP_EVERYONE"
+                                }
+                            },
+                            {
+                                "match": {
+                                    "properties.cm:edu_metadataset": "mds_oeh"
+                                }
+                            },
+                            {
+                                "match": {
+                                    "nodeRef.storeRef.protocol": "workspace"
+                                }
+                            }
+                        ],
+                    }
+                }
+            }
+            s = Search().from_dict(all_entries)
+            print(f"From dict all_entries: {s.to_dict()}")
+            total_count: int = s.source().count()
+            output[source].update({f"{PROPERTIES}.{field}": {"not_empty": count, "total_count": total_count}})
 
     return output
