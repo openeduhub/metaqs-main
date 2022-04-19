@@ -66,21 +66,27 @@ async def get_sources():
     s = Search().from_dict(non_empty_entries)
 
     print(s.to_dict())
-    response: Response = s.execute(ignore_cache=True)
+    response: Response = s.execute()
     print(f"Response: {response}")
     print(f"Response: {[hit.to_dict() for hit in response.hits]}")
 
     s = Search()
     s.aggs.bucket("uniquefields", "terms", field="properties.ccm:replicationsource.keyword")
-    response: Response = s.execute(ignore_cache=True)
+    response: Response = s.execute()
+    print(s.to_dict())
     print(f"Response2: {response}")
     print(f"Response2: {[hit.to_dict() for hit in response.hits]}")
     # write_to_json("sources", response)
+    """
+    metaqs-fastapi  | Response: [{}, {}, {}, {}, {'properties': {'ccm:replicationsource': 'kindoergarten_spider'}}, {}, {}, {'properties': {'ccm:replicationsource': 'learning_apps_spider'}}, {'properties': {'ccm:replicationsource': 'learning_apps_spider'}}, {'properties': {'ccm:replicationsource': 'learning_apps_spider'}}]
+metaqs-fastapi  | Response2: <Response: [<Hit(workspace/2901891): {'aclId': 608808, 'txnId': 10991425, 'dbid': 2901891, 'paren...}>, <Hit(workspace/2806645): {'aclId': 606305, 'txnId': 11040414, 'dbid': 2806645, 'paren...}>, <Hit(workspace/2902398): {'aclId': 608837, 'txnId': 11036040, 'dbid': 2902398, 'paren...}>, <Hit(workspace/2902564): {'aclId': 608858, 'txnId': 11033470, 'dbid': 2902564, 'paren...}>, <Hit(workspace/2931058): {'aclId': 610880, 'txnId': 11039347, 'dbid': 2931058, 'paren...}>, <Hit(workspace/2357815): {'aclId': 585660, 'txnId': 11036936, 'dbid': 2357815, 'paren...}>, <Hit(workspace/2901719): {'aclId': 121, 'txnId': 11038477, 'dbid': 2901719, 'parentRe...}>, <Hit(workspace/1577149): {'aclId': 572094, 'txnId': 10999740, 'dbid': 1577149, 'paren...}>, <Hit(workspace/1580700): {'aclId': 572094, 'txnId': 10999754, 'dbid': 1580700, 'paren...}>, <Hit(workspace/1586075): {'aclId': 572094, 'txnId': 10999810, 'dbid': 1586075, 'paren...}>]>
+
+    """
     return {}
 
 
 def extract_properties(hits: list[AttrDict]) -> list:
-    return hits[0].to_dict()[PROPERTIES].keys
+    return hits[0].to_dict()[PROPERTIES].keys()
 
 
 def get_properties():
