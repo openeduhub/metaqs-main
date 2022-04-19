@@ -150,7 +150,7 @@ async def get_quality_matrix():
                             },
                             {
                                 "match": {
-                                    "properties.cm:creator": ""
+                                    f"properties.{field}": ""
                                 }
                             },
                             {
