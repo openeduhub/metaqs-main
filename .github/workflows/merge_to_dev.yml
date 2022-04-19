@@ -3,7 +3,7 @@ name: MetaQS Action after merge to dev
 on:
   push:
     branches:
-      - combining_ci_cd
+      - *
   pull_request:
     branches:
       - dev
