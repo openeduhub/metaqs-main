@@ -46,7 +46,7 @@ async def get_quality_matrix():
     tags=["Statistics"],
 )
 async def get_replication_sources():
-    return await quality_matrix.get_sources()
+    return quality_matrix.get_sources()
 
 
 @router.get(

@@ -16,6 +16,10 @@ from app.models.elastic import ElasticResourceAttribute
 REPLICATION_SOURCE = "ccm:replicationsource"
 PROPERTIES = "properties"
 
+PERMISSION_READ = "permissions.Read"
+EDU_METADATASET = "properties.cm:edu_metadataset"
+PROTOCOL = "nodeRef.storeRef.protocol"
+
 
 def write_to_json(filename: str, response):
     logger.info(f"filename: {filename}")
@@ -23,31 +27,39 @@ def write_to_json(filename: str, response):
         json.dump([hit.to_dict() for hit in response.hits], outfile)
 
 
-async def get_sources() -> list:
-    filename = "sources"
-    print(f"get_{filename}")
-    s = Search()
-    s.aggs.bucket("uniquefields", "terms", field="properties.ccm:replicationsource.keyword")
-    print(f"get_{filename}: {s.to_dict()}")
+def get_sources() -> list:
+    aggregation_name = "unique_sources"
+    main_query = {
+        "query": {
+            "bool": {
+                "must": [
+                    {
+                        "match": {
+                            "permissions.Read": "GROUP_EVERYONE"
+                        }
+                    },
+                    {
+                        "match": {
+                            "properties.cm:edu_metadataset": "mds_oeh"
+                        }
+                    },
+                    {
+                        "match": {
+                            "nodeRef.storeRef.protocol": "workspace"
+                        }
+                    }
+                ]
+            }
+        }
+    }
+    s = Search().from_dict(main_query)
+    s.aggs.bucket(aggregation_name, "terms", field="properties.ccm:replicationsource.keyword")
     response: Response = s.execute()
-
-    with open(f"/tmp/{filename}_raw.json", "a+") as outfile:
-        json.dump(response.to_dict(), outfile)
-    entries = [entry["key"] for entry in response.aggregations.to_dict()["uniquefields"]["buckets"]]
-    with open(f"/tmp/{filename}.json", "a+") as outfile:
-        json.dump({filename: entries}, outfile)
-    return entries
+    return [entry["key"] for entry in response.aggregations.to_dict()[aggregation_name]["buckets"]]
 
 
 def extract_properties(hits: list[AttrDict]) -> list:
-    with open(f"/tmp/extract_properties_raw.json", "a+") as outfile:
-        for hit in hits:
-            print(f"extract_properties: {hit}")
-            if hit.to_dict():
-                json.dump(hit.to_dict(), outfile)
-                return hit.to_dict()[PROPERTIES].keys()
-    return ["cm:creator", "cm:content", "cm:contentPropertyName", "cm:created", "cm:isContentIndexed",
-            "cm:isIndexed", "cm:modified", "cm:modifie", "cm:name", "cm:thumbnailName", "cm:description"]
+    return hits[0].to_dict()[PROPERTIES].keys()
 
 
 def get_properties():
@@ -78,22 +90,14 @@ def get_properties():
         ]
     }
     s = Search().from_dict(property_query)
-    print(f"Get properties: {s.to_dict()}")
     response = s.execute()
-    print(f"Response {response}")
-    print(f"Hits {[hit.to_dict() for hit in response.hits]}")
     return extract_properties(response.hits)
 
 
 async def get_quality_matrix():
-    sources = ["learning_apps_spider", "geogebra_spider", "youtube_spider", "bpb_spider", "br_rss_spider",
-               "rpi_virtuell_spider", "tutory_spider", "oai_sodis_spider", "zum_spider", "memucho_spider"]
     output = {}
 
-    PERMISSION_READ = "permissions.Read"
-    EDU_METADATASET = "properties.cm:edu_metadataset"
-    PROTOCOL = "nodeRef.storeRef.protocol"
-    for source in sources:
+    for source in get_sources():
         output.update({source: {}})
         for field in get_properties():
             non_empty_entries = {
