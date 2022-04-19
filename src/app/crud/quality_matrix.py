@@ -74,7 +74,7 @@ def get_properties():
             }
         },
         "_source": [
-            "aggregations"
+            "properties"
         ]
     }
     s = Search().from_dict(property_query)
