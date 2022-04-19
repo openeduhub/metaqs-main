@@ -128,7 +128,7 @@ async def get_quality_matrix():
                         "must_not": [
                             {
                                 "match": {
-                                    "properties.cm:creator": ""
+                                    f"properties.{field}": ""
                                 }
                             }
                         ]
@@ -136,7 +136,7 @@ async def get_quality_matrix():
                 }
             }
             s = Search().from_dict(non_empty_entries)
-            print(f"From dict counting: {s.to_dict()}")
+            logger.debug(f"From dict counting: {s.to_dict()}")
             count: int = s.source().count()
 
             empty_entries = {
@@ -145,7 +145,7 @@ async def get_quality_matrix():
                         "must": [
                             {
                                 "match": {
-                                    "properties.ccm:replicationsource": "learning_apps_spider"
+                                    "properties.ccm:replicationsource": source
                                 }
                             },
                             {
@@ -173,7 +173,7 @@ async def get_quality_matrix():
                 }
             }
             s = Search().from_dict(empty_entries)
-            print(f"From dict empty_entries: {s.to_dict()}")
+            logger.debug(f"From dict empty_entries: {s.to_dict()}")
             empty: int = s.source().count()
             output[source].update(
                 {f"{PROPERTIES}.{field}": {"empty": empty, "not_empty": count, "total_count": total_count}})
