@@ -83,7 +83,7 @@ async def get_quality_matrix():
             print(f"without base filter: {s.to_dict()}")
             without_base_filter_count: int = s.source().count()
 
-            s = Search().filter("bool", must=[match_for_source, *base_match_filter])
+            s = Search().filter("bool", must=[match_for_source, *base_filter])
             print(f"Second counting: {s.to_dict()}")
             total_count: int = s.source().count()
 
