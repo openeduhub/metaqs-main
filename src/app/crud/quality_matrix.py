@@ -64,8 +64,6 @@ async def get_sources():
         "_source": ["properties.ccm:replicationsource"
                     ]
     }
-    response = Elasticsearch().search(index=ELASTIC_INDEX, body=non_empty_entries)
-    print(f"Response raw: {response}")
     s = Search().from_dict(non_empty_entries)
     time3 = time.perf_counter()
     print(s.to_dict())
@@ -90,14 +88,14 @@ async def get_quality_matrix():
     for source in sources:
         output.update({source: {}})
         for field in fields_to_check:
-            """"
+
             s = Search().query("match", qbool(**{
                 f"{PROPERTIES}.{REPLICATION_SOURCE}": source, PERMISSION_READ: "GROUP_EVERYONE",
                 EDU_METADATASET: "mds_oeh", PROTOCOL: "workspace"})).exclude(
                 "match", **{f"{PROPERTIES}.{field}": ""})
             print(f"Not empty counting: {s.to_dict()}")
             count: int = s.source().count()
-
+            """"
             s = Search().query("match", qbool(**{
                 f"{PROPERTIES}.{REPLICATION_SOURCE}": source, PERMISSION_READ: "GROUP_EVERYONE",
                 EDU_METADATASET: "mds_oeh", PROTOCOL: "workspace"}))
