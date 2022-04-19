@@ -70,6 +70,7 @@ async def get_sources():
     time4 = time.perf_counter()
     print(f"Timing: {time1}, {time3}, {time4}")
     print(f"Response: {response}")
+    print(f"Response: {[hit.to_dict() for hit in response.hits]}")
     # write_to_json("sources", response)
     return {}
 
