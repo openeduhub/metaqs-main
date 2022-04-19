@@ -3,6 +3,7 @@ import json
 from elasticsearch_dsl import AttrDict
 from elasticsearch_dsl.response import Response
 from app.core.logging import logger
+from app.crud.elastic import base_match_filter
 from app.elastic import Search
 
 REPLICATION_SOURCE = "ccm:replicationsource"
@@ -101,26 +102,14 @@ def create_empty_entries_search(field, source):
                             f"properties.{field}": ""
                         }
                     },
-                    {
-                        "match": {
-                            "permissions.Read": "GROUP_EVERYONE"
-                        }
-                    },
-                    {
-                        "match": {
-                            "properties.cm:edu_metadataset": "mds_oeh"
-                        }
-                    },
-                    {
-                        "match": {
-                            "nodeRef.storeRef.protocol": "workspace"
-                        }
-                    }
+
                 ]
             }
         }
     }
     s = Search().from_dict(empty_entries)
+    for entry in base_match_filter:
+        s = s.query(entry)
     return s
 
 
@@ -140,21 +129,6 @@ def get_non_empty_entries(field, source):
                         "match": {
                             "properties.ccm:replicationsource": source
                         }
-                    },
-                    {
-                        "match": {
-                            "permissions.Read": "GROUP_EVERYONE"
-                        }
-                    },
-                    {
-                        "match": {
-                            "properties.cm:edu_metadataset": "mds_oeh"
-                        }
-                    },
-                    {
-                        "match": {
-                            "nodeRef.storeRef.protocol": "workspace"
-                        }
                     }
                 ],
                 "must_not": [
@@ -169,7 +143,8 @@ def get_non_empty_entries(field, source):
     }
     s = Search().from_dict(non_empty_entries)
     logger.debug(f"From dict counting: {s.to_dict()}")
-    print(s.source)
+    for entry in base_match_filter:
+        s = s.query(entry)
     count: int = s.source().count()
     return count
 

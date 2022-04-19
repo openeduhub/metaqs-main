@@ -76,9 +76,21 @@ base_filter = [
 ]
 
 base_match_filter = [
-    qmatch(qfield=ElasticResourceAttribute.PERMISSION_READ, value="GROUP_EVERYONE"),
-    qmatch(qfield=ElasticResourceAttribute.EDU_METADATASET, value="mds_oeh"),
-    qmatch(qfield=ElasticResourceAttribute.PROTOCOL, value="workspace"),
+    {
+        "match": {
+            "permissions.Read": "GROUP_EVERYONE"
+        }
+    },
+    {
+        "match": {
+            "properties.cm:edu_metadataset": "mds_oeh"
+        }
+    },
+    {
+        "match": {
+            "nodeRef.storeRef.protocol": "workspace"
+        }
+    }
 ]
 
 type_filter = {
