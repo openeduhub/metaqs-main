@@ -130,17 +130,12 @@ async def get_quality_matrix():
                        "cm:isIndexed", "cm:modified", "cm:modifie", "cm:name", "cm:thumbnailName", "cm:description"]
     output = {}
 
-    try:
-        print(f"get_properties: {get_properties()}")
-    except Exception as e:
-        print(f"Exception: {e}")
-
     PERMISSION_READ = "permissions.Read"
     EDU_METADATASET = "properties.cm:edu_metadataset"
     PROTOCOL = "nodeRef.storeRef.protocol"
     for source in sources:
         output.update({source: {}})
-        for field in fields_to_check:
+        for field in get_properties():
             """"
             s = Search().query("match", qbool(**{
                 f"{PROPERTIES}.{REPLICATION_SOURCE}": source, PERMISSION_READ: "GROUP_EVERYONE",
