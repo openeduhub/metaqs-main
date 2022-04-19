@@ -24,7 +24,7 @@ def extract_replication_source(data: List[AttrDict]) -> Dict:
         if REPLICATION_SOURCE in element[PROPERTIES].keys():
             replication_source = element[PROPERTIES][REPLICATION_SOURCE]
             if replication_source not in result.keys():
-                result.update({replication_source: {"entries": 0}})
+                result |= {replication_source: {"entries": 0}}
             result[replication_source]["entries"] += 1
             for key, content in element[PROPERTIES].items():
                 content_value = 0
