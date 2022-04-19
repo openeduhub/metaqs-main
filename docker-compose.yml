@@ -33,6 +33,8 @@ services:
   postgres:
     container_name: metaqs-postgres
     image: postgres:14
+    ports:
+      - "5432:5432"
     <<: *restart-policy
     <<: *logging-config
     environment:
@@ -49,10 +51,10 @@ services:
     depends_on:
       - fastapi
     environment:
-      NGINX_HOST: "${NGINX_HOST}"
-      ROOT_PATH: "/metaqs-api/${API_VERSION}"
+      NGINX_HOST: "${NGINX_HOST:-metaqs_localhost}"
+      ROOT_PATH: "/metaqs-api/${API_VERSION:-v1}"
     volumes:
-      - ./nginx/nginx-ssl.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./nginx/nginx.conf.dev.template:/etc/nginx/templates/default.conf.template:ro
       - ./nginx/certbot/conf:/etc/letsencrypt
       - ./nginx/certbot/www:/var/www/certbot
       - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro
@@ -90,29 +92,31 @@ services:
   fastapi:
     container_name: metaqs-fastapi
     build:
-      context: ../fastapi/
+      context: ./src/
       network: host
-    image: community.docker.edu-sharing.com/metaqs-fastapi:latest
+    image: community.docker.edu-sharing.com/metaqs-fastapi_dev:latest
     <<: *restart-policy
     <<: *logging-config
+    volumes:
+      - ./:/tmp
     depends_on:
-      - postgres
+      # - postgres
       - dbt
       - languagetool
     environment:
       <<: *postgres-vars
       POSTGRES_HOST: postgres
-      ROOT_PATH: "/metaqs-api/${API_VERSION}"
-      API_VERSION: "${API_VERSION}"
-      API_KEY: "${API_KEY}"
-      ALLOWED_HOSTS: "${ALLOWED_HOSTS}"
+      ROOT_PATH: "/metaqs-api/${API_VERSION:-v1}"
+      API_VERSION: "${API_VERSION:-v1}"
+      API_KEY: "${API_KEY:-openeduhub}"
+      ALLOWED_HOSTS: "${ALLOWED_HOSTS:-*}"
       BACKGROUND_TASK_ANALYTICS_INTERVAL: "${BACKGROUND_TASK_ANALYTICS_INTERVAL:-0}"
       BACKGROUND_TASK_SEARCH_STATS_INTERVAL: "${BACKGROUND_TASK_SEARCH_STATS_INTERVAL:-0}"
       BACKGROUND_TASK_SEARCH_STATS_SLEEP_INTERVAL: "${BACKGROUND_TASK_SEARCH_STATS_SLEEP_INTERVAL:-0}"
       BACKGROUND_TASK_SPELLCHECK_INTERVAL: "${BACKGROUND_TASK_SPELLCHECK_INTERVAL:-0}"
-      LOG_LEVEL: "${LOG_LEVEL}"
+      LOG_LEVEL: "${LOG_LEVEL:-debug}"
       LOGGER: uvicorn
-      ELASTICSEARCH_URL: "${ELASTICSEARCH_URL}"
+      ELASTICSEARCH_URL: "${ELASTICSEARCH_URL:-http://10.254.1.31:9200}"
       ELASTICSEARCH_TIMEOUT: 20
       WEB_CONCURRENCY: 1
     networks:
@@ -122,9 +126,9 @@ services:
   dbt:
     container_name: metaqs-dbt
     build:
-      context: ../dbt/
+      context: ./dbt/
       network: host
-    image: community.docker.edu-sharing.com/metaqs-dbt:latest
+    image: community.docker.edu-sharing.com/metaqs-dbt_dev:latest
     <<: *restart-policy
     <<: *logging-config
     depends_on:
@@ -150,7 +154,7 @@ services:
     build:
       context: ./superset/
       network: host
-    image: community.docker.edu-sharing.com/metaqs-superset:latest
+    image: community.docker.edu-sharing.com/metaqs-superset_dev:latest
     <<: *restart-policy
     <<: *logging-config
     depends_on:
@@ -163,7 +167,7 @@ services:
 
 
   dbt-docs:
-    image: community.docker.edu-sharing.com/metaqs-dbt:latest
+    image: community.docker.edu-sharing.com/metaqs-dbt_dev:latest
     container_name: metaqs-dbt-docs
     depends_on:
       - postgres
