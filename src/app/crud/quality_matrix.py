@@ -81,21 +81,24 @@ async def get_quality_matrix():
     fields_to_check = ["cm:creator"]
     output = {}
 
+    PERMISSION_READ = "permissions.Read"
+    EDU_METADATASET = "properties.cm:edu_metadataset"
+    PROTOCOL = "nodeRef.storeRef.protocol"
     for source in sources:
         output.update({source: {}})
         for field in fields_to_check:
             s = Search().query("match", **{
-                REPLICATION_SOURCE: source, ElasticResourceAttribute.PERMISSION_READ: "GROUP_EVERYONE",
-                ElasticResourceAttribute.EDU_METADATASET: "mds_oeh",
-                ElasticResourceAttribute.PROTOCOL: "workspace"}).exclude(
+                REPLICATION_SOURCE: source, PERMISSION_READ: "GROUP_EVERYONE",
+                EDU_METADATASET: "mds_oeh",
+                PROTOCOL: "workspace"}).exclude(
                 "match", **{f"{PROPERTIES}.{field}": ""})
             print(f"Not empty counting: {s.to_dict()}")
             count: int = s.source().count()
 
             s = Search().query("match", **{
-                REPLICATION_SOURCE: source, ElasticResourceAttribute.PERMISSION_READ: "GROUP_EVERYONE",
-                ElasticResourceAttribute.EDU_METADATASET: "mds_oeh",
-                ElasticResourceAttribute.PROTOCOL: "workspace"})
+                REPLICATION_SOURCE: source, PERMISSION_READ: "GROUP_EVERYONE",
+                EDU_METADATASET: "mds_oeh",
+                PROTOCOL: "workspace"})
             print(f"Total counting: {s.to_dict()}")
             total_count: int = s.source().count()
 
