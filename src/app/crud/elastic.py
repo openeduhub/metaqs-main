@@ -233,7 +233,7 @@ aggs_material_validation = {
     "missing_object_type": amissing(qfield=LearningMaterialAttribute.OBJECT_TYPE),
 }
 
-
+# TODO Remove
 def agg_material_score(size: int = ELASTIC_MAX_SIZE) -> Agg:
     agg = aterms(qfield=LearningMaterialAttribute.COLLECTION_NODEREF_ID, size=size)
 

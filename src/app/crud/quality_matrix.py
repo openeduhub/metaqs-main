@@ -52,32 +52,14 @@ def write_to_json(filename: str, response):
 
 async def get_sources():
     print("get_sources")
-    non_empty_entries = {
-        "aggs": {
-            "uniquefields": {
-                "terms": {
-                    "field": "properties.ccm:replicationsource.keyword"
-                }
-            }
-        },
-        "_source": ["properties.ccm:replicationsource"
-                    ]
-    }
-    s = Search().from_dict(non_empty_entries)
-
-    print(s.to_dict())
-    response: Response = s.source(includes=["properties.ccm:replicationsource"])[:].execute()
-    print(f"Response: {response}")
-    print(f"Response: {[hit.to_dict() for hit in response.hits]}")
-    write_to_json("sources1", response)
-
     s = Search()
     s.aggs.bucket("uniquefields", "terms", field="properties.ccm:replicationsource.keyword")
-    response: Response = s.source(includes=["properties.ccm:replicationsource"])[:].execute()
-    print(s.to_dict())
-    print(f"Response2: {response}")
-    print(f"Response2: {[hit.to_dict() for hit in response.hits]}")
-    write_to_json("sources2", response)
+    response: Response = s.execute()
+    print(f"get_sources: {s.to_dict()}")
+    filename = "sources"
+    logger.info(f"filename: {filename}")
+    with open(f"/tmp/{filename}.json", "a+") as outfile:
+        json.dump([hit.to_dict() for hit in response.aggregations], outfile)
     return {}
 
 
@@ -109,7 +91,7 @@ def get_properties():
             }
         },
         "_source": [
-            "properties"
+            "aggregations"
         ]
     }
     s = Search().from_dict(property_query)
