@@ -1,17 +1,9 @@
 import json
-import time
-from typing import List, Dict
 
-from elasticsearch import Elasticsearch
-from elasticsearch_dsl import AttrDict, Q
-from elasticsearch_dsl.aggs import Agg
-from elasticsearch_dsl.response import Response, Hit
-
-from app.core.config import ELASTIC_MAX_SIZE, ELASTIC_INDEX
+from elasticsearch_dsl import AttrDict
+from elasticsearch_dsl.response import Response
 from app.core.logging import logger
-from app.crud.elastic import base_filter, base_match_filter
-from app.elastic import Search, qbool, qexists, aterms, qmatch
-from app.models.elastic import ElasticResourceAttribute
+from app.elastic import Search
 
 REPLICATION_SOURCE = "ccm:replicationsource"
 PROPERTIES = "properties"
@@ -94,22 +86,7 @@ def get_properties():
     return extract_properties(response.hits)
 
 
-async def get_quality_matrix():
-    output = {}
-
-    for source, total_count in get_sources().items():
-        output.update({source: {}})
-        for field in get_properties():
-            count = get_non_empty_entries(field, source)
-
-            empty = get_empty_entries(field, source)
-            output[source].update(
-                {f"{PROPERTIES}.{field}": {"empty": empty, "not_empty": count, "total_count": total_count}})
-
-    return output
-
-
-def get_empty_entries(field, source):
+def create_empty_entries_search(field, source):
     empty_entries = {
         "query": {
             "bool": {
@@ -144,6 +121,11 @@ def get_empty_entries(field, source):
         }
     }
     s = Search().from_dict(empty_entries)
+    return s
+
+
+def get_empty_entries(field, source):
+    s = create_empty_entries_search(field, source)
     logger.debug(f"From dict empty_entries: {s.to_dict()}")
     empty: int = s.source().count()
     return empty
@@ -190,3 +172,18 @@ def get_non_empty_entries(field, source):
     print(s.source)
     count: int = s.source().count()
     return count
+
+
+async def get_quality_matrix():
+    output = {}
+
+    for source, total_count in get_sources().items():
+        output.update({source: {}})
+        for field in get_properties():
+            count = get_non_empty_entries(field, source)
+
+            empty = get_empty_entries(field, source)
+            output[source].update(
+                {f"{PROPERTIES}.{field}": {"empty": empty, "not_empty": count, "total_count": total_count}})
+
+    return output
