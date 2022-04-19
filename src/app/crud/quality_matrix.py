@@ -51,16 +51,17 @@ def write_to_json(filename: str, response):
 
 
 async def get_sources():
-    print("get_sources")
+    filename = "sources"
+    print(f"get_{filename}")
     s = Search()
     s.aggs.bucket("uniquefields", "terms", field="properties.ccm:replicationsource.keyword")
     response: Response = s.execute()
-    print(f"get_sources: {s.to_dict()}")
-    filename = "sources"
-    logger.info(f"filename: {filename}")
+
+    output = {filename: response.aggregations[0].to_dict()["buckets"]}
+    print(f"get_{filename}: {s.to_dict()}")
     with open(f"/tmp/{filename}.json", "a+") as outfile:
-        json.dump([hit.to_dict() for hit in response.aggregations], outfile)
-    return {}
+        json.dump(output, outfile)
+    return output
 
 
 def extract_properties(hits: list[AttrDict]) -> list:
