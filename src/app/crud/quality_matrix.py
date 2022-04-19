@@ -79,7 +79,7 @@ def get_properties():
     }
     s = Search().from_dict(property_query)
     print(f"Get properties: {s.to_dict()}")
-    response = s.source().execute()
+    response = s.execute()
     print(f"Response {response}")
     print(f"Hits {[hit.to_dict() for hit in response.hits]}")
     return extract_properties(response.hits)
