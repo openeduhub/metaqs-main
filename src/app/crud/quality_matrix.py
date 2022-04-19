@@ -76,11 +76,50 @@ async def get_sources():
     return {}
 
 
+def get_properties():
+    property_query = {
+        "query": {
+            "bool": {
+                "must": [
+                    {
+                        "match": {
+                            "permissions.Read": "GROUP_EVERYONE"
+                        }
+                    },
+                    {
+                        "match": {
+                            "properties.cm:edu_metadataset": "mds_oeh"
+                        }
+                    },
+                    {
+                        "match": {
+                            "nodeRef.storeRef.protocol": "workspace"
+                        }
+                    }
+                ]
+            }
+        },
+        "_source": [
+            "properties"
+        ]
+    }
+    s = Search().from_dict(property_query)
+    print(f"Get properties: {s.to_dict()}")
+    response = s.source()[:0].execute()
+    print(f"Response {response}")
+
+
 async def get_quality_matrix():
     sources = ["learning_apps_spider", "geogebra_spider", "youtube_spider", "bpb_spider", "br_rss_spider",
                "rpi_virtuell_spider", "tutory_spider", "oai_sodis_spider", "zum_spider", "memucho_spider"]
-    fields_to_check = ["cm:creator"]
+    fields_to_check = ["cm:creator", "cm:content", "cm:contentPropertyName", "cm:created", "cm:isContentIndexed",
+                       "cm:isIndexed", "cm:modified", "cm:modifie", "cm:name", "cm:thumbnailName", "cm:description"]
     output = {}
+
+    try:
+        get_properties()
+    except Exception as e:
+        print(f"Exception: {e}")
 
     PERMISSION_READ = "permissions.Read"
     EDU_METADATASET = "properties.cm:edu_metadataset"
@@ -88,7 +127,6 @@ async def get_quality_matrix():
     for source in sources:
         output.update({source: {}})
         for field in fields_to_check:
-
             s = Search().query("match", qbool(**{
                 f"{PROPERTIES}.{REPLICATION_SOURCE}": source, PERMISSION_READ: "GROUP_EVERYONE",
                 EDU_METADATASET: "mds_oeh", PROTOCOL: "workspace"})).exclude(
