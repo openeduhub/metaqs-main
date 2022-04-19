@@ -67,6 +67,8 @@ async def get_sources():
 
 
 def extract_properties(hits: list[AttrDict]) -> list:
+    with open(f"/tmp/extract_properties_raw.json", "a+") as outfile:
+        json.dump(hits[0].to_dict(), outfile)
     return hits[0].to_dict()[PROPERTIES].keys()
 
 
