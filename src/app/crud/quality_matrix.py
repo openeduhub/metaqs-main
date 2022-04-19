@@ -8,7 +8,7 @@ from elasticsearch_dsl.response import Response, Hit
 
 from app.core.config import ELASTIC_MAX_SIZE
 from app.core.logging import logger
-from app.crud.elastic import base_filter
+from app.crud.elastic import base_filter, base_match_filter
 from app.elastic import Search, qbool, qexists, aterms, qmatch
 
 REPLICATION_SOURCE = "ccm:replicationsource"
@@ -55,7 +55,7 @@ async def get_sources():
     s.aggs.bucket("uniquefields", "terms", field="properties.ccm:replicationsource.keyword")
     time3 = time.perf_counter()
     print(s.to_dict())
-    response: Response = s[:ELASTIC_MAX_SIZE].source(includes=["properties.ccm:replicationsource"]).execute()
+    response: Response = s[:ELASTIC_MAX_SIZE].execute()
     time4 = time.perf_counter()
     print(f"Timing: {time1}, {time2}, {time3}, {time4}")
     write_to_json("sources", response)
@@ -75,14 +75,19 @@ async def get_quality_matrix():
                 REPLICATION_SOURCE: source})
             match_for_empty_entry = qmatch(**{f"{PROPERTIES}.{field}": ""})
 
-            s = Search().filter("bool", must=[match_for_source, *base_filter], must_not=[match_for_empty_entry])
+            s = Search().filter("bool", must=[match_for_source, *base_match_filter], must_not=[match_for_empty_entry])
             print(f"First counting: {s.to_dict()}")
             count: int = s.source().count()
 
-            s = Search().filter("bool", must=[match_for_source, *base_filter])
+            s = Search().filter("bool", must=[match_for_source], must_not=[match_for_empty_entry])
+            print(f"without base filter: {s.to_dict()}")
+            without_base_filter_count: int = s.source().count()
+
+            s = Search().filter("bool", must=[match_for_source, *base_match_filter])
             print(f"Second counting: {s.to_dict()}")
             total_count: int = s.source().count()
-            output[source].update({f"{PROPERTIES}.{field}": {"not_empty": count, "total_count": total_count}})
+            output[source].update({f"{PROPERTIES}.{field}": {"not_empty": count, "total_count": total_count,
+                                                             "without_base_filter_count": without_base_filter_count}})
 
     """
     {'query': {'bool': {'filter': [{'bool': {'must': [{'term': {'permissions.Read.keyword': 'GROUP_EVERYONE'}}, {'term': {'properties.cm:edu_metadataset.keyword': 'mds_oeh'}}, {'term': {'nodeRef.storeRef.protocol': 'workspace'}}]}}]}}, 'aggs': {'uniquefields': {'terms': {'field': 'properties.ccm:replicationsource.keyword'}}}}

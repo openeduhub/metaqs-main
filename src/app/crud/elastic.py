@@ -75,6 +75,12 @@ base_filter = [
     qterm(qfield=ElasticResourceAttribute.PROTOCOL, value="workspace"),
 ]
 
+base_match_filter = [
+    qmatch(qfield=ElasticResourceAttribute.PERMISSION_READ, value="GROUP_EVERYONE"),
+    qmatch(qfield=ElasticResourceAttribute.EDU_METADATASET, value="mds_oeh"),
+    qmatch(qfield=ElasticResourceAttribute.PROTOCOL, value="workspace"),
+]
+
 type_filter = {
     ResourceType.COLLECTION: [
         qterm(qfield=ElasticResourceAttribute.TYPE, value="ccm:map"),
