@@ -105,7 +105,7 @@ def get_properties():
     }
     s = Search().from_dict(property_query)
     print(f"Get properties: {s.to_dict()}")
-    response = s.source()[:0].execute()
+    response = s.source()[:10].execute()
     print(f"Response {response}")
 
 
