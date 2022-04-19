@@ -27,7 +27,7 @@ def write_to_json(filename: str, response):
         json.dump([hit.to_dict() for hit in response.hits], outfile)
 
 
-def get_sources() -> list[str, int]:
+def get_sources() -> dict[str: int]:
     aggregation_name = "unique_sources"
     main_query = {
         "query": {
@@ -55,7 +55,7 @@ def get_sources() -> list[str, int]:
     s = Search().from_dict(main_query)
     s.aggs.bucket(aggregation_name, "terms", field="properties.ccm:replicationsource.keyword")
     response: Response = s.execute()
-    return {entry["key"]:entry["doc_count"] for entry in response.aggregations.to_dict()[aggregation_name]["buckets"]}
+    return {entry["key"]: entry["doc_count"] for entry in response.aggregations.to_dict()[aggregation_name]["buckets"]}
 
 
 def extract_properties(hits: list[AttrDict]) -> list:
@@ -97,7 +97,7 @@ def get_properties():
 async def get_quality_matrix():
     output = {}
 
-    for source, total_count in get_sources():
+    for source, total_count in get_sources().items():
         output.update({source: {}})
         for field in get_properties():
             non_empty_entries = {
