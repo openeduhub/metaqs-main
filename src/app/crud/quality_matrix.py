@@ -66,7 +66,7 @@ async def get_sources():
     s = Search().from_dict(non_empty_entries)
     time3 = time.perf_counter()
     print(s.to_dict())
-    response: Response = s.execute()
+    response: Response = s.execute(ignore_cache=True)
     time4 = time.perf_counter()
     print(f"Timing: {time1}, {time3}, {time4}")
     print(f"Response: {response}")
@@ -88,16 +88,20 @@ async def get_quality_matrix():
         output.update({source: {}})
         for field in fields_to_check:
             s = Search().query("match", **{
-                REPLICATION_SOURCE: source}).query("match", **{PERMISSION_READ: "GROUP_EVERYONE"}).query("match", **{
-                EDU_METADATASET: "mds_oeh", }).query("match", **{
+                f"{PROPERTIES}.{REPLICATION_SOURCE}": source}).query("match",
+                                                                     **{PERMISSION_READ: "GROUP_EVERYONE"}).query(
+                "match", **{
+                    EDU_METADATASET: "mds_oeh", }).query("match", **{
                 PROTOCOL: "workspace"}).exclude(
                 "match", **{f"{PROPERTIES}.{field}": ""})
             print(f"Not empty counting: {s.to_dict()}")
             count: int = s.source().count()
 
             s = Search().query("match", **{
-                REPLICATION_SOURCE: source}).query("match", **{PERMISSION_READ: "GROUP_EVERYONE"}).query("match", **{
-                EDU_METADATASET: "mds_oeh", }).query("match", **{
+                f"{PROPERTIES}.{REPLICATION_SOURCE}": source}).query("match",
+                                                                     **{PERMISSION_READ: "GROUP_EVERYONE"}).query(
+                "match", **{
+                    EDU_METADATASET: "mds_oeh", }).query("match", **{
                 PROTOCOL: "workspace"})
             print(f"Total counting: {s.to_dict()}")
             total_count: int = s.source().count()
