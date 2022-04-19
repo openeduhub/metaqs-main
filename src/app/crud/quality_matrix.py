@@ -75,7 +75,7 @@ async def get_quality_matrix():
                 REPLICATION_SOURCE: source})
             match_for_empty_entry = qmatch(**{f"{PROPERTIES}.{field}": ""})
 
-            s = Search().filter("bool", must=[match_for_source, *base_match_filter], must_not=[match_for_empty_entry])
+            s = Search().filter("bool", must=[match_for_source, *base_filter], must_not=[match_for_empty_entry])
             print(f"First counting: {s.to_dict()}")
             count: int = s.source().count()
 
