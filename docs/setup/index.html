@@ -1,0 +1,337 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.2.3, mkdocs-material-8.0.0b2" name="generator"/>
+<title>Setup - MetaQS Documentation</title>
+<link href="../assets/stylesheets/main.0c73cc44.min.css" rel="stylesheet"/>
+<link href="../assets/stylesheets/palette.9204c3b2.min.css" rel="stylesheet"/>
+<meta content="#00bdd6" name="theme-color"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>function __md_scope(e,t,_){return new URL(_||(t===localStorage?"..":".."),location).pathname+"."+e}function __md_get(e,t=localStorage,_){return JSON.parse(t.getItem(__md_scope(e,t,_)))}function __md_set(e,t,_=localStorage,o){try{_.setItem(__md_scope(e,_,o),JSON.stringify(t))}catch(e){}}</script>
+</head>
+<body data-md-color-accent="" data-md-color-primary="cyan" data-md-color-scheme="slate" dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#setup">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="MetaQS Documentation" class="md-header__button md-logo" data-md-component="logo" href=".." title="MetaQS Documentation">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            MetaQS Documentation
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Setup
+            
+          </span>
+</div>
+</div>
+</div>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="MetaQS Documentation" class="md-nav__button md-logo" data-md-component="logo" href=".." title="MetaQS Documentation">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"></path></svg>
+</a>
+    MetaQS Documentation
+  </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="..">
+        Overview
+      </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../services/">
+        Service Architecture
+      </a>
+</li>
+<li class="md-nav__item md-nav__item--active">
+<input class="md-nav__toggle md-toggle" data-md-toggle="toc" id="__toc" type="checkbox"/>
+<label class="md-nav__link md-nav__link--active" for="__toc">
+          Setup
+          <span class="md-nav__icon md-icon"></span>
+</label>
+<a class="md-nav__link md-nav__link--active" href="./">
+        Setup
+      </a>
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#core-services">
+    Core services
+  </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#superset">
+    Superset
+  </a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../operations/">
+        Operations
+      </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../backup/">
+        Data Backup
+      </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../recovery/">
+        Recovery
+      </a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7">
+          FastAPI
+          <span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-label="FastAPI" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+          FastAPI
+        </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../fastapi/">
+        Overview
+      </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../fastapi/background_tasks/">
+        Analytics Background Tasks
+      </a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" id="__nav_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8">
+          Analytics
+          <span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-label="Analytics" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+          Analytics
+        </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../analytics/">
+        Analytics overview
+      </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../analytics/data_import/">
+        Data import and processing
+      </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../analytics/sql_processing/">
+        Data import and processing
+      </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../analytics/spellcheck_processing/">
+        Spellcheck processing
+      </a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard/">
+        Dashboard
+      </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../info/">
+        Info
+      </a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#core-services">
+    Core services
+  </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#superset">
+    Superset
+  </a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="setup">Setup</h1>
+<p>Clone the <a href="https://github.com/openeduhub/metaqs-main">main repository</a> to the production machine when setting up the application.</p>
+<p>All services are deployed from Docker images -- either custom images build from the two other repositories or 3rd-party images.</p>
+<h2 id="core-services">Core services</h2>
+<ol>
+<li>
+<p>Bring up the database.</p>
+<p>These commands create a fresh postgres container and run the initial migrations to set up the required database schema.</p>
+<div class="highlight"><pre><span></span><code>docker-compose up -d postgres
+docker-compose run dbt alembic upgrade head
+</code></pre></div>
+</li>
+<li>
+<p>Bring up remaining core services.</p>
+<div class="highlight"><pre><span></span><code>docker-compose up -d
+</code></pre></div>
+</li>
+</ol>
+<p>After these steps the output from <code>docker ps</code> should be similar to the following:</p>
+<div class="highlight"><pre><span></span><code>CONTAINER ID   IMAGE                   COMMAND                   PORTS                                 NAMES
+e4d5eb5434d1   nginx:stable-alpine     <span class="s2">"/docker-entrypoint.…"</span>    <span class="m">0</span>.0.0.0:80-&gt;80/tcp, :::80-&gt;80/tcp     nginx
+0b1fa78b9037   metaqs-fastapi          <span class="s2">"/start-reload.sh"</span>        <span class="m">80</span>/tcp                                fastapi
+13d2f71dc4b9   metaqs-dbt              <span class="s2">"/bin/sh -c 'dbt com…"</span>    <span class="m">8580</span>/tcp                              dbt
+5bc6326076f4   erikvl87/languagetool   <span class="s2">"bash start.sh"</span>           <span class="m">8010</span>/tcp                              languagetool
+df4f2c3472be   postgres:14             <span class="s2">"docker-entrypoint.s…"</span>    <span class="m">5432</span>/tcp                              postgres
+</code></pre></div>
+<h2 id="superset">Superset</h2>
+<p>See <a href="../dashboard/#setup">Dashboard -&gt; Setup</a> for further details.</p>
+</article>
+</div>
+</div>
+</main>
+<footer class="md-footer">
+<nav aria-label="Footer" class="md-footer__inner md-grid">
+<a aria-label="Previous: Service Architecture" class="md-footer__link md-footer__link--prev" href="../services/" rel="prev">
+<div class="md-footer__button md-icon">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"></path></svg>
+</div>
+<div class="md-footer__title">
+<div class="md-ellipsis">
+<span class="md-footer__direction">
+                Previous
+              </span>
+              Service Architecture
+            </div>
+</div>
+</a>
+<a aria-label="Next: Operations" class="md-footer__link md-footer__link--next" href="../operations/" rel="next">
+<div class="md-footer__title">
+<div class="md-ellipsis">
+<span class="md-footer__direction">
+                Next
+              </span>
+              Operations
+            </div>
+</div>
+<div class="md-footer__button md-icon">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"></path></svg>
+</div>
+</a>
+</nav>
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.01824240.min.js", "version": null}</script>
+<script src="../assets/javascripts/bundle.0885dc41.min.js"></script>
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</body>
+</html>

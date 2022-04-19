@@ -1,0 +1,177 @@
+version: '3.9'
+
+volumes:
+  pg-data:
+  superset-data:
+  shared-dbt-docs:
+
+networks:
+  backend:
+  frontend:
+
+x-postgres-vars: &postgres-vars
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+  POSTGRES_DB: analytics
+
+x-postgres-vars-dbt: &postgres-vars-dbt
+  <<: *postgres-vars
+  POSTGRES_HOST: postgres
+  POSTGRES_PORT: 5432
+
+x-restart-policy: &restart-policy
+  restart: unless-stopped
+
+x-logging-config: &logging-config
+  logging:
+    driver: 'json-file'
+    options:
+      max-file: '5'
+      max-size: '100M'
+
+services:
+  postgres:
+    container_name: metaqs-postgres
+    image: postgres:14
+    ports:
+      - "5432:5432"
+    <<: *restart-policy
+    <<: *logging-config
+    environment:
+      <<: *postgres-vars
+    networks: [ backend ]
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+
+  nginx:
+    container_name: metaqs-nginx
+    image: nginx:stable-alpine
+    <<: *restart-policy
+    <<: *logging-config
+    depends_on:
+      - fastapi
+    environment:
+      NGINX_HOST: "${NGINX_HOST}"
+      ROOT_PATH: "/metaqs-api/${API_VERSION:-v1}"
+    volumes:
+      - ./nginx/nginx-ssl.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot
+      - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro
+      - ./nginx/gzip_params:/etc/nginx/gzip_params:ro
+      - ./nginx/proxy_params:/etc/nginx/proxy_params:ro
+      - ../mkdocs/site:/usr/share/nginx/html/docs:ro
+      - shared-dbt-docs:/usr/share/nginx/html/dbt-docs:ro
+    networks: [ frontend ]
+    ports:
+      - "80:80"
+      - "443:443"
+
+  certbot:
+    <<: *restart-policy
+    <<: *logging-config
+    container_name: metaqs-certbot
+    image: certbot/certbot
+    depends_on:
+      - nginx
+    volumes:
+      - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot
+    entrypoint:
+      - /bin/sh
+      - -c
+    command:
+      - |
+        trap exit TERM
+        while :; do
+          echo "renewing certs"
+          certbot renew
+          sleep 12h & wait $${!}
+        done
+
+  fastapi:
+    container_name: metaqs-fastapi
+    build:
+      context: ./src/
+      network: host
+    image: community.docker.edu-sharing.com/metaqs-fastapi:latest
+    <<: *restart-policy
+    <<: *logging-config
+    depends_on:
+      - postgres
+      - dbt
+      - languagetool
+    environment:
+      <<: *postgres-vars
+      POSTGRES_HOST: postgres
+      ROOT_PATH: "/metaqs-api/${API_VERSION:-v1}"
+      API_VERSION: "${API_VERSION:-v1}"
+      API_KEY: "${API_KEY:-openeduhub}"
+      ALLOWED_HOSTS: "${ALLOWED_HOSTS:-*}"
+      BACKGROUND_TASK_ANALYTICS_INTERVAL: "${BACKGROUND_TASK_ANALYTICS_INTERVAL:-0}"
+      BACKGROUND_TASK_SEARCH_STATS_INTERVAL: "${BACKGROUND_TASK_SEARCH_STATS_INTERVAL:-0}"
+      BACKGROUND_TASK_SEARCH_STATS_SLEEP_INTERVAL: "${BACKGROUND_TASK_SEARCH_STATS_SLEEP_INTERVAL:-0}"
+      BACKGROUND_TASK_SPELLCHECK_INTERVAL: "${BACKGROUND_TASK_SPELLCHECK_INTERVAL:-0}"
+      LOG_LEVEL: "${LOG_LEVEL:-debug}"
+      LOGGER: uvicorn
+      ELASTICSEARCH_URL: "${ELASTICSEARCH_URL:-http://10.254.1.31:9200}"
+      ELASTICSEARCH_TIMEOUT: 20
+      WEB_CONCURRENCY: 1
+    networks:
+      - backend
+      - frontend
+
+  dbt:
+    container_name: metaqs-dbt
+    build:
+      context: ./dbt/
+      network: host
+    image: community.docker.edu-sharing.com/metaqs-dbt:latest
+    <<: *restart-policy
+    <<: *logging-config
+    depends_on:
+      - postgres
+    environment:
+      <<: *postgres-vars-dbt
+    networks: [ backend ]
+    expose:
+      - 8580
+    command: [ "dbt", "rpc" ]
+
+  languagetool:
+    container_name: metaqs-languagetool
+    image: erikvl87/languagetool
+    <<: *restart-policy
+    environment:
+      Java_Xms: 512m
+      Java_Xmx: 2g
+    networks: [ backend ]
+
+  superset:
+    container_name: metaqs-superset
+    build:
+      context: ./superset/
+      network: host
+    image: community.docker.edu-sharing.com/metaqs-superset:latest
+    <<: *restart-policy
+    <<: *logging-config
+    depends_on:
+      - postgres
+    volumes:
+      - superset-data:/app/superset_home
+    networks: [ frontend, backend ]
+    expose:
+      - 8088
+
+
+  dbt-docs:
+    image: community.docker.edu-sharing.com/metaqs-dbt:latest
+    container_name: metaqs-dbt-docs
+    depends_on:
+      - postgres
+    environment:
+      <<: *postgres-vars-dbt
+    volumes:
+      - shared-dbt-docs:/dbt/target
+    networks: [ backend ]
+    command: [ "dbt", "docs", "generate" ]

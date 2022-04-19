@@ -1,0 +1,34 @@
+{
+  "hits" : {
+    "hits" : [
+      {
+        "_source" : {
+          "properties" : {
+            "ccm:replicationsource" : "kindoergarten_spider"
+          }
+        }
+      },
+      {
+        "_source" : {
+          "properties" : {
+            "ccm:replicationsource" : "learning_apps_spider"
+          }
+        }
+      },
+      {
+        "_source" : {
+          "properties" : {
+            "ccm:replicationsource" : "learning_apps_spider"
+          }
+        }
+      },
+      {
+        "_source" : {
+          "properties" : {
+            "ccm:replicationsource" : "learning_apps_spider"
+          }
+        }
+      }
+    ]
+  }
+}

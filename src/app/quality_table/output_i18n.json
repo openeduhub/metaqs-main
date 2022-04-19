@@ -1,0 +1,484 @@
+{
+  "hits" : {
+    "hits" : [
+      {
+        "_source" : {
+          "i18n" : {
+            "en_US" : {
+              "ccm:objecttype" : [
+                "Material"
+              ],
+              "ccm:taxonid" : [
+                "Interdisciplinary media"
+              ],
+              "ccm:educationalinteractivitytype" : [
+                "OER einführen"
+              ],
+              "ccm:educationaldifficulty" : [
+                "Praktiker"
+              ],
+              "ccm:educationalcontext" : [
+                null
+              ]
+            },
+            "de_DE" : {
+              "ccm:objecttype" : [
+                "Material"
+              ],
+              "ccm:taxonid" : [
+                "Allgemein"
+              ],
+              "ccm:educationalinteractivitytype" : [
+                "OER einführen"
+              ],
+              "ccm:educationaldifficulty" : [
+                "Praktiker"
+              ],
+              "ccm:educationalcontext" : [
+                null
+              ]
+            }
+          }
+        }
+      },
+      {
+        "_source" : {
+          "i18n" : {
+            "en_US" : {
+              "ccm:objecttype" : [
+                "Material"
+              ],
+              "ccm:taxonid" : [
+                "Interdisciplinary media"
+              ],
+              "ccm:educationalinteractivitytype" : [
+                "OER einführen",
+                "OER managen",
+                "Über OER forschen"
+              ],
+              "ccm:educationaldifficulty" : [
+                null
+              ],
+              "ccm:educationalcontext" : [
+                null
+              ]
+            },
+            "de_DE" : {
+              "ccm:objecttype" : [
+                "Material"
+              ],
+              "ccm:taxonid" : [
+                "Allgemein"
+              ],
+              "ccm:educationalinteractivitytype" : [
+                "OER einführen",
+                "OER managen",
+                "Über OER forschen"
+              ],
+              "ccm:educationaldifficulty" : [
+                null
+              ],
+              "ccm:educationalcontext" : [
+                null
+              ]
+            }
+          }
+        }
+      },
+      {
+        "_source" : {
+          "i18n" : {
+            "en_US" : {
+              "ccm:objecttype" : [
+                "Material"
+              ],
+              "ccm:taxonid" : [
+                "Interdisciplinary media"
+              ],
+              "ccm:educationalcontext" : [
+                "vocational education",
+                "continuing education",
+                "elementary level",
+                "primary school",
+                "Secondary II",
+                "Secondary I",
+                "special education"
+              ]
+            },
+            "de_DE" : {
+              "ccm:objecttype" : [
+                "Material"
+              ],
+              "ccm:taxonid" : [
+                "Allgemein"
+              ],
+              "ccm:educationalcontext" : [
+                "Berufliche Bildung",
+                "Erwachsenenbildung",
+                "Elementarbereich",
+                "Primarstufe",
+                "Sekundarstufe II",
+                "Sekundarstufe I",
+                "Förderschule"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "_source" : {
+          "i18n" : {
+            "en_US" : {
+              "ccm:objecttype" : [
+                "Material"
+              ],
+              "ccm:taxonid" : [
+                "Interdisciplinary media"
+              ],
+              "ccm:educationalinteractivitytype" : [
+                "OER einführen",
+                "Über OER forschen"
+              ],
+              "ccm:educationaldifficulty" : [
+                "Experte"
+              ],
+              "ccm:educationalcontext" : [
+                null
+              ],
+              "ccm:classification_purpose" : [
+                "Hochschule"
+              ]
+            },
+            "de_DE" : {
+              "ccm:objecttype" : [
+                "Material"
+              ],
+              "ccm:taxonid" : [
+                "Allgemein"
+              ],
+              "ccm:educationalinteractivitytype" : [
+                "OER einführen",
+                "Über OER forschen"
+              ],
+              "ccm:educationaldifficulty" : [
+                "Experte"
+              ],
+              "ccm:educationalcontext" : [
+                null
+              ],
+              "ccm:classification_purpose" : [
+                "Hochschule"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "_source" : {
+          "i18n" : {
+            "en_US" : {
+              "ccm:objecttype" : [
+                "Material"
+              ],
+              "ccm:taxonid" : [
+                "Interdisciplinary media"
+              ],
+              "ccm:educationalcontext" : [
+                "elementary level"
+              ],
+              "ccm:replicationsource" : [
+                null
+              ],
+              "ccm:educationalintendedenduserrole" : [
+                "teacher"
+              ]
+            },
+            "de_DE" : {
+              "ccm:objecttype" : [
+                "Material"
+              ],
+              "ccm:taxonid" : [
+                "Allgemein"
+              ],
+              "ccm:educationalcontext" : [
+                "Elementarbereich"
+              ],
+              "ccm:replicationsource" : [
+                null
+              ],
+              "ccm:educationalintendedenduserrole" : [
+                "Lehrer/in"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "_source" : {
+          "i18n" : {
+            "en_US" : {
+              "ccm:price" : [
+                "no"
+              ],
+              "ccm:taxonid" : [
+                "Interdisciplinary media"
+              ],
+              "ccm:oeh_lrt" : [
+                "Webseite und Portal (stabil)"
+              ],
+              "ccm:oeh_lrt_aggregated" : [
+                "Webseite"
+              ],
+              "ccm:educationalcontext" : [
+                "primary school",
+                "Secondary I",
+                "Secondary II",
+                "vocational education"
+              ],
+              "ccm:containsAdvertisement" : [
+                null
+              ],
+              "ccm:conditionsOfAccess" : [
+                "no login"
+              ]
+            },
+            "de_DE" : {
+              "ccm:price" : [
+                "nein"
+              ],
+              "ccm:taxonid" : [
+                "Allgemein"
+              ],
+              "ccm:oeh_lrt" : [
+                "Webseite und Portal (stabil)"
+              ],
+              "ccm:oeh_lrt_aggregated" : [
+                "Webseite"
+              ],
+              "ccm:educationalcontext" : [
+                "Primarstufe",
+                "Sekundarstufe I",
+                "Sekundarstufe II",
+                "Berufliche Bildung"
+              ],
+              "ccm:containsAdvertisement" : [
+                null
+              ],
+              "ccm:conditionsOfAccess" : [
+                "ohne Anmeldung"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "_source" : {
+          "i18n" : {
+            "en_US" : {
+              "ccm:objecttype" : [
+                "Material"
+              ],
+              "ccm:taxonid" : [
+                "Interdisciplinary media"
+              ],
+              "ccm:educationalinteractivitytype" : [
+                "OER einführen"
+              ],
+              "ccm:educationaldifficulty" : [
+                "Praktiker"
+              ],
+              "ccm:educationalcontext" : [
+                null
+              ],
+              "ccm:classification_purpose" : [
+                "Hochschule"
+              ]
+            },
+            "de_DE" : {
+              "ccm:objecttype" : [
+                "Material"
+              ],
+              "ccm:taxonid" : [
+                "Allgemein"
+              ],
+              "ccm:educationalinteractivitytype" : [
+                "OER einführen"
+              ],
+              "ccm:educationaldifficulty" : [
+                "Praktiker"
+              ],
+              "ccm:educationalcontext" : [
+                null
+              ],
+              "ccm:classification_purpose" : [
+                "Hochschule"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "_source" : {
+          "i18n" : {
+            "en_US" : {
+              "ccm:objecttype" : [
+                "Material"
+              ],
+              "ccm:taxonid" : [
+                "Vocational education"
+              ],
+              "ccm:oeh_lrt" : [
+                "Webseite und Portal (stabil)",
+                "Lernspiel"
+              ],
+              "ccm:oeh_lrt_aggregated" : [
+                "Webseite",
+                "Lernspiel"
+              ],
+              "cclom:general_language" : [
+                null
+              ],
+              "ccm:educationalcontext" : [
+                "Secondary II"
+              ],
+              "ccm:replicationsource" : [
+                null
+              ]
+            },
+            "de_DE" : {
+              "ccm:objecttype" : [
+                "Material"
+              ],
+              "ccm:taxonid" : [
+                "Berufliche Bildung"
+              ],
+              "ccm:oeh_lrt" : [
+                "Webseite und Portal (stabil)",
+                "Lernspiel"
+              ],
+              "ccm:oeh_lrt_aggregated" : [
+                "Webseite",
+                "Lernspiel"
+              ],
+              "cclom:general_language" : [
+                null
+              ],
+              "ccm:educationalcontext" : [
+                "Sekundarstufe II"
+              ],
+              "ccm:replicationsource" : [
+                null
+              ]
+            }
+          }
+        }
+      },
+      {
+        "_source" : {
+          "i18n" : {
+            "en_US" : {
+              "ccm:objecttype" : [
+                "Material"
+              ],
+              "ccm:taxonid" : [
+                "Vocational education"
+              ],
+              "ccm:oeh_lrt" : [
+                "Webseite und Portal (stabil)",
+                "Lernspiel"
+              ],
+              "ccm:oeh_lrt_aggregated" : [
+                "Webseite",
+                "Lernspiel"
+              ],
+              "cclom:general_language" : [
+                null
+              ],
+              "ccm:replicationsource" : [
+                null
+              ]
+            },
+            "de_DE" : {
+              "ccm:objecttype" : [
+                "Material"
+              ],
+              "ccm:taxonid" : [
+                "Berufliche Bildung"
+              ],
+              "ccm:oeh_lrt" : [
+                "Webseite und Portal (stabil)",
+                "Lernspiel"
+              ],
+              "ccm:oeh_lrt_aggregated" : [
+                "Webseite",
+                "Lernspiel"
+              ],
+              "cclom:general_language" : [
+                null
+              ],
+              "ccm:replicationsource" : [
+                null
+              ]
+            }
+          }
+        }
+      },
+      {
+        "_source" : {
+          "i18n" : {
+            "en_US" : {
+              "ccm:objecttype" : [
+                "Material"
+              ],
+              "ccm:taxonid" : [
+                "Biology"
+              ],
+              "ccm:oeh_lrt" : [
+                "Webseite und Portal (stabil)",
+                "Lernspiel"
+              ],
+              "ccm:oeh_lrt_aggregated" : [
+                "Webseite",
+                "Lernspiel"
+              ],
+              "cclom:general_language" : [
+                null
+              ],
+              "ccm:educationalcontext" : [
+                "primary school"
+              ],
+              "ccm:replicationsource" : [
+                null
+              ]
+            },
+            "de_DE" : {
+              "ccm:objecttype" : [
+                "Material"
+              ],
+              "ccm:taxonid" : [
+                "Biologie"
+              ],
+              "ccm:oeh_lrt" : [
+                "Webseite und Portal (stabil)",
+                "Lernspiel"
+              ],
+              "ccm:oeh_lrt_aggregated" : [
+                "Webseite",
+                "Lernspiel"
+              ],
+              "cclom:general_language" : [
+                null
+              ],
+              "ccm:educationalcontext" : [
+                "Primarstufe"
+              ],
+              "ccm:replicationsource" : [
+                null
+              ]
+            }
+          }
+        }
+      }
+    ]
+  }
+}

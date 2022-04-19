@@ -1,0 +1,17 @@
+version: 2
+
+sources:
+  - name: elastic_wlo
+    schema: raw
+    tables:
+      - name: collections
+      - name: materials
+      - name: collections_previous_run
+      - name: materials_previous_run
+      - name: search_stats
+        schema: store
+
+  - name: languagetool
+    schema: store
+    tables:
+      - name: spellcheck
