@@ -100,82 +100,93 @@ async def get_quality_matrix():
     for source, total_count in get_sources().items():
         output.update({source: {}})
         for field in get_properties():
-            non_empty_entries = {
-                "query": {
-                    "bool": {
-                        "must": [
-                            {
-                                "match": {
-                                    "properties.ccm:replicationsource": source
-                                }
-                            },
-                            {
-                                "match": {
-                                    "permissions.Read": "GROUP_EVERYONE"
-                                }
-                            },
-                            {
-                                "match": {
-                                    "properties.cm:edu_metadataset": "mds_oeh"
-                                }
-                            },
-                            {
-                                "match": {
-                                    "nodeRef.storeRef.protocol": "workspace"
-                                }
-                            }
-                        ],
-                        "must_not": [
-                            {
-                                "match": {
-                                    f"properties.{field}": ""
-                                }
-                            }
-                        ]
-                    }
-                }
-            }
-            s = Search().from_dict(non_empty_entries)
-            logger.debug(f"From dict counting: {s.to_dict()}")
-            count: int = s.source().count()
+            count = get_non_empty_entries(field, source)
 
-            empty_entries = {
-                "query": {
-                    "bool": {
-                        "must": [
-                            {
-                                "match": {
-                                    "properties.ccm:replicationsource": source
-                                }
-                            },
-                            {
-                                "match": {
-                                    f"properties.{field}": ""
-                                }
-                            },
-                            {
-                                "match": {
-                                    "permissions.Read": "GROUP_EVERYONE"
-                                }
-                            },
-                            {
-                                "match": {
-                                    "properties.cm:edu_metadataset": "mds_oeh"
-                                }
-                            },
-                            {
-                                "match": {
-                                    "nodeRef.storeRef.protocol": "workspace"
-                                }
-                            }
-                        ]
-                    }
-                }
-            }
-            s = Search().from_dict(empty_entries)
-            logger.debug(f"From dict empty_entries: {s.to_dict()}")
-            empty: int = s.source().count()
+            empty = get_empty_entries(field, source)
             output[source].update(
                 {f"{PROPERTIES}.{field}": {"empty": empty, "not_empty": count, "total_count": total_count}})
 
     return output
+
+
+def get_empty_entries(field, source):
+    empty_entries = {
+        "query": {
+            "bool": {
+                "must": [
+                    {
+                        "match": {
+                            "properties.ccm:replicationsource": source
+                        }
+                    },
+                    {
+                        "match": {
+                            f"properties.{field}": ""
+                        }
+                    },
+                    {
+                        "match": {
+                            "permissions.Read": "GROUP_EVERYONE"
+                        }
+                    },
+                    {
+                        "match": {
+                            "properties.cm:edu_metadataset": "mds_oeh"
+                        }
+                    },
+                    {
+                        "match": {
+                            "nodeRef.storeRef.protocol": "workspace"
+                        }
+                    }
+                ]
+            }
+        }
+    }
+    s = Search().from_dict(empty_entries)
+    logger.debug(f"From dict empty_entries: {s.to_dict()}")
+    empty: int = s.source().count()
+    return empty
+
+
+def get_non_empty_entries(field, source):
+    non_empty_entries = {
+        "query": {
+            "bool": {
+                "must": [
+                    {
+                        "match": {
+                            "properties.ccm:replicationsource": source
+                        }
+                    },
+                    {
+                        "match": {
+                            "permissions.Read": "GROUP_EVERYONE"
+                        }
+                    },
+                    {
+                        "match": {
+                            "properties.cm:edu_metadataset": "mds_oeh"
+                        }
+                    },
+                    {
+                        "match": {
+                            "nodeRef.storeRef.protocol": "workspace"
+                        }
+                    }
+                ],
+                "must_not": [
+                    {
+                        "match": {
+                            f"properties.{field}": ""
+                        }
+                    }
+                ]
+            }
+        }
+    }
+    s = Search().from_dict(non_empty_entries)
+    logger.debug(f"From dict counting: {s.to_dict()}")
+    print(s.source)
+    count: int = s.source().count()
+    return count
