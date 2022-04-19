@@ -86,8 +86,48 @@ async def get_quality_matrix():
             s = Search().filter("bool", must=[match_for_source, *base_match_filter])
             print(f"Second counting: {s.to_dict()}")
             total_count: int = s.source().count()
+
+            non_empty_entries = {
+                "query": {
+                    "bool": {
+                        "must": [
+                            {
+                                "match": {
+                                    "properties.ccm:replicationsource": source
+                                }
+                            },
+                            {
+                                "match": {
+                                    "permissions.Read": "GROUP_EVERYONE"
+                                }
+                            },
+                            {
+                                "match": {
+                                    "properties.cm:edu_metadataset": "mds_oeh"
+                                }
+                            },
+                            {
+                                "match": {
+                                    "nodeRef.storeRef.protocol": "workspace"
+                                }
+                            }
+                        ],
+                        "must_not": [
+                            {
+                                "match": {
+                                    "properties.cm:creator": ""
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+            s = Search().from_dict(non_empty_entries)
+            print(f"From dict counting: {s.to_dict()}")
+            dict_counting: int = s.source().count()
             output[source].update({f"{PROPERTIES}.{field}": {"not_empty": count, "total_count": total_count,
-                                                             "without_base_filter_count": without_base_filter_count}})
+                                                             "without_base_filter_count": without_base_filter_count,
+                                                             "dict_counting": dict_counting}})
 
     """
     {'query': {'bool': {'filter': [{'bool': {'must': [{'term': {'permissions.Read.keyword': 'GROUP_EVERYONE'}}, {'term': {'properties.cm:edu_metadataset.keyword': 'mds_oeh'}}, {'term': {'nodeRef.storeRef.protocol': 'workspace'}}]}}]}}, 'aggs': {'uniquefields': {'terms': {'field': 'properties.ccm:replicationsource.keyword'}}}}
