@@ -76,6 +76,10 @@ async def get_sources():
     return {}
 
 
+def extract_properties(hits: list[AttrDict]) -> list:
+    return hits[0][PROPERTIES].keys
+
+
 def get_properties():
     property_query = {
         "query": {
@@ -105,8 +109,9 @@ def get_properties():
     }
     s = Search().from_dict(property_query)
     print(f"Get properties: {s.to_dict()}")
-    response = s.source()[:10].execute()
+    response = s.source()[0].execute()
     print(f"Response {response}")
+    return extract_properties(response.hits)
 
 
 async def get_quality_matrix():
@@ -117,7 +122,7 @@ async def get_quality_matrix():
     output = {}
 
     try:
-        get_properties()
+        print(f"get_properties: {get_properties()}")
     except Exception as e:
         print(f"Exception: {e}")
 
