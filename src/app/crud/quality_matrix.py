@@ -57,6 +57,8 @@ async def get_sources():
     s.aggs.bucket("uniquefields", "terms", field="properties.ccm:replicationsource.keyword")
     response: Response = s.execute()
 
+    with open(f"/tmp/{filename}_raw.json", "a+") as outfile:
+        json.dump(response.to_dict(), outfile)
     output = {filename: response.aggregations.to_dict()["buckets"]}
     print(f"get_{filename}: {s.to_dict()}")
     with open(f"/tmp/{filename}.json", "a+") as outfile:
