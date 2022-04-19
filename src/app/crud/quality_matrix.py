@@ -50,26 +50,30 @@ def write_to_json(filename: str, response):
         json.dump([hit.to_dict() for hit in response.hits], outfile)
 
 
-async def get_sources():
+async def get_sources() -> list:
     filename = "sources"
     print(f"get_{filename}")
     s = Search()
     s.aggs.bucket("uniquefields", "terms", field="properties.ccm:replicationsource.keyword")
+    print(f"get_{filename}: {s.to_dict()}")
     response: Response = s.execute()
 
     with open(f"/tmp/{filename}_raw.json", "a+") as outfile:
         json.dump(response.to_dict(), outfile)
-    output = {filename: response.aggregations.to_dict()["buckets"]}
-    print(f"get_{filename}: {s.to_dict()}")
+    entries = [entry["doc_count"] for entry in response.aggregations.to_dict()["uniquefields"]["buckets"]]
     with open(f"/tmp/{filename}.json", "a+") as outfile:
-        json.dump(output, outfile)
-    return output
+        json.dump({filename: entries}, outfile)
+    return entries
 
 
 def extract_properties(hits: list[AttrDict]) -> list:
     with open(f"/tmp/extract_properties_raw.json", "a+") as outfile:
-        json.dump(hits[0].to_dict(), outfile)
-    return hits[0].to_dict()[PROPERTIES].keys()
+        for hit in hits:
+            print(f"extract_properties: {hit}")
+            if hit.to_dict():
+                json.dump(hit.to_dict(), outfile)
+                return hit.to_dict()[PROPERTIES].keys()
+
 
 
 def get_properties():
@@ -101,7 +105,7 @@ def get_properties():
     }
     s = Search().from_dict(property_query)
     print(f"Get properties: {s.to_dict()}")
-    response = s.source()[0].execute()
+    response = s.source().execute()
     print(f"Response {response}")
     return extract_properties(response.hits)
 
