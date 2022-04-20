@@ -6,29 +6,41 @@ on:
       - "*"
 
 jobs:
-  build-dbt:
-    name: Build Docker image for DBT
+  build-and-push-fastapi:
+    name: Build and Push FastAPI image to community edu hub
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Build the container
-        run: docker build -t community.docker.edu-sharing.com/metaqs-dbt:latest ./dbt
+      - name: Log in to edu sharing
+        run: docker login community.docker.edu-sharing.com -u ${{ secrets.DOCKER_EDU_HUB_REGISTRY_USERNAME }} -p ${{ secrets.DOCKER_EDU_HUB_REGISTRY_PASSWORD }}
+      - name: Build
+        run: docker build -t community.docker.edu-sharing.com/metaqs-fastapi_dev:latest ./src
+      - name: Push
+        run: docker push community.docker.edu-sharing.com/metaqs-fastapi_dev:latest
 
-  build-fastapi:
-    name: Build Docker image for FastAPI
+  build-and-push-superset:
+    name: Build and Push superset image to community edu hub
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Build the container
-        run: docker build -t community.docker.edu-sharing.com/metaqs-fastapi:latest ./src
+      - name: Log in to edu sharing
+        run: docker login community.docker.edu-sharing.com -u ${{ secrets.DOCKER_EDU_HUB_REGISTRY_USERNAME }} -p ${{ secrets.DOCKER_EDU_HUB_REGISTRY_PASSWORD }}
+      - name: Build
+        run: docker build -t community.docker.edu-sharing.com/metaqs-superset_dev:latest ./superset
+      - name: Push
+        run: docker push community.docker.edu-sharing.com/metaqs-superset_dev:latest
 
-  build-superset:
-    name: Build Docker image for superset
+  build-and-push-dbt:
+    name: Build and Push DBT image to community edu hub
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Build the container
-        run: docker build -t community.docker.edu-sharing.com/metaqs-superset:latest ./superset
+      - name: Log in to edu sharing
+        run: docker login community.docker.edu-sharing.com -u ${{ secrets.DOCKER_EDU_HUB_REGISTRY_USERNAME }} -p ${{ secrets.DOCKER_EDU_HUB_REGISTRY_PASSWORD }}
+      - name: Build
+        run: docker build -t community.docker.edu-sharing.com/metaqs-dbt_dev:latest ./dbt
+      - name: Push
+        run: docker push community.docker.edu-sharing.com/metaqs-dbt_dev:latest
 
   analyze:
     name: Analyze
