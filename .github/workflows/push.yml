@@ -110,4 +110,4 @@ jobs:
       - name: Test with pytest
         run: |
           pytest
-        working-directory: src/
+        working-directory: tests/
