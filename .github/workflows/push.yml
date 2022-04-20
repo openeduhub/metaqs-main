@@ -109,4 +109,8 @@ jobs:
         working-directory: src/
       - name: Test with pytest
         run: |
+          echo "----PYTHONPATH------"
+          PWD=$(pwd)
+          export PYTHONPATH=$PWD/src:$PWD/tests:$PYTHONPATH
+          echo "PYTHONPATH=$PYTHONPATH"
           pytest
