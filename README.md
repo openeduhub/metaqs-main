@@ -1,6 +1,6 @@
 # Accessing Documentation
 
-Documentation is generated with Sphinx.
+Documentation is generated with Sphinx and uploaded to [Confluence](https://confluence.edu-sharing.net/confluence/display/OEDE/Technische+Dokumentation)
 
 Go to `src` and install poetry dependencies.
 
