@@ -110,4 +110,3 @@ jobs:
       - name: Test with pytest
         run: |
           pytest
-        working-directory: tests/
