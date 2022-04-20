@@ -4,6 +4,8 @@
 WLO - MetaQS
 ############
 
+MetaQS analyzes data via elasticsearch queries and yields data about empty metadata. It is used mostly as a just-in-time
+analytics tool.
 
 Documentation Links
 -------------------
