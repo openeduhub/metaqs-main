@@ -2,6 +2,7 @@ from typing import List, Optional, Set
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Response
+from pydantic import Field, BaseModel
 from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 from starlette_context import context
 
@@ -29,9 +30,24 @@ from app.score import ScoreModulator, ScoreWeights, calc_scores, calc_weighted_s
 router = APIRouter()
 
 
+class Property(BaseModel):
+    empty: int = Field(default=0)
+    not_empty: int = Field(default=0)
+    total_count: int = Field(default=0)
+
+
+class SpiderOutput(BaseModel):
+    creator: Property = Field(alias="properties.cm:creator")
+
+
+class QualityMatrixOutput(BaseModel):
+    geogebra_spider: SpiderOutput = Field(..., description="The base url of the scraped website.")
+
+
 @router.get(
     "/quality_matrix",
     status_code=HTTP_200_OK,
+    response_model=QualityMatrixOutput,
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=["Statistics"],
 )
