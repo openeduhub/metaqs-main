@@ -65,4 +65,5 @@ confluence_publish = False
 confluence_space_key = "OEDe"
 confluence_ask_password = True
 confluence_server_url = "https://confluence.edu-sharing.net/confluence/"
-confluence_server_user = "Meißner Robert"
+confluence_server_user = "RobertMeissner21"
+confluence_parent_page = "Technische Dokumentation"
