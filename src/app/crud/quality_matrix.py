@@ -4,7 +4,7 @@ from elasticsearch_dsl import AttrDict, Q
 from elasticsearch_dsl.response import Response
 from app.core.logging import logger
 from app.crud.elastic import base_match_filter
-from app.elastic import Search, qmatch
+from app.elastic import Search, qmatch, qbool
 
 REPLICATION_SOURCE = "ccm:replicationsource"
 PROPERTIES = "properties"
@@ -88,17 +88,11 @@ def get_properties():
 
 
 def create_empty_entries_search(field, source):
-    empty_entries = {
-        "query": {
-            "bool": {
-                "must": [
-                    Q("match", **{"properties.ccm:replicationsource": source}),
-                    Q("match", **{f"properties.{field}": ""})
-                ]
-            }
-        }
-    }
-    s = Search().from_dict(empty_entries)
+    s = Search().query(qbool(must=[
+        qmatch(**{f"{PROPERTIES}.{REPLICATION_SOURCE}": source}),
+        qmatch(**{f"{PROPERTIES}.{field}": ""})
+    ]
+    ))
     for entry in base_match_filter:
         s = s.query(entry)
     return s
