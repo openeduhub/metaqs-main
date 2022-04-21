@@ -19,6 +19,7 @@ from app.core.logging import logger
 from app.crud import MissingCollectionAttributeFilter, quality_matrix
 from app.crud.elastic import ResourceType
 from app.crud.util import build_portal_tree
+from app.models.base import ColumnOutput
 from app.models.collection import (
     Collection,
     CollectionAttribute,
@@ -30,24 +31,10 @@ from app.score import ScoreModulator, ScoreWeights, calc_scores, calc_weighted_s
 router = APIRouter()
 
 
-class Property(BaseModel):
-    empty: int = Field(default=0)
-    not_empty: int = Field(default=0)
-    total_count: int = Field(default=0)
-
-
-class SpiderOutput(BaseModel):
-    creator: Property = Field(alias="properties.cm:creator")
-
-
-class QualityMatrixOutput(BaseModel):
-    geogebra_spider: SpiderOutput = Field(..., description="The base url of the scraped website.")
-
-
 @router.get(
     "/quality_matrix",
     status_code=HTTP_200_OK,
-    response_model=QualityMatrixOutput,
+    response_model=List[ColumnOutput],
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=["Statistics"],
 )

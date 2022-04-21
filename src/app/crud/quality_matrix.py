@@ -1,13 +1,12 @@
 import json
 
-from elasticsearch_dsl import AttrDict, Q
+from elasticsearch_dsl import AttrDict
 from elasticsearch_dsl.response import Response
+
+from app.core.constants import REPLICATION_SOURCE, PROPERTIES
 from app.core.logging import logger
 from app.crud.elastic import base_match_filter
 from app.elastic import Search, qmatch, qbool
-
-REPLICATION_SOURCE = "ccm:replicationsource"
-PROPERTIES = "properties"
 
 
 def add_base_match_filters(search: Search) -> Search:

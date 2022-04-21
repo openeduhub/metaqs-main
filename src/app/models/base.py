@@ -1,5 +1,9 @@
-from pydantic import BaseModel as _BaseModel
+from typing import List
+
+from pydantic import BaseModel as _BaseModel, Field
 from pydantic import Extra
+
+from app.core.constants import REPLICATION_SOURCE
 
 AUTO_UNIQUE_STRING = "AUTO_UNIQUE_STRING"
 
@@ -36,3 +40,15 @@ class RequestConfig:
 class RequestModel(BaseModel):
     class Config(RequestConfig):
         pass
+
+
+class Property(BaseModel):
+    empty: int = Field(default=0)
+    not_empty: int = Field(default=0)
+    total_count: int = Field(default=0)
+
+
+class ColumnOutput(BaseModel):
+    column_name: str = Field(default="", description="column name")
+    replication_source: Property = Field(default="", alias=REPLICATION_SOURCE)
+    creator: Property = Field(default=None, alias="cm.creator")
