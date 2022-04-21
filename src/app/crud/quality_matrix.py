@@ -1,10 +1,10 @@
 import json
 
-from elasticsearch_dsl import AttrDict
+from elasticsearch_dsl import AttrDict, Q
 from elasticsearch_dsl.response import Response
 from app.core.logging import logger
 from app.crud.elastic import base_match_filter
-from app.elastic import Search
+from app.elastic import Search, qmatch
 
 REPLICATION_SOURCE = "ccm:replicationsource"
 PROPERTIES = "properties"
@@ -92,17 +92,8 @@ def create_empty_entries_search(field, source):
         "query": {
             "bool": {
                 "must": [
-                    {
-                        "match": {
-                            "properties.ccm:replicationsource": source
-                        }
-                    },
-                    {
-                        "match": {
-                            f"properties.{field}": ""
-                        }
-                    },
-
+                    Q("match", **{"properties.ccm:replicationsource": source}),
+                    Q("match", **{f"properties.{field}": ""})
                 ]
             }
         }
