@@ -20,8 +20,13 @@ def write_to_json(filename: str, response):
         json.dump([hit.to_dict() for hit in response.hits], outfile)
 
 
-def get_sources() -> dict[str: int]:
-    aggregation_name = "unique_sources"
+def create_sources_search(aggregation_name: str):
+    s = Search().query(qbool(must=[
+    ]
+    ))
+    for entry in base_match_filter:
+        s = s.query(entry)
+
     main_query = {
         "query": {
             "bool": {
@@ -47,8 +52,19 @@ def get_sources() -> dict[str: int]:
     }
     s = Search().from_dict(main_query)
     s.aggs.bucket(aggregation_name, "terms", field="properties.ccm:replicationsource.keyword")
-    response: Response = s.execute()
+    return s
+
+
+def extract_sources_from_response(response: Response, aggregation_name: str) -> dict[str: int]:
+    print(response)
     return {entry["key"]: entry["doc_count"] for entry in response.aggregations.to_dict()[aggregation_name]["buckets"]}
+
+
+def get_sources() -> dict[str: int]:
+    aggregation_name = "unique_sources"
+    s = create_sources_search(aggregation_name)
+    response: Response = s.execute()
+    return extract_sources_from_response(response=response, aggregation_name=aggregation_name)
 
 
 def extract_properties(hits: list[AttrDict]) -> list:
