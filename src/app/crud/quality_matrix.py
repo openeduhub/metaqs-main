@@ -105,31 +105,20 @@ def get_empty_entries(field, source):
     return empty
 
 
-def get_non_empty_entries(field, source):
-    non_empty_entries = {
-        "query": {
-            "bool": {
-                "must": [
-                    {
-                        "match": {
-                            "properties.ccm:replicationsource": source
-                        }
-                    }
-                ],
-                "must_not": [
-                    {
-                        "match": {
-                            f"properties.{field}": ""
-                        }
-                    }
-                ]
-            }
-        }
-    }
-    s = Search().from_dict(non_empty_entries)
-    logger.debug(f"From dict counting: {s.to_dict()}")
+def create_non_empty_entries_search(field, source):
+    s = Search().query(qbool(must=[
+        qmatch(**{f"{PROPERTIES}.{REPLICATION_SOURCE}": source}),
+    ], must_not=[
+        qmatch(**{f"{PROPERTIES}.{field}": ""})]
+    ))
     for entry in base_match_filter:
         s = s.query(entry)
+    return s
+
+
+def get_non_empty_entries(field, source):
+    s = create_non_empty_entries_search(field, source)
+    logger.debug(f"From dict counting: {s.to_dict()}")
     count: int = s.source().count()
     return count
 

@@ -2,7 +2,8 @@ from unittest import mock
 
 import pytest
 
-from app.crud.quality_matrix import get_quality_matrix, get_empty_entries, create_empty_entries_search
+from app.crud.quality_matrix import get_quality_matrix, get_empty_entries, create_empty_entries_search, \
+    create_non_empty_entries_search
 
 
 @pytest.mark.asyncio
@@ -50,3 +51,31 @@ def test_create_empty_entries_search():
                                                   {'match': {'properties.cm:edu_metadataset': 'mds_oeh'}},
                                                   {'match': {'nodeRef.storeRef.protocol': 'workspace'}}]}}}
     assert create_empty_entries_search("dummy_source", "dummy_property").to_dict() == expected_query
+
+
+def test_create_non_empty_entries_search():
+    expected_query = {
+        "query": {
+            "bool": {
+                "must": [
+                    {
+                        "match": {
+                            "properties.ccm:replicationsource": "dummy_property",
+                        },
+                    },
+                    {'match': {'permissions.Read': 'GROUP_EVERYONE'}},
+                    {'match': {'properties.cm:edu_metadataset': 'mds_oeh'}},
+                    {'match': {'nodeRef.storeRef.protocol': 'workspace'}}
+                ],
+                "must_not": [
+                    {
+                        "match": {
+                            f"properties.dummy_source": ""
+                        }
+                    }
+                ]
+            }
+        }
+    }
+    # TODO Fix field source
+    assert create_non_empty_entries_search("dummy_source", "dummy_property").to_dict() == expected_query
