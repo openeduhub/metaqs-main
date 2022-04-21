@@ -23,4 +23,3 @@ WIP: Currently not possible to automatically push to confluence.
 ```bash
 ./build_confluence.sh
 ```
-

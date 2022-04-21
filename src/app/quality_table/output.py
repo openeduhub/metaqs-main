@@ -9,7 +9,9 @@ def main():
         for element in data["hits"]["hits"]:
 
             if "ccm:replicationsource" in element["_source"]["properties"].keys():
-                replication_source = element["_source"]["properties"]["ccm:replicationsource"]
+                replication_source = element["_source"]["properties"][
+                    "ccm:replicationsource"
+                ]
                 print(replication_source)
                 if replication_source not in result.keys():
                     result.update({replication_source: {"entries": 0}})
@@ -23,7 +25,9 @@ def main():
                     if key not in result[replication_source].keys():
                         result[replication_source].update({key: content_value})
                     else:
-                        result[replication_source][key] = content_value + result[replication_source][key]
+                        result[replication_source][key] = (
+                            content_value + result[replication_source][key]
+                        )
                     print(content, content_value, result[replication_source][key])
     print(result)
     # TODO: Potentially some sources do not have all properties
@@ -35,5 +39,5 @@ def main():
                 print(f"{key}: {value/number_of_entries * 100}%")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

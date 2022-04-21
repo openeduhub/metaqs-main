@@ -3,10 +3,10 @@ import json
 from elasticsearch_dsl import AttrDict
 from elasticsearch_dsl.response import Response
 
-from app.core.constants import REPLICATION_SOURCE, PROPERTIES
+from app.core.constants import PROPERTIES, REPLICATION_SOURCE
 from app.core.logging import logger
 from app.crud.elastic import base_match_filter
-from app.elastic import Search, qmatch, qbool
+from app.elastic import Search, qbool, qmatch
 
 
 def add_base_match_filters(search: Search) -> Search:
@@ -23,20 +23,28 @@ def write_to_json(filename: str, response):
 
 def create_sources_search(aggregation_name: str):
     s = add_base_match_filters(Search())
-    s.aggs.bucket(aggregation_name, "terms", field=f"{PROPERTIES}.{REPLICATION_SOURCE}.keyword")
+    s.aggs.bucket(
+        aggregation_name, "terms", field=f"{PROPERTIES}.{REPLICATION_SOURCE}.keyword"
+    )
     return s
 
 
-def extract_sources_from_response(response: Response, aggregation_name: str) -> dict[str: int]:
-    print(response)
-    return {entry["key"]: entry["doc_count"] for entry in response.aggregations.to_dict()[aggregation_name]["buckets"]}
+def extract_sources_from_response(
+    response: Response, aggregation_name: str
+) -> dict[str:int]:
+    return {
+        entry["key"]: entry["doc_count"]
+        for entry in response.aggregations.to_dict()[aggregation_name]["buckets"]
+    }
 
 
-def get_sources() -> dict[str: int]:
+def get_sources() -> dict[str:int]:
     aggregation_name = "unique_sources"
     s = create_sources_search(aggregation_name)
     response: Response = s.execute()
-    return extract_sources_from_response(response=response, aggregation_name=aggregation_name)
+    return extract_sources_from_response(
+        response=response, aggregation_name=aggregation_name
+    )
 
 
 def extract_properties(hits: list[AttrDict]) -> list:
@@ -54,11 +62,16 @@ def get_properties():
 
 
 def create_empty_entries_search(field, source):
-    s = add_base_match_filters(Search().query(qbool(must=[
-        qmatch(**{f"{PROPERTIES}.{REPLICATION_SOURCE}": source}),
-        qmatch(**{f"{PROPERTIES}.{field}": ""})
-    ]
-    )))
+    s = add_base_match_filters(
+        Search().query(
+            qbool(
+                must=[
+                    qmatch(**{f"{PROPERTIES}.{REPLICATION_SOURCE}": source}),
+                    qmatch(**{f"{PROPERTIES}.{field}": ""}),
+                ]
+            )
+        )
+    )
     return s
 
 
@@ -70,11 +83,16 @@ def get_empty_entries(field, source):
 
 
 def create_non_empty_entries_search(field, source):
-    s = add_base_match_filters(Search().query(qbool(must=[
-        qmatch(**{f"{PROPERTIES}.{REPLICATION_SOURCE}": source}),
-    ], must_not=[
-        qmatch(**{f"{PROPERTIES}.{field}": ""})]
-    )))
+    s = add_base_match_filters(
+        Search().query(
+            qbool(
+                must=[
+                    qmatch(**{f"{PROPERTIES}.{REPLICATION_SOURCE}": source}),
+                ],
+                must_not=[qmatch(**{f"{PROPERTIES}.{field}": ""})],
+            )
+        )
+    )
     return s
 
 
@@ -95,6 +113,13 @@ async def get_quality_matrix():
 
             empty = get_empty_entries(field, source)
             output[source].update(
-                {f"{PROPERTIES}.{field}": {"empty": empty, "not_empty": count, "total_count": total_count}})
+                {
+                    f"{PROPERTIES}.{field}": {
+                        "empty": empty,
+                        "not_empty": count,
+                        "total_count": total_count,
+                    }
+                }
+            )
 
     return output

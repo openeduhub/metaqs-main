@@ -20,7 +20,7 @@ def upgrade():
         create table if not exists staging.spellcheck_queue (
               resource_id    uuid
             , resource_field resource_field
-            , resource_type  resource_type   not null 
+            , resource_type  resource_type   not null
             , text_content   text            not null
             , derived_at     timestamp       not null
 

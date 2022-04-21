@@ -1,7 +1,7 @@
 from typing import List
 
-from pydantic import BaseModel as _BaseModel, Field
-from pydantic import Extra
+from pydantic import BaseModel as _BaseModel
+from pydantic import Extra, Field
 
 from app.core.constants import REPLICATION_SOURCE
 
