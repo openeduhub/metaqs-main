@@ -113,4 +113,5 @@ jobs:
           PWD=$(pwd)
           export PYTHONPATH=$PWD/src:$PWD/tests:$PYTHONPATH
           echo "PYTHONPATH=$PYTHONPATH"
-          pytest
+          pip install pytest-cov
+          pytest --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml
