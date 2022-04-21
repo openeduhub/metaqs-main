@@ -26,4 +26,10 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header X-Request-Start $msec;
     }
+
+    location ${ROOT_PATH} {
+        rewrite ${ROOT_PATH}/(.*) /$1 break;
+
+        proxy_pass  http://fastapi-80;
+    }
 }

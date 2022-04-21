@@ -22,7 +22,7 @@ def upgrade():
             'COLLECTION',
             'MATERIAL'
             );
-        
+
         create type resource_field as enum (
             'TITLE',
             'DESCRIPTION',
@@ -38,7 +38,7 @@ def upgrade():
             'REPLICATION_SOURCE',
             'REPLICATION_SOURCE_ID'
             );
-        
+
         create type validation_error as enum (
             'TOO_FEW',
             'TOO_SHORT',

@@ -31,6 +31,10 @@ fastapi-utils = "^0.2.1"
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.18.1"
 pytest = "^7.1.1"
+pytest-asyncio = "^0.18.3"
+Sphinx = "^4.5.0"
+sphinxcontrib-confluencebuilder = "^1.8.0"
+pytest-cov = "^3.0.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

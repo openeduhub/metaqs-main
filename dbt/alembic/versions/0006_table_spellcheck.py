@@ -20,11 +20,11 @@ def upgrade():
         create table if not exists store.spellcheck (
               resource_id    uuid
             , resource_field text
-            , resource_type  text       not null 
+            , resource_type  text       not null
             , text_content   text       not null
             , derived_at     timestamp  not null
             , error          jsonb      not null
-            
+
             , primary key (resource_id, resource_field)
         )
         """

@@ -9,6 +9,7 @@ from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
 from starlette_context.middleware import RawContextMiddleware
 
 import app.api as api
+
 # from app.analytics.analytics import background_task as analytics_background_task
 # from app.analytics.search_stats import background_task as search_stats_background_task
 # from app.analytics.spellcheck import background_task as spellcheck_background_task
@@ -19,9 +20,10 @@ from app.core.config import (
     BACKGROUND_TASK_SEARCH_STATS_INTERVAL,
     BACKGROUND_TASK_SPELLCHECK_INTERVAL,
     DEBUG,
+    ENABLE_ANALYTICS,
     LOG_LEVEL,
     PROJECT_NAME,
-    ROOT_PATH, ENABLE_ANALYTICS,
+    ROOT_PATH,
 )
 from app.core.errors import http_422_error_handler, http_error_handler
 from app.core.logging import logger
@@ -42,6 +44,7 @@ fastapi_app = FastAPI(
     debug=DEBUG,
 )
 logger.debug(f"Launching FastAPI on root path {ROOT_PATH}")
+
 
 class Ping(BaseModel):
     status: str = Field(
@@ -82,7 +85,7 @@ languagetool_app = FastAPI(
 * [**Analytics API**]({ROOT_PATH}/analytics/docs)
     """,
     debug=DEBUG,
-    version=OPEN_API_VERSION
+    version=OPEN_API_VERSION,
 )
 languagetool_app.include_router(languagetool_router)
 fastapi_app.mount(path="/languagetool", app=languagetool_app)

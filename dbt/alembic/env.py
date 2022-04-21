@@ -1,7 +1,7 @@
 from __future__ import with_statement
 
-import pathlib
 import os
+import pathlib
 import sys
 from logging.config import fileConfig
 

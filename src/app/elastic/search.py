@@ -1,6 +1,6 @@
 from pprint import pformat
 
-from elasticsearch_dsl import Search as ElasticSearch
+import elasticsearch_dsl
 from starlette_context import context
 from starlette_context.errors import ContextDoesNotExistError
 
@@ -11,7 +11,7 @@ from .fields import Field
 from .utils import handle_text_field
 
 
-class Search(ElasticSearch):
+class Search(elasticsearch_dsl.Search):
     def __init__(self, index=ELASTIC_INDEX, **kwargs):
         super(Search, self).__init__(index=index, **kwargs)
 

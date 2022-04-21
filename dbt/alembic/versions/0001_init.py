@@ -1,7 +1,7 @@
 """init
 
 Revision ID: 0001
-Revises: 
+Revises:
 Create Date: 1970-01-01 00:00:00.000000
 
 """
