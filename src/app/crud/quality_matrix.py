@@ -9,9 +9,11 @@ from app.elastic import Search, qmatch, qbool
 REPLICATION_SOURCE = "ccm:replicationsource"
 PROPERTIES = "properties"
 
-PERMISSION_READ = "permissions.Read"
-EDU_METADATASET = "properties.cm:edu_metadataset"
-PROTOCOL = "nodeRef.storeRef.protocol"
+
+def add_base_match_filters(search: Search) -> Search:
+    for entry in base_match_filter:
+        search = search.query(entry)
+    return search
 
 
 def write_to_json(filename: str, response):
@@ -21,37 +23,8 @@ def write_to_json(filename: str, response):
 
 
 def create_sources_search(aggregation_name: str):
-    s = Search().query(qbool(must=[
-    ]
-    ))
-    for entry in base_match_filter:
-        s = s.query(entry)
-
-    main_query = {
-        "query": {
-            "bool": {
-                "must": [
-                    {
-                        "match": {
-                            "permissions.Read": "GROUP_EVERYONE"
-                        }
-                    },
-                    {
-                        "match": {
-                            "properties.cm:edu_metadataset": "mds_oeh"
-                        }
-                    },
-                    {
-                        "match": {
-                            "nodeRef.storeRef.protocol": "workspace"
-                        }
-                    }
-                ]
-            }
-        }
-    }
-    s = Search().from_dict(main_query)
-    s.aggs.bucket(aggregation_name, "terms", field="properties.ccm:replicationsource.keyword")
+    s = add_base_match_filters(Search())
+    s.aggs.bucket(aggregation_name, "terms", field=f"{PROPERTIES}.{REPLICATION_SOURCE}.keyword")
     return s
 
 
@@ -71,46 +44,22 @@ def extract_properties(hits: list[AttrDict]) -> list:
     return hits[0].to_dict()[PROPERTIES].keys()
 
 
+def create_properties_search() -> Search:
+    return add_base_match_filters(Search().source([PROPERTIES]))
+
+
 def get_properties():
-    property_query = {
-        "query": {
-            "bool": {
-                "must": [
-                    {
-                        "match": {
-                            "permissions.Read": "GROUP_EVERYONE"
-                        }
-                    },
-                    {
-                        "match": {
-                            "properties.cm:edu_metadataset": "mds_oeh"
-                        }
-                    },
-                    {
-                        "match": {
-                            "nodeRef.storeRef.protocol": "workspace"
-                        }
-                    }
-                ]
-            }
-        },
-        "_source": [
-            "properties"
-        ]
-    }
-    s = Search().from_dict(property_query)
+    s = create_properties_search()
     response = s.execute()
     return extract_properties(response.hits)
 
 
 def create_empty_entries_search(field, source):
-    s = Search().query(qbool(must=[
+    s = add_base_match_filters(Search().query(qbool(must=[
         qmatch(**{f"{PROPERTIES}.{REPLICATION_SOURCE}": source}),
         qmatch(**{f"{PROPERTIES}.{field}": ""})
     ]
-    ))
-    for entry in base_match_filter:
-        s = s.query(entry)
+    )))
     return s
 
 
@@ -122,13 +71,11 @@ def get_empty_entries(field, source):
 
 
 def create_non_empty_entries_search(field, source):
-    s = Search().query(qbool(must=[
+    s = add_base_match_filters(Search().query(qbool(must=[
         qmatch(**{f"{PROPERTIES}.{REPLICATION_SOURCE}": source}),
     ], must_not=[
         qmatch(**{f"{PROPERTIES}.{field}": ""})]
-    ))
-    for entry in base_match_filter:
-        s = s.query(entry)
+    )))
     return s
 
 

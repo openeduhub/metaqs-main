@@ -5,7 +5,7 @@ import pytest
 from elasticsearch_dsl.response import Response, Hit
 
 from app.crud.quality_matrix import get_quality_matrix, get_empty_entries, create_empty_entries_search, \
-    create_non_empty_entries_search, create_sources_search, get_sources
+    create_non_empty_entries_search, create_sources_search, get_sources, create_properties_search
 
 
 @pytest.mark.asyncio
@@ -120,3 +120,33 @@ def test_get_sources():
         print(response._d_)
         mocked_execute.return_value = response
         assert get_sources() == dummy_count
+
+
+def test_create_properties_search():
+    expected_query = {
+        "query": {
+            "bool": {
+                "must": [
+                    {
+                        "match": {
+                            "permissions.Read": "GROUP_EVERYONE"
+                        }
+                    },
+                    {
+                        "match": {
+                            "properties.cm:edu_metadataset": "mds_oeh"
+                        }
+                    },
+                    {
+                        "match": {
+                            "nodeRef.storeRef.protocol": "workspace"
+                        }
+                    }
+                ]
+            }
+        },
+        "_source": [
+            "properties"
+        ]
+    }
+    assert create_properties_search().to_dict() == expected_query
