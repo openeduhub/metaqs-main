@@ -41,6 +41,8 @@ jobs:
         run: docker build -t community.docker.edu-sharing.com/metaqs-dbt_dev:latest ./dbt
       - name: Push
         run: docker push community.docker.edu-sharing.com/metaqs-dbt_dev:latest
+        TODO
+        artifacts.edu-sharing.com/repository/docker/v2/projects/community/edu_sharing-projects-wlo-metaqs-dev/dbt:latest
 
   analyze:
     name: Analyze
