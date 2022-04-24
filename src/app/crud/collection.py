@@ -111,6 +111,7 @@ async def get_many(
         max_hits: Optional[int] = ELASTIC_MAX_SIZE,
         source_fields: Optional[Set[CollectionAttribute]] = None,
 ) -> List[Collection]:
+    # TOOD: Refactor duplicate code
     query_dict = get_many_base_query(
         resource_type=ResourceType.COLLECTION,
         ancestor_id=ancestor_id,
@@ -127,10 +128,14 @@ async def get_many(
         return [Collection.parse_elastic_hit(hit) for hit in response]
 
 
+def many_sorted_query(root_noderef_id: UUID) -> Search:
+    return Search().query(query_collections(root_noderef_id))
+
+
 async def get_many_sorted(
         root_noderef_id: UUID = PORTAL_ROOT_ID, size: int = ELASTIC_MAX_SIZE
 ) -> List[Collection]:
-    s = Search().query(query_collections(root_noderef_id))
+    s = many_sorted_query(root_noderef_id)
 
     response: Response = (
         s.source(
