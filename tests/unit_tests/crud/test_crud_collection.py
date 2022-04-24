@@ -3,8 +3,8 @@ from unittest.mock import MagicMock
 from elasticsearch_dsl.query import Term
 from elasticsearch_dsl.response import Response
 
-from app.core.config import PORTAL_ROOT_ID
-from app.crud.collection import portals_query, processed_portals_query, many_sorted_query
+from app.core.config import PORTAL_ROOT_ID, ELASTIC_MAX_SIZE
+from app.crud.collection import portals_query, processed_portals_query, many_sorted_query, material_counts_search
 from app.crud.elastic import get_many_base_query, ResourceType
 
 
@@ -49,3 +49,17 @@ def test_get_many_base_query():
                                  Term(**{"properties__cm:edu_metadataset__keyword": 'mds_oeh'}), Term(
             nodeRef__storeRef__protocol='workspace'), Term(type='ccm:map')]}
     assert query == expected_query
+
+
+def test_material_counts_search():
+    assert ELASTIC_MAX_SIZE == 10000
+    search = material_counts_search(PORTAL_ROOT_ID)
+    expected_output = {'query': {'bool': {'filter': [{'term': {'permissions.Read.keyword': 'GROUP_EVERYONE'}},
+                                                     {'term': {'properties.cm:edu_metadataset.keyword': 'mds_oeh'}},
+                                                     {'term': {'nodeRef.storeRef.protocol': 'workspace'}},
+                                                     {'term': {'type': 'ccm:io'}}, {'term': {
+            'collections.path.keyword': PORTAL_ROOT_ID}}]}}, 'aggs': {'grouped_by_collection': {
+        'composite': {'sources': [{'noderef_id': {'terms': {'field': 'collections.nodeRef.id.keyword'}}}],
+                      'size': ELASTIC_MAX_SIZE},
+        'aggs': {'sorted_by_count': {'bucket_sort': {'sort': [{'_count': {'order': 'asc'}}]}}}}}}
+    assert search.to_dict() == expected_output

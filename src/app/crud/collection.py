@@ -184,14 +184,19 @@ async def get_child_collections_with_missing_attributes(
     )
 
 
-async def material_counts_by_descendant(
-        ancestor_id: UUID,
-) -> DescendantCollectionsMaterialsCounts:
-    s = Search().query(query_materials(ancestor_id=ancestor_id))
-    s.aggs.bucket("grouped_by_collection", agg_materials_by_collection()).pipeline(
+def material_counts_search(ancestor_id) -> Search:
+    search = Search().query(query_materials(ancestor_id=ancestor_id))
+    search.aggs.bucket("grouped_by_collection", agg_materials_by_collection()).pipeline(
         "sorted_by_count",
         abucketsort(sort=[{"_count": {"order": "asc"}}]),
     )
+    return search
+
+
+async def material_counts_by_descendant(
+        ancestor_id: UUID,
+) -> DescendantCollectionsMaterialsCounts:
+    s = material_counts_search(ancestor_id)
 
     response: Response = s[:0].execute()
 
