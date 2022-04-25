@@ -35,7 +35,6 @@ router = APIRouter()
 @router.get(
     "/quality_matrix",
     status_code=HTTP_200_OK,
-    response_model=List[ColumnOutput],
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=["Statistics"],
 )
