@@ -50,5 +50,5 @@ class Property(BaseModel):
 
 class ColumnOutput(BaseModel):
     column_name: str = Field(default="", description="column name")
-    replication_source: Property = Field(default="", alias=REPLICATION_SOURCE)
-    creator: Property = Field(default=None, alias="cm.creator")
+    # replication_source: Property = Field(default="", alias=REPLICATION_SOURCE)
+    # creator: Property = Field(default=None, alias="cm.creator")

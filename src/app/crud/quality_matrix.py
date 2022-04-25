@@ -98,22 +98,16 @@ def get_non_empty_entries(field, source):
     return count
 
 
-async def quality_matrix():
-    output = {}
+async def quality_matrix() -> list[dict]:
+    output = []
 
-    for source, total_count in all_sources().items():
-        output |= {source: {}}
+    for replication_source, total_count in all_sources().items():
+        source_data = {"column_name": replication_source, "total_count": total_count}
         for field in get_properties():
-            count = get_non_empty_entries(field, source)
-
-            empty = get_empty_entries(field, source)
-            output[source] |= {
-                f"{PROPERTIES}.{field}": {
-                    "empty": empty,
-                    "not_empty": count,
-                    "total_count": total_count,
-                }
+            empty = get_empty_entries(field, replication_source)
+            source_data |= {
+                f"{PROPERTIES}.{field}": round(1 - empty / total_count, 4) * 100.
             }
-
+        output.append(source_data)
     logger.debug(f"Quality matrix output:\n{output}")
     return output
