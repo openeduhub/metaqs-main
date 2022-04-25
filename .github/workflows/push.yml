@@ -18,11 +18,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Log in to edu sharing
-        run: docker login {{docker_repository}} -u ${{ secrets.DOCKER_EDU_HUB_REGISTRY_USERNAME }} -p ${{ secrets.DOCKER_EDU_HUB_REGISTRY_PASSWORD }}
+        run: docker login ${{docker_repository}} -u ${{ secrets.DOCKER_EDU_HUB_REGISTRY_USERNAME }} -p ${{ secrets.DOCKER_EDU_HUB_REGISTRY_PASSWORD }}
       - name: Build
-        run: docker build -t {{docker_repository}}{{path_prefix}}api:{{image_tag}} ./src
+        run: docker build -t ${{docker_repository}}${{path_prefix}}api:${{image_tag}} ./src
       - name: Push
-        run: docker push {{docker_repository}}{{path_prefix}}api:{{image_tag}}
+        run: docker push ${{docker_repository}}${{path_prefix}}api:${{image_tag}}
 
   build-and-push-superset:
     name: Build and Push superset image to community edu hub
@@ -30,11 +30,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Log in to edu sharing
-        run: docker login {{docker_repository}} -u ${{ secrets.DOCKER_EDU_HUB_REGISTRY_USERNAME }} -p ${{ secrets.DOCKER_EDU_HUB_REGISTRY_PASSWORD }}
+        run: docker login ${{docker_repository}} -u ${{ secrets.DOCKER_EDU_HUB_REGISTRY_USERNAME }} -p ${{ secrets.DOCKER_EDU_HUB_REGISTRY_PASSWORD }}
       - name: Build
-        run: docker build -t {{docker_repository}}{{path_prefix}}superset:{{image_tag}} ./superset
+        run: docker build -t ${{docker_repository}}${{path_prefix}}superset:${{image_tag}} ./superset
       - name: Push
-        run: docker push {{docker_repository}}{{path_prefix}}superset:{{image_tag}}
+        run: docker push ${{docker_repository}}${{path_prefix}}superset:${{image_tag}}
 
   build-and-push-dbt:
     name: Build and Push DBT image to community edu hub
@@ -42,11 +42,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Log in to edu sharing
-        run: docker login {{docker_repository}} -u ${{ secrets.DOCKER_EDU_HUB_REGISTRY_USERNAME }} -p ${{ secrets.DOCKER_EDU_HUB_REGISTRY_PASSWORD }}
+        run: docker login ${{docker_repository}} -u ${{ secrets.DOCKER_EDU_HUB_REGISTRY_USERNAME }} -p ${{ secrets.DOCKER_EDU_HUB_REGISTRY_PASSWORD }}
       - name: Build
-        run: docker build -t {{docker_repository}}{{path_prefix}}dbt:{{image_tag}} ./dbt
+        run: docker build -t ${{docker_repository}}${{path_prefix}}dbt:${{image_tag}} ./dbt
       - name: Push
-        run: docker push {{docker_repository}}{{path_prefix}}dbt:{{image_tag}}
+        run: docker push ${{docker_repository}}${{path_prefix}}dbt:${{image_tag}}
 
   analyze:
     name: Analyze
