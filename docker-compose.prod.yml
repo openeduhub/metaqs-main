@@ -94,7 +94,7 @@ services:
     build:
       context: ./src/
       network: host
-    image: community.docker.edu-sharing.com/metaqs-fastapi:latest
+    image: docker.edu-sharing.com/projects/oeh-redaktion/edusharing-projects-oeh-redaktion-metaqs-api:latest
     <<: *restart-policy
     <<: *logging-config
     depends_on:
@@ -126,7 +126,7 @@ services:
     build:
       context: ./dbt/
       network: host
-    image: community.docker.edu-sharing.com/metaqs-dbt:latest
+    image: docker.edu-sharing.com/projects/oeh-redaktion/edusharing-projects-oeh-redaktion-metaqs-dbt:latest
     <<: *restart-policy
     <<: *logging-config
     depends_on:
@@ -152,7 +152,7 @@ services:
     build:
       context: ./superset/
       network: host
-    image: community.docker.edu-sharing.com/metaqs-superset:latest
+    image: docker.edu-sharing.com/projects/oeh-redaktion/edusharing-projects-oeh-redaktion-metaqs-superset:latest
     <<: *restart-policy
     <<: *logging-config
     depends_on:
@@ -165,7 +165,7 @@ services:
 
 
   dbt-docs:
-    image: community.docker.edu-sharing.com/metaqs-dbt:latest
+    image: docker.edu-sharing.com/projects/oeh-redaktion/edusharing-projects-oeh-redaktion-metaqs-dbt:latest
     container_name: metaqs-dbt-docs
     depends_on:
       - postgres
