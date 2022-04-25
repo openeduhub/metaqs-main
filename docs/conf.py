@@ -21,7 +21,6 @@ project = "MetaQS"
 copyright = "2022, Robert Meißner"
 author = "Robert Meißner"
 
-
 # -- General configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
@@ -46,7 +45,6 @@ language = "de"
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
-
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -61,8 +59,9 @@ html_static_path = []
 
 # Confluence configurations
 
-confluence_publish = False
-confluence_space_key = "OEDe"
+confluence_publish = True
+confluence_space_key = "OEDE"
 confluence_ask_password = True
 confluence_server_url = "https://confluence.edu-sharing.net/confluence/"
-confluence_server_user = "Meißner Robert"
+confluence_server_user = "meissner"
+confluence_parent_page = "Technische+Dokumentation"
