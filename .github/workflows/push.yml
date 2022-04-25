@@ -7,7 +7,7 @@ on:
 
 env:
   docker_repository: "docker.edu-sharing.com"
-  env.path_prefix: "/projects/oeh-redaktion/edusharing-projects-oeh-redaktion-metaqs-"
+  path_prefix: "/projects/oeh-redaktion/edusharing-projects-oeh-redaktion-metaqs-"
   image_tag: "dev"
 
 
