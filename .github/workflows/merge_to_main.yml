@@ -28,7 +28,7 @@ jobs:
         run: docker build -t community.docker.edu-sharing.com/metaqs-fastapi:latest ./src
 
       - name: Push the Docker image
-        run: docker push community.docker.edu-sharing.com/metaqs-fastapi:latest
+        run: docker push projects/oeh-redaktion/edusharing-projects-oeh-redaktion-metaqs-api:latest
 
   build-and-push-superset:
     name: Build and Push superset image to community edu hub
@@ -40,7 +40,7 @@ jobs:
       - name: Build
         run: docker build -t community.docker.edu-sharing.com/metaqs-superset:latest ./superset
       - name: Push
-        run: docker push community.docker.edu-sharing.com/metaqs-superset:latest
+        run: docker push projects/oeh-redaktion/edusharing-projects-oeh-redaktion-metaqs-superset:latest
 
   build-and-push-dbt:
     name: Build and Push DBT image to community edu hub
@@ -52,4 +52,4 @@ jobs:
       - name: Build
         run: docker build -t community.docker.edu-sharing.com/metaqs-dbt:latest ./dbt
       - name: Push
-        run: docker push community.docker.edu-sharing.com/metaqs-dbt:latest
+        run: docker push projects/oeh-redaktion/edusharing-projects-oeh-redaktion-metaqs-dbt:latest

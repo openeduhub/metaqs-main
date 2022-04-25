@@ -5,6 +5,12 @@ on:
     branches:
       - "*"
 
+env:
+  docker_repository: "docker.edu-sharing.com"
+  path_prefix: "/projects/oeh-redaktion/edusharing-projects-oeh-redaktion-metaqs-"
+  image_tag: "dev"
+
+
 jobs:
   build-and-push-fastapi:
     name: Build and Push FastAPI image to community edu hub
@@ -12,11 +18,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Log in to edu sharing
-        run: docker login community.docker.edu-sharing.com -u ${{ secrets.DOCKER_EDU_HUB_REGISTRY_USERNAME }} -p ${{ secrets.DOCKER_EDU_HUB_REGISTRY_PASSWORD }}
+        run: docker login {{docker_repository}} -u ${{ secrets.DOCKER_EDU_HUB_REGISTRY_USERNAME }} -p ${{ secrets.DOCKER_EDU_HUB_REGISTRY_PASSWORD }}
       - name: Build
-        run: docker build -t community.docker.edu-sharing.com/metaqs-fastapi_dev:latest ./src
+        run: docker build -t {{docker_repository}}{{path_prefix}}api:{{image_tag}} ./src
       - name: Push
-        run: docker push community.docker.edu-sharing.com/metaqs-fastapi_dev:latest
+        run: docker push {{docker_repository}}{{path_prefix}}api:{{image_tag}}
 
   build-and-push-superset:
     name: Build and Push superset image to community edu hub
@@ -24,11 +30,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Log in to edu sharing
-        run: docker login community.docker.edu-sharing.com -u ${{ secrets.DOCKER_EDU_HUB_REGISTRY_USERNAME }} -p ${{ secrets.DOCKER_EDU_HUB_REGISTRY_PASSWORD }}
+        run: docker login {{docker_repository}} -u ${{ secrets.DOCKER_EDU_HUB_REGISTRY_USERNAME }} -p ${{ secrets.DOCKER_EDU_HUB_REGISTRY_PASSWORD }}
       - name: Build
-        run: docker build -t community.docker.edu-sharing.com/metaqs-superset_dev:latest ./superset
+        run: docker build -t {{docker_repository}}{{path_prefix}}superset:{{image_tag}} ./superset
       - name: Push
-        run: docker push community.docker.edu-sharing.com/metaqs-superset_dev:latest
+        run: docker push {{docker_repository}}{{path_prefix}}superset:{{image_tag}}
 
   build-and-push-dbt:
     name: Build and Push DBT image to community edu hub
@@ -36,13 +42,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Log in to edu sharing
-        run: docker login community.docker.edu-sharing.com -u ${{ secrets.DOCKER_EDU_HUB_REGISTRY_USERNAME }} -p ${{ secrets.DOCKER_EDU_HUB_REGISTRY_PASSWORD }}
+        run: docker login {{docker_repository}} -u ${{ secrets.DOCKER_EDU_HUB_REGISTRY_USERNAME }} -p ${{ secrets.DOCKER_EDU_HUB_REGISTRY_PASSWORD }}
       - name: Build
-        run: docker build -t community.docker.edu-sharing.com/metaqs-dbt_dev:latest ./dbt
+        run: docker build -t {{docker_repository}}{{path_prefix}}dbt:{{image_tag}} ./dbt
       - name: Push
-        run: docker push community.docker.edu-sharing.com/metaqs-dbt_dev:latest
-        TODO
-        artifacts.edu-sharing.com/repository/docker/v2/projects/community/edu_sharing-projects-wlo-metaqs-dev/dbt:latest
+        run: docker push {{docker_repository}}{{path_prefix}}dbt:{{image_tag}}
 
   analyze:
     name: Analyze
