@@ -49,7 +49,7 @@ def all_sources() -> dict[str:int]:
 
 
 def extract_properties(hits: list[AttrDict]) -> list:
-    return hits[0].to_dict()[PROPERTIES].keys()
+    return list(hits[0].to_dict()[PROPERTIES].keys())
 
 
 def create_properties_search() -> Search:
