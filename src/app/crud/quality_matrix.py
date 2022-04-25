@@ -31,7 +31,7 @@ def create_sources_search(aggregation_name: str):
 
 
 def extract_sources_from_response(
-        response: Response, aggregation_name: str
+    response: Response, aggregation_name: str
 ) -> dict[str:int]:
     return {
         entry["key"]: entry["doc_count"]

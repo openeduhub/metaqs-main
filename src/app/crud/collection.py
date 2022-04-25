@@ -57,11 +57,11 @@ MissingCollectionField = Field(
     [
         (f.name, (f.value, f.field_type))
         for f in [
-        CollectionAttribute.NAME,
-        CollectionAttribute.TITLE,
-        CollectionAttribute.KEYWORDS,
-        CollectionAttribute.DESCRIPTION,
-    ]
+            CollectionAttribute.NAME,
+            CollectionAttribute.TITLE,
+            CollectionAttribute.KEYWORDS,
+            CollectionAttribute.DESCRIPTION,
+        ]
     ],
 )
 
@@ -80,9 +80,7 @@ def portals_query() -> Search:
 
 def processed_portals_query(response: Response) -> dict:
     collections = [Collection.parse_elastic_hit(hit) for hit in response]
-    return {
-        c.noderef_id: c.title for c in collections if c.parent_id == PORTAL_ROOT_ID
-    }
+    return {c.noderef_id: c.title for c in collections if c.parent_id == PORTAL_ROOT_ID}
 
 
 async def get_portals() -> Optional[dict]:
@@ -106,10 +104,10 @@ async def get_single(noderef_id: UUID) -> Collection:
 
 
 async def get_many(
-        ancestor_id: Optional[UUID] = None,
-        missing_attr_filter: Optional[MissingAttributeFilter] = None,
-        max_hits: Optional[int] = ELASTIC_MAX_SIZE,
-        source_fields: Optional[Set[CollectionAttribute]] = None,
+    ancestor_id: Optional[UUID] = None,
+    missing_attr_filter: Optional[MissingAttributeFilter] = None,
+    max_hits: Optional[int] = ELASTIC_MAX_SIZE,
+    source_fields: Optional[Set[CollectionAttribute]] = None,
 ) -> List[Collection]:
     # TOOD: Refactor duplicate code
     query_dict = get_many_base_query(
@@ -121,8 +119,8 @@ async def get_many(
     s = Search().query(qbool(**query_dict))
 
     response = s.source(source_fields if source_fields else Collection.source_fields)[
-               :max_hits
-               ].execute()
+        :max_hits
+    ].execute()
 
     if response.success():
         return [Collection.parse_elastic_hit(hit) for hit in response]
@@ -133,7 +131,7 @@ def many_sorted_query(root_noderef_id: UUID) -> Search:
 
 
 async def get_many_sorted(
-        root_noderef_id: UUID = PORTAL_ROOT_ID, size: int = ELASTIC_MAX_SIZE
+    root_noderef_id: UUID = PORTAL_ROOT_ID, size: int = ELASTIC_MAX_SIZE
 ) -> List[Collection]:
     s = many_sorted_query(root_noderef_id)
 
@@ -146,8 +144,8 @@ async def get_many_sorted(
                 CollectionAttribute.PARENT_ID,
             ]
         )
-            .sort(CollectionAttribute.FULLPATH)[:size]
-            .execute()
+        .sort(CollectionAttribute.FULLPATH)[:size]
+        .execute()
     )
 
     if response.success():
@@ -156,10 +154,10 @@ async def get_many_sorted(
 
 # TODO: move to learning_material crud
 async def get_child_materials_with_missing_attributes(
-        noderef_id: UUID,
-        missing_attr_filter: MissingMaterialAttributeFilter,
-        source_fields: Optional[Set[LearningMaterialAttribute]],
-        max_hits: Optional[int] = ELASTIC_MAX_SIZE,
+    noderef_id: UUID,
+    missing_attr_filter: MissingMaterialAttributeFilter,
+    source_fields: Optional[Set[LearningMaterialAttribute]],
+    max_hits: Optional[int] = ELASTIC_MAX_SIZE,
 ) -> List[LearningMaterial]:
     return await get_many_materials(
         ancestor_id=noderef_id,
@@ -171,10 +169,10 @@ async def get_child_materials_with_missing_attributes(
 
 # TODO: eliminate
 async def get_child_collections_with_missing_attributes(
-        noderef_id: UUID,
-        missing_attr_filter: MissingAttributeFilter,
-        source_fields: Optional[Set[CollectionAttribute]],
-        max_hits: Optional[int] = ELASTIC_MAX_SIZE,
+    noderef_id: UUID,
+    missing_attr_filter: MissingAttributeFilter,
+    source_fields: Optional[Set[CollectionAttribute]],
+    max_hits: Optional[int] = ELASTIC_MAX_SIZE,
 ) -> List[Collection]:
     return await get_many(
         ancestor_id=noderef_id,
@@ -194,7 +192,7 @@ def material_counts_search(ancestor_id) -> Search:
 
 
 async def material_counts_by_descendant(
-        ancestor_id: UUID,
+    ancestor_id: UUID,
 ) -> DescendantCollectionsMaterialsCounts:
     s = material_counts_search(ancestor_id)
 

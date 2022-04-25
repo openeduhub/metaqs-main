@@ -17,8 +17,8 @@ from app.api.util import (
 )
 from app.core.logging import logger
 from app.crud import MissingCollectionAttributeFilter
-from app.crud.quality_matrix import quality_matrix, all_sources
 from app.crud.elastic import ResourceType
+from app.crud.quality_matrix import all_sources, quality_matrix
 from app.crud.util import build_portal_tree
 from app.models.base import ColumnOutput
 from app.models.collection import (
@@ -69,9 +69,9 @@ async def get_portals():
     tags=["Collections"],
 )
 async def get_portal_tree(
-        *,
-        noderef_id: UUID = Depends(portal_id_with_root_param),
-        response: Response,
+    *,
+    noderef_id: UUID = Depends(portal_id_with_root_param),
+    response: Response,
 ):
     collections = await crud_collection.get_many_sorted(root_noderef_id=noderef_id)
     tree = await build_portal_tree(collections=collections, root_noderef_id=noderef_id)
@@ -89,15 +89,15 @@ async def get_portal_tree(
     tags=["Collections"],
 )
 async def filter_collections_with_missing_attributes(
-        *,
-        noderef_id: UUID = Depends(portal_id_with_root_param),
-        missing_attr_filter: MissingCollectionAttributeFilter = Depends(
-            collections_filter_params
-        ),
-        response_fields: Optional[Set[CollectionAttribute]] = Depends(
-            collection_response_fields
-        ),
-        response: Response,
+    *,
+    noderef_id: UUID = Depends(portal_id_with_root_param),
+    missing_attr_filter: MissingCollectionAttributeFilter = Depends(
+        collections_filter_params
+    ),
+    response_fields: Optional[Set[CollectionAttribute]] = Depends(
+        collection_response_fields
+    ),
+    response: Response,
 ):
     if response_fields:
         response_fields.add(CollectionAttribute.NODEREF_ID)
@@ -120,7 +120,7 @@ async def filter_collections_with_missing_attributes(
     tags=["Statistics"],
 )
 async def search_hits_by_material_type(
-        *, query_str: str = Query(..., min_length=3, max_length=50), response: Response
+    *, query_str: str = Query(..., min_length=3, max_length=50), response: Response
 ):
     search_stats = crud_stats.search_hits_by_material_type(query_str)
 
@@ -135,9 +135,9 @@ async def search_hits_by_material_type(
     tags=["Statistics"],
 )
 async def material_counts_by_type(
-        *,
-        noderef_id: UUID = Depends(portal_id_param),
-        response: Response,
+    *,
+    noderef_id: UUID = Depends(portal_id_param),
+    response: Response,
 ):
     material_counts = await crud_stats.material_counts_by_type(
         root_noderef_id=noderef_id
@@ -156,9 +156,9 @@ async def material_counts_by_type(
     tags=["Statistics"],
 )
 async def material_counts_tree(
-        *,
-        noderef_id: UUID = Depends(portal_id_with_root_param),
-        response: Response,
+    *,
+    noderef_id: UUID = Depends(portal_id_with_root_param),
+    response: Response,
 ):
     descendant_collections = await crud_collection.get_many(
         ancestor_id=noderef_id,
@@ -211,13 +211,13 @@ async def material_counts_tree(
 
 
 def score_modulator_param(
-        *, score_modulator: Optional[ScoreModulator] = Query(None)
+    *, score_modulator: Optional[ScoreModulator] = Query(None)
 ) -> ScoreModulator:
     return score_modulator
 
 
 def score_weights_param(
-        *, score_weights: Optional[ScoreWeights] = Query(None)
+    *, score_weights: Optional[ScoreWeights] = Query(None)
 ) -> ScoreWeights:
     return score_weights
 
@@ -230,11 +230,11 @@ def score_weights_param(
     tags=["Statistics"],
 )
 async def score(
-        *,
-        noderef_id: UUID = Depends(portal_id_param),
-        score_modulator: ScoreModulator = Depends(score_modulator_param),
-        score_weights: ScoreWeights = Depends(score_weights_param),
-        response: Response,
+    *,
+    noderef_id: UUID = Depends(portal_id_param),
+    score_modulator: ScoreModulator = Depends(score_modulator_param),
+    score_weights: ScoreWeights = Depends(score_weights_param),
+    response: Response,
 ):
     if not score_modulator:
         score_modulator = ScoreModulator.LINEAR

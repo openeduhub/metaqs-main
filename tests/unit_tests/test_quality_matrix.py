@@ -5,13 +5,14 @@ import pytest
 from elasticsearch_dsl.response import Hit, Response
 
 from app.crud.quality_matrix import (
+    add_base_match_filters,
+    all_sources,
     create_empty_entries_search,
     create_non_empty_entries_search,
     create_properties_search,
     create_sources_search,
     get_empty_entries,
     quality_matrix,
-    all_sources, add_base_match_filters,
 )
 from app.elastic import Search
 
@@ -27,7 +28,7 @@ async def test_get_quality_matrix_no_sources():
 async def test_get_quality_matrix_no_properties():
     with mock.patch("app.crud.quality_matrix.all_sources") as mocked_get_sourced:
         with mock.patch(
-                "app.crud.quality_matrix.get_properties"
+            "app.crud.quality_matrix.get_properties"
         ) as mocked_get_properties:
             mocked_get_sourced.return_value = {"dummy_source": 10}
             mocked_get_properties.return_value = []
@@ -38,13 +39,13 @@ async def test_get_quality_matrix_no_properties():
 async def test_get_quality_matrix_dummy_property():
     with mock.patch("app.crud.quality_matrix.all_sources") as mocked_get_sourced:
         with mock.patch(
-                "app.crud.quality_matrix.get_properties"
+            "app.crud.quality_matrix.get_properties"
         ) as mocked_get_properties:
             with mock.patch(
-                    "app.crud.quality_matrix.get_non_empty_entries"
+                "app.crud.quality_matrix.get_non_empty_entries"
             ) as mocked_get_non_empty_entries:
                 with mock.patch(
-                        "app.crud.quality_matrix.get_empty_entries"
+                    "app.crud.quality_matrix.get_empty_entries"
                 ) as mocked_get_empty_entries:
                     mocked_get_sourced.return_value = {"dummy_source": 10}
                     mocked_get_properties.return_value = ["dummy_property"]
@@ -83,8 +84,8 @@ def test_create_empty_entries_search():
         }
     }
     assert (
-            create_empty_entries_search("dummy_property", "dummy_source").to_dict()
-            == expected_query
+        create_empty_entries_search("dummy_property", "dummy_source").to_dict()
+        == expected_query
     )
 
 
@@ -107,8 +108,8 @@ def test_create_non_empty_entries_search():
         }
     }
     assert (
-            create_non_empty_entries_search("dummy_property", "dummy_source").to_dict()
-            == expected_query
+        create_non_empty_entries_search("dummy_property", "dummy_source").to_dict()
+        == expected_query
     )
 
 
@@ -162,8 +163,16 @@ def test_create_properties_search():
 
 
 def test_add_base_match_filters():
-    excpectation = {'query': {'bool': {'must': [{'match': {'permissions.Read': 'GROUP_EVERYONE'}},
-                                                {'match': {'properties.cm:edu_metadataset': 'mds_oeh'}},
-                                                {'match': {'nodeRef.storeRef.protocol': 'workspace'}}]}}}
+    excpectation = {
+        "query": {
+            "bool": {
+                "must": [
+                    {"match": {"permissions.Read": "GROUP_EVERYONE"}},
+                    {"match": {"properties.cm:edu_metadataset": "mds_oeh"}},
+                    {"match": {"nodeRef.storeRef.protocol": "workspace"}},
+                ]
+            }
+        }
+    }
 
     assert add_base_match_filters(Search()).to_dict() == excpectation
