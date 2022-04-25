@@ -1,5 +1,4 @@
 import json
-from functools import reduce
 
 from elasticsearch_dsl import AttrDict
 from elasticsearch_dsl.response import Response
@@ -31,7 +30,7 @@ def create_sources_search(aggregation_name: str):
 
 
 def extract_sources_from_response(
-    response: Response, aggregation_name: str
+        response: Response, aggregation_name: str
 ) -> dict[str:int]:
     return {
         entry["key"]: entry["doc_count"]
@@ -116,4 +115,5 @@ async def quality_matrix():
                 }
             }
 
+    logger.debug(f"Quality matrix output:\n{output}")
     return output
