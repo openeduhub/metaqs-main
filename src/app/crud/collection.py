@@ -74,8 +74,17 @@ class MissingAttributeFilter(BaseModel):
         return query_dict
 
 
-async def get_portals():
-    s = Search().query(query_collections(ancestor_id=PORTAL_ROOT_ID))
+def portals_query() -> Search:
+    return Search().query(query_collections(ancestor_id=PORTAL_ROOT_ID))
+
+
+def processed_portals_query(response: Response) -> dict:
+    collections = [Collection.parse_elastic_hit(hit) for hit in response]
+    return {c.noderef_id: c.title for c in collections if c.parent_id == PORTAL_ROOT_ID}
+
+
+async def get_portals() -> Optional[dict]:
+    s = portals_query()
 
     response: Response = s.source(
         [
@@ -87,10 +96,7 @@ async def get_portals():
     )[:ELASTIC_MAX_SIZE].execute()
 
     if response.success():
-        collections = [Collection.parse_elastic_hit(hit) for hit in response]
-        return {
-            c.noderef_id: c.title for c in collections if c.parent_id == PORTAL_ROOT_ID
-        }
+        return processed_portals_query(response)
 
 
 async def get_single(noderef_id: UUID) -> Collection:
@@ -103,6 +109,7 @@ async def get_many(
     max_hits: Optional[int] = ELASTIC_MAX_SIZE,
     source_fields: Optional[Set[CollectionAttribute]] = None,
 ) -> List[Collection]:
+    # TOOD: Refactor duplicate code
     query_dict = get_many_base_query(
         resource_type=ResourceType.COLLECTION,
         ancestor_id=ancestor_id,
@@ -119,10 +126,14 @@ async def get_many(
         return [Collection.parse_elastic_hit(hit) for hit in response]
 
 
+def many_sorted_query(root_noderef_id: UUID) -> Search:
+    return Search().query(query_collections(root_noderef_id))
+
+
 async def get_many_sorted(
     root_noderef_id: UUID = PORTAL_ROOT_ID, size: int = ELASTIC_MAX_SIZE
 ) -> List[Collection]:
-    s = Search().query(query_collections(root_noderef_id))
+    s = many_sorted_query(root_noderef_id)
 
     response: Response = (
         s.source(
@@ -171,14 +182,19 @@ async def get_child_collections_with_missing_attributes(
     )
 
 
-async def material_counts_by_descendant(
-    ancestor_id: UUID,
-) -> DescendantCollectionsMaterialsCounts:
-    s = Search().query(query_materials(ancestor_id=ancestor_id))
-    s.aggs.bucket("grouped_by_collection", agg_materials_by_collection()).pipeline(
+def material_counts_search(ancestor_id) -> Search:
+    search = Search().query(query_materials(ancestor_id=ancestor_id))
+    search.aggs.bucket("grouped_by_collection", agg_materials_by_collection()).pipeline(
         "sorted_by_count",
         abucketsort(sort=[{"_count": {"order": "asc"}}]),
     )
+    return search
+
+
+async def material_counts_by_descendant(
+    ancestor_id: UUID,
+) -> DescendantCollectionsMaterialsCounts:
+    s = material_counts_search(ancestor_id)
 
     response: Response = s[:0].execute()
 
