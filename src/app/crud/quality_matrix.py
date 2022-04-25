@@ -1,4 +1,5 @@
 import json
+from typing import Union
 
 from elasticsearch_dsl import AttrDict
 from elasticsearch_dsl.response import Response
@@ -98,16 +99,19 @@ def get_non_empty_entries(field, source):
     return count
 
 
-async def quality_matrix() -> list[dict]:
-    output = []
+async def quality_matrix() -> dict[str: Union[list, dict]]:
+    output = {}
 
+    properties = get_properties()
+    output |= {"properties": properties, "replication_sources": []}
     for replication_source, total_count in all_sources().items():
-        source_data = {"column_name": replication_source, "total_count": total_count}
-        for field in get_properties():
+        source_data = {"total_count": total_count}
+        output["replication_sources"].append(replication_source)
+        for field in properties:
             empty = get_empty_entries(field, replication_source)
             source_data |= {
                 f"{PROPERTIES}.{field}": round(1 - empty / total_count, 4) * 100.
             }
-        output.append(source_data)
+        output |= {replication_source: source_data}
     logger.debug(f"Quality matrix output:\n{output}")
     return output
