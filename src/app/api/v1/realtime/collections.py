@@ -16,8 +16,9 @@ from app.api.util import (
     portal_id_with_root_param,
 )
 from app.core.logging import logger
-from app.crud import MissingCollectionAttributeFilter, quality_matrix
+from app.crud import MissingCollectionAttributeFilter
 from app.crud.elastic import ResourceType
+from app.crud.quality_matrix import all_sources, quality_matrix
 from app.crud.util import build_portal_tree
 from app.models.base import ColumnOutput
 from app.models.collection import (
@@ -39,7 +40,7 @@ router = APIRouter()
     tags=["Statistics"],
 )
 async def get_quality_matrix():
-    return await quality_matrix.get_quality_matrix()
+    return await quality_matrix()
 
 
 @router.get(
@@ -49,7 +50,7 @@ async def get_quality_matrix():
     tags=["Statistics"],
 )
 async def get_replication_sources():
-    return quality_matrix.get_sources()
+    return all_sources()
 
 
 @router.get(

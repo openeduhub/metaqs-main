@@ -13,7 +13,7 @@ def test_404():
     assert response.json() == {"errors": ["Not Found"]}
 
 
-def test_get_portals():
+def test_get_portals_endpoint():
     with mock.patch(
         "app.api.v1.realtime.collections.crud_collection.get_portals"
     ) as get_portals:
