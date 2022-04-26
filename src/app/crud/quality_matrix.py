@@ -99,7 +99,15 @@ def get_non_empty_entries(field, source):
     return count
 
 
-async def quality_matrix() -> dict[str: Union[list, dict]]:
+def api_ready_output(raw_input: dict) -> list[dict]:
+    output = []
+    for entry in raw_input["properties"]:
+        data = {source: raw_input[source][entry] for source in raw_input["replication_sources"]}
+        output.append(data)
+    return output
+
+
+async def quality_matrix() -> list[dict]:
     output = {}
 
     properties = get_properties()
@@ -110,8 +118,8 @@ async def quality_matrix() -> dict[str: Union[list, dict]]:
         for field in properties:
             empty = get_empty_entries(field, replication_source)
             source_data |= {
-                f"{PROPERTIES}.{field}": round(1 - empty / total_count, 4) * 100.
+                f"{field}": round(1 - empty / total_count, 4) * 100.
             }
         output |= {replication_source: source_data}
     logger.debug(f"Quality matrix output:\n{output}")
-    return output
+    return api_ready_output(output)
