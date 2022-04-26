@@ -116,11 +116,12 @@ async def quality_matrix() -> list[dict]:
     for replication_source, total_count in all_sources().items():
         source_data = {"total_count": total_count}
         output["replication_sources"].append(replication_source)
-        for field in properties:
-            empty = get_empty_entries(field, replication_source)
-            source_data |= {
-                f"{field}": round(1 - empty / total_count, 4) * 100.
-            }
+        if total_count > 0:
+            for field in properties:
+                empty = get_empty_entries(field, replication_source)
+                source_data |= {
+                    f"{field}": round(1 - empty / total_count, 4) * 100.
+                }
         output |= {replication_source: source_data}
     logger.debug(f"Quality matrix output:\n{output}")
     return api_ready_output(output)
