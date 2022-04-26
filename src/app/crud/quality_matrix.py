@@ -76,7 +76,7 @@ def create_empty_entries_search(field, source):
 
 
 def get_empty_entries(field, source):
-    return create_empty_entries_search(field, source).source().count()
+    return create_empty_entries_search(field, source).count()
 
 
 def create_non_empty_entries_search(field, source):
@@ -90,13 +90,6 @@ def create_non_empty_entries_search(field, source):
             )
         )
     )
-
-
-def get_non_empty_entries(field, source):
-    s = create_non_empty_entries_search(field, source)
-    logger.debug(f"From dict counting: {s.to_dict()}")
-    count: int = s.source().count()
-    return count
 
 
 def api_ready_output(raw_input: dict) -> list[dict]:

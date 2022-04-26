@@ -38,25 +38,6 @@ async def test_get_quality_matrix_no_properties():
             assert await quality_matrix() == []
 
 
-@pytest.mark.asyncio
-async def test_get_quality_matrix_dummy_property():
-    with mock.patch("app.crud.quality_matrix.all_sources") as mocked_get_sourced:
-        with mock.patch(
-                "app.crud.quality_matrix.get_properties"
-        ) as mocked_get_properties:
-            with mock.patch(
-                    "app.crud.quality_matrix.get_non_empty_entries"
-            ) as mocked_get_non_empty_entries:
-                with mock.patch(
-                        "app.crud.quality_matrix.get_empty_entries"
-                ) as mocked_get_empty_entries:
-                    mocked_get_sourced.return_value = {"dummy_source": 10}
-                    mocked_get_properties.return_value = ["dummy_property"]
-                    mocked_get_non_empty_entries.return_value = 0
-                    mocked_get_empty_entries.return_value = 0
-                    assert await quality_matrix() == [{"dummy_source": 100.0, "metadatum": "dummy_property"}]
-
-
 def test_get_empty_entries_dummy_entries():
     with mock.patch("app.crud.quality_matrix.Search.count") as mocked_count:
         dummy_count = 3
