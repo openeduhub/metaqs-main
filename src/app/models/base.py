@@ -1,9 +1,9 @@
-from typing import List
+from typing import Optional
 
 from pydantic import BaseModel as _BaseModel
 from pydantic import Extra, Field
 
-from app.core.constants import REPLICATION_SOURCE
+from app.core.constants import PERCENTAGE_DESCRIPTOR
 
 AUTO_UNIQUE_STRING = "AUTO_UNIQUE_STRING"
 
@@ -49,6 +49,14 @@ class Property(BaseModel):
 
 
 class ColumnOutput(BaseModel):
-    column_name: str = Field(default="", description="column name")
-    replication_source: Property = Field(default="", alias=REPLICATION_SOURCE)
-    creator: Property = Field(default=None, alias="cm.creator")
+    metadatum: str = Field(default="", description="Name of the evaluated metadatum.")
+    bpb_spider: Optional[float] = Field(default=0, description=PERCENTAGE_DESCRIPTOR)
+    br_rss_spider: Optional[float] = Field(default=0, description=PERCENTAGE_DESCRIPTOR)
+    geogebra_spider: Optional[float] = Field(default=0, description=PERCENTAGE_DESCRIPTOR)
+    oai_sodis_spider: Optional[float] = Field(default=0, description=PERCENTAGE_DESCRIPTOR)
+    rpi_virtuell_spider: Optional[float] = Field(default=0, description=PERCENTAGE_DESCRIPTOR)
+    serlo_spider: Optional[float] = Field(default=0, description=PERCENTAGE_DESCRIPTOR)
+    tutory_spider: Optional[float] = Field(default=0, description=PERCENTAGE_DESCRIPTOR)
+    youtube_spider: Optional[float] = Field(default=0, description=PERCENTAGE_DESCRIPTOR)
+    zum_klexikon_spider: Optional[float] = Field(default=0, description=PERCENTAGE_DESCRIPTOR)
+    zum_spider: Optional[float] = Field(default=0, description=PERCENTAGE_DESCRIPTOR)

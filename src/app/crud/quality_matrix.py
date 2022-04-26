@@ -1,10 +1,9 @@
 import json
-from functools import reduce
 
 from elasticsearch_dsl import AttrDict
 from elasticsearch_dsl.response import Response
 
-from app.core.constants import PROPERTIES, REPLICATION_SOURCE
+from app.core.constants import PROPERTIES, REPLICATION_SOURCE_ID, REPLICATION_SOURCE, TOTAL_COUNT
 from app.core.logging import logger
 from app.crud.elastic import base_match_filter
 from app.elastic import Search, qbool, qmatch
@@ -25,13 +24,13 @@ def write_to_json(filename: str, response):
 def create_sources_search(aggregation_name: str):
     s = add_base_match_filters(Search())
     s.aggs.bucket(
-        aggregation_name, "terms", field=f"{PROPERTIES}.{REPLICATION_SOURCE}.keyword"
+        aggregation_name, "terms", field=f"{PROPERTIES}.{REPLICATION_SOURCE_ID}.keyword"
     )
     return s
 
 
 def extract_sources_from_response(
-    response: Response, aggregation_name: str
+        response: Response, aggregation_name: str
 ) -> dict[str:int]:
     return {
         entry["key"]: entry["doc_count"]
@@ -49,7 +48,7 @@ def all_sources() -> dict[str:int]:
 
 
 def extract_properties(hits: list[AttrDict]) -> list:
-    return hits[0].to_dict()[PROPERTIES].keys()
+    return list(hits[0].to_dict()[PROPERTIES].keys())
 
 
 def create_properties_search() -> Search:
@@ -67,7 +66,7 @@ def create_empty_entries_search(field, source):
         Search().query(
             qbool(
                 must=[
-                    qmatch(**{f"{PROPERTIES}.{REPLICATION_SOURCE}": source}),
+                    qmatch(**{f"{PROPERTIES}.{REPLICATION_SOURCE_ID}": source}),
                     qmatch(**{f"{PROPERTIES}.{field}": ""}),
                 ]
             )
@@ -76,7 +75,7 @@ def create_empty_entries_search(field, source):
 
 
 def get_empty_entries(field, source):
-    return create_empty_entries_search(field, source).source().count()
+    return create_empty_entries_search(field, source).count()
 
 
 def create_non_empty_entries_search(field, source):
@@ -84,7 +83,7 @@ def create_non_empty_entries_search(field, source):
         Search().query(
             qbool(
                 must=[
-                    qmatch(**{f"{PROPERTIES}.{REPLICATION_SOURCE}": source}),
+                    qmatch(**{f"{PROPERTIES}.{REPLICATION_SOURCE_ID}": source}),
                 ],
                 must_not=[qmatch(**{f"{PROPERTIES}.{field}": ""})],
             )
@@ -92,28 +91,29 @@ def create_non_empty_entries_search(field, source):
     )
 
 
-def get_non_empty_entries(field, source):
-    s = create_non_empty_entries_search(field, source)
-    logger.debug(f"From dict counting: {s.to_dict()}")
-    count: int = s.source().count()
-    return count
+def api_ready_output(raw_input: dict) -> list[dict]:
+    output = []
+    for entry in raw_input[PROPERTIES]:
+        data = {source: raw_input[source][entry] for source in raw_input[REPLICATION_SOURCE]}
+        data |= {"metadatum": entry}
+        output.append(data)
+    return output
 
 
-async def quality_matrix():
+async def quality_matrix() -> list[dict]:
     output = {}
 
-    for source, total_count in all_sources().items():
-        output |= {source: {}}
-        for field in get_properties():
-            count = get_non_empty_entries(field, source)
-
-            empty = get_empty_entries(field, source)
-            output[source] |= {
-                f"{PROPERTIES}.{field}": {
-                    "empty": empty,
-                    "not_empty": count,
-                    "total_count": total_count,
+    properties = get_properties()
+    output |= {PROPERTIES: properties, REPLICATION_SOURCE: []}
+    for replication_source, total_count in all_sources().items():
+        source_data = {TOTAL_COUNT: total_count}
+        output[REPLICATION_SOURCE].append(replication_source)
+        if total_count > 0:
+            for field in properties:
+                empty = get_empty_entries(field, replication_source)
+                source_data |= {
+                    f"{field}": round(1 - empty / total_count, 4) * 100.
                 }
-            }
-
-    return output
+        output |= {replication_source: source_data}
+    logger.debug(f"Quality matrix output:\n{output}")
+    return api_ready_output(output)

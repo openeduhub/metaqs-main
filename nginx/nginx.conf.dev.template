@@ -2,6 +2,10 @@ upstream fastapi-80 {
     server fastapi:80 fail_timeout=0;
 }
 
+upstream superset-8088 {
+    server superset:8088 fail_timeout=0;
+}
+
 server {
     listen [::]:80;
     listen 80;
