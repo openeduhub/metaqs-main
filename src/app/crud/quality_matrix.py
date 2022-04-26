@@ -103,6 +103,7 @@ def api_ready_output(raw_input: dict) -> list[dict]:
     output = []
     for entry in raw_input["properties"]:
         data = {source: raw_input[source][entry] for source in raw_input["replication_sources"]}
+        data |= {"metadatum": entry}
         output.append(data)
     return output
 
