@@ -28,6 +28,7 @@ author = "Robert Meißner"
 # ones.
 extensions = [
     "sphinxcontrib.confluencebuilder",
+    'sphinxcontrib.mermaid'
 ]
 
 # Add any paths that contain templates here, relative to this directory.

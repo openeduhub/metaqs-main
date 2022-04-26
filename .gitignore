@@ -1,6 +1,5 @@
 .env
 .idea/
-assets/
 docker-compose.override.yml
 __pycache__/
 .ipynb_checkpoints/

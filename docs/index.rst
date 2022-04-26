@@ -9,3 +9,7 @@ Willkommen
 
 .. include:: main.rst
 .. include:: overview.rst
+.. include:: architecture.rst
+.. include:: setup.rst
+.. include:: analytics.rst
+.. include:: dashboard.rst
