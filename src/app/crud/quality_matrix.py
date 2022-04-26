@@ -1,10 +1,9 @@
 import json
-from typing import Union
 
 from elasticsearch_dsl import AttrDict
 from elasticsearch_dsl.response import Response
 
-from app.core.constants import PROPERTIES, REPLICATION_SOURCE
+from app.core.constants import PROPERTIES, REPLICATION_SOURCE_ID, REPLICATION_SOURCE, TOTAL_COUNT
 from app.core.logging import logger
 from app.crud.elastic import base_match_filter
 from app.elastic import Search, qbool, qmatch
@@ -25,7 +24,7 @@ def write_to_json(filename: str, response):
 def create_sources_search(aggregation_name: str):
     s = add_base_match_filters(Search())
     s.aggs.bucket(
-        aggregation_name, "terms", field=f"{PROPERTIES}.{REPLICATION_SOURCE}.keyword"
+        aggregation_name, "terms", field=f"{PROPERTIES}.{REPLICATION_SOURCE_ID}.keyword"
     )
     return s
 
@@ -67,7 +66,7 @@ def create_empty_entries_search(field, source):
         Search().query(
             qbool(
                 must=[
-                    qmatch(**{f"{PROPERTIES}.{REPLICATION_SOURCE}": source}),
+                    qmatch(**{f"{PROPERTIES}.{REPLICATION_SOURCE_ID}": source}),
                     qmatch(**{f"{PROPERTIES}.{field}": ""}),
                 ]
             )
@@ -84,7 +83,7 @@ def create_non_empty_entries_search(field, source):
         Search().query(
             qbool(
                 must=[
-                    qmatch(**{f"{PROPERTIES}.{REPLICATION_SOURCE}": source}),
+                    qmatch(**{f"{PROPERTIES}.{REPLICATION_SOURCE_ID}": source}),
                 ],
                 must_not=[qmatch(**{f"{PROPERTIES}.{field}": ""})],
             )
@@ -94,8 +93,8 @@ def create_non_empty_entries_search(field, source):
 
 def api_ready_output(raw_input: dict) -> list[dict]:
     output = []
-    for entry in raw_input["properties"]:
-        data = {source: raw_input[source][entry] for source in raw_input["replication_sources"]}
+    for entry in raw_input[PROPERTIES]:
+        data = {source: raw_input[source][entry] for source in raw_input[REPLICATION_SOURCE]}
         data |= {"metadatum": entry}
         output.append(data)
     return output
@@ -105,10 +104,10 @@ async def quality_matrix() -> list[dict]:
     output = {}
 
     properties = get_properties()
-    output |= {"properties": properties, "replication_sources": []}
+    output |= {PROPERTIES: properties, REPLICATION_SOURCE: []}
     for replication_source, total_count in all_sources().items():
-        source_data = {"total_count": total_count}
-        output["replication_sources"].append(replication_source)
+        source_data = {TOTAL_COUNT: total_count}
+        output[REPLICATION_SOURCE].append(replication_source)
         if total_count > 0:
             for field in properties:
                 empty = get_empty_entries(field, replication_source)
