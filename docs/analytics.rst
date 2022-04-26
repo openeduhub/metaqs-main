@@ -4,6 +4,8 @@ Analytics
 
 Overview
 
+Currently breaking, but outdated, mermaid diagrams:
+
 .. mermaid::
 
     flowchart TD
