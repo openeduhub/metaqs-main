@@ -5,7 +5,7 @@ from elasticsearch_dsl.response import Hit, Response
 
 from app.crud.elastic import ResourceType
 from app.crud.stats import score, score_search
-from app.score import calc_scores
+from app.score import ScoreModulator, calc_scores
 
 
 def test_score():
@@ -174,4 +174,12 @@ def test_calc_scores_zero_total():
     modulator = ""
     score = calc_scores(stats, modulator)
     stats |= {"dummy_key": 0}
+    assert score == stats
+
+
+def test_calc_scores():
+    stats = {"total": 10, "dummy_key": 1}
+    modulator = ScoreModulator.LINEAR
+    score = calc_scores(stats, modulator)
+    stats = {"dummy_key": 0.9}
     assert score == stats
