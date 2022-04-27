@@ -21,7 +21,8 @@ from app.elastic import Search
 async def test_get_quality_matrix_no_sources():
     with mock.patch("app.crud.quality_matrix.all_sources") as mocked_get_sourced:
         with mock.patch(
-                "app.crud.quality_matrix.get_properties") as mocked_get_properties:
+            "app.crud.quality_matrix.get_properties"
+        ) as mocked_get_properties:
             mocked_get_properties.return_value = []
             mocked_get_sourced.return_value = {}
             assert await quality_matrix() == []
@@ -31,7 +32,7 @@ async def test_get_quality_matrix_no_sources():
 async def test_get_quality_matrix_no_properties():
     with mock.patch("app.crud.quality_matrix.all_sources") as mocked_get_sourced:
         with mock.patch(
-                "app.crud.quality_matrix.get_properties"
+            "app.crud.quality_matrix.get_properties"
         ) as mocked_get_properties:
             mocked_get_sourced.return_value = {"dummy_source": 10}
             mocked_get_properties.return_value = []
@@ -60,8 +61,8 @@ def test_create_empty_entries_search():
         }
     }
     assert (
-            create_empty_entries_search("dummy_property", "dummy_source").to_dict()
-            == expected_query
+        create_empty_entries_search("dummy_property", "dummy_source").to_dict()
+        == expected_query
     )
 
 
@@ -84,8 +85,8 @@ def test_create_non_empty_entries_search():
         }
     }
     assert (
-            create_non_empty_entries_search("dummy_property", "dummy_source").to_dict()
-            == expected_query
+        create_non_empty_entries_search("dummy_property", "dummy_source").to_dict()
+        == expected_query
     )
 
 
