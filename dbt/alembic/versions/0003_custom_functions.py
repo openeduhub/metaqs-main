@@ -17,7 +17,7 @@ depends_on = None
 def upgrade():
     conn = op.get_bind()
     conn.execute(
-        """
+        r"""
         create or replace function txt2ltxt(_txt text)
             returns text
             language sql as

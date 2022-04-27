@@ -10,6 +10,7 @@ import app.api as api
 from app.api.languagetool.api import router as languagetool_router
 from app.core.config import (
     ALLOWED_HOSTS,
+    API_VERSION,
     BACKGROUND_TASK_ANALYTICS_INTERVAL,
     BACKGROUND_TASK_SEARCH_STATS_INTERVAL,
     BACKGROUND_TASK_SPELLCHECK_INTERVAL,
@@ -17,7 +18,7 @@ from app.core.config import (
     ENABLE_ANALYTICS,
     LOG_LEVEL,
     PROJECT_NAME,
-    ROOT_PATH, API_VERSION,
+    ROOT_PATH,
 )
 from app.core.errors import http_422_error_handler, http_error_handler
 from app.core.logging import logger
