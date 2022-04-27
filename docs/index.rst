@@ -1,11 +1,12 @@
-################################################
-Willkommen
-################################################
+############
+WLO - MetaQS
+############
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+.. contents:: Table of Contents
 
 .. include:: main.rst
 .. include:: overview.rst

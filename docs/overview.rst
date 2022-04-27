@@ -1,6 +1,6 @@
-####################
+********************
 Project Repositories
-####################
+********************
 
 Clone the main repository to the production machine when setting up the application.
 

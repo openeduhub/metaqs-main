@@ -6,6 +6,9 @@ Overview
 
 Currently breaking, but outdated, mermaid diagrams:
 
+
+.. image:: assets/data_io.png
+
 .. mermaid::
 
     flowchart TD
@@ -23,6 +26,8 @@ Currently breaking, but outdated, mermaid diagrams:
         s5 --&gt; s6
 
 Data import and processing
+
+.. image:: assets/analytics_overview.png
 
 .. mermaid::
 
@@ -56,6 +61,8 @@ Data import and processing
         note left of F: call spellcheck()
 
 Spellcheck processing
+
+.. image:: assets/spellcheck.png
 
 .. mermaid::
 
