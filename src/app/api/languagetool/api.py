@@ -146,7 +146,7 @@ async def list_supported_languages(*, http: AsyncClient = Depends(get_client)):
     },
 )
 async def list_words_in_dictionaries(*, http: AsyncClient = Depends(get_client)):
-    return {"Sorry": "Not yet implemented!"}
+    return {"Sorry": f"Not yet implemented! Using client {http}"}
 
 
 @router.post(
@@ -170,7 +170,7 @@ async def list_words_in_dictionaries(*, http: AsyncClient = Depends(get_client))
     },
 )
 async def add_word_to_dictionary(*, http: AsyncClient = Depends(get_client)):
-    return {"Sorry": "Not yet implemented!"}
+    return {"Sorry": f"Not yet implemented! Using client {http}"}
 
 
 @router.post(
@@ -194,4 +194,4 @@ async def add_word_to_dictionary(*, http: AsyncClient = Depends(get_client)):
     },
 )
 async def delete_word_from_dictionary(*, http: AsyncClient = Depends(get_client)):
-    return {"Sorry": "Not yet implemented!"}
+    return {"Sorry": f"Not yet implemented! Using client {http}"}
