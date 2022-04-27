@@ -157,8 +157,7 @@ async def list_words_in_dictionaries(*, http: AsyncClient = Depends(get_client))
         "description": swagger_spec("paths./words/add.post.description"),
         "responses": {
             "200": {
-                "description":
-                    f"Successful Response: {swagger_spec('paths./words/add.post.responses.200.description')}",
+                "description": f"Successful Response: {swagger_spec('paths./words/add.post.responses.200.description')}",
                 "content": {
                     "application/json": {
                         "schema": swagger_spec(
@@ -182,8 +181,7 @@ async def add_word_to_dictionary(*, http: AsyncClient = Depends(get_client)):
         "description": swagger_spec("paths./words/delete.post.description"),
         "responses": {
             "200": {
-                "description":
-                    f"Successful Response: {swagger_spec('paths./words/delete.post.responses.200.description')}",
+                "description": f"Successful Response: {swagger_spec('paths./words/delete.post.responses.200.description')}",
                 "content": {
                     "application/json": {
                         "schema": swagger_spec(

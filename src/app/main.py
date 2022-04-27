@@ -17,12 +17,23 @@ from app.core.config import (
     ENABLE_ANALYTICS,
     LOG_LEVEL,
     PROJECT_NAME,
-    ROOT_PATH,
+    ROOT_PATH, API_VERSION,
 )
 from app.core.errors import http_422_error_handler, http_error_handler
 from app.core.logging import logger
 from app.elastic.utils import close_elastic_connection, connect_to_elastic
 from app.http import close_client
+
+if API_VERSION == "v1" or API_VERSION == "":
+    from app.api.v1.realtime.api import real_time_router
+
+    if ENABLE_ANALYTICS:
+        from api.v1.analytics.api import analytics_router
+
+real_time_router = real_time_router
+if ENABLE_ANALYTICS:
+    analytics_router = analytics_router
+
 
 API_PORT = 8081
 
@@ -57,7 +68,7 @@ async def ping_api():
     return {"status": "ok"}
 
 
-fastapi_app.include_router(api.real_time_router, prefix="/real-time")
+fastapi_app.include_router(real_time_router, prefix="/real-time")
 
 if ENABLE_ANALYTICS:
     analytics_app = FastAPI(

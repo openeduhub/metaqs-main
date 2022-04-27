@@ -5,7 +5,6 @@ import sqlalchemy.dialects.postgresql as sapg
 from fastapi_utils.tasks import repeat_every
 from pylanguagetool import api as languagetool
 
-import app.analytics.rpc_client as dbt
 from app.core.config import (
     BACKGROUND_TASK_SPELLCHECK_INTERVAL,
     DEBUG,
