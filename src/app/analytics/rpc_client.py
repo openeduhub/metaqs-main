@@ -15,11 +15,6 @@ def run_analytics():
     return _send_rpc(method="cli_args", params={"cli": cli_command})
 
 
-def run_spellcheck():
-    cli_command = f"run --select path:{_dbt_spellcheck_path}"
-    return _send_rpc(method="cli_args", params={"cli": cli_command})
-
-
 def poll(request_token: str):
     return polling2.poll(
         partial(

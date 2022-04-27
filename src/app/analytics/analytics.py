@@ -47,7 +47,7 @@ def run():
 
 
 def _backup_previous_run(session: Session):
-    logger.info(f"Analytics: copying previous import data to backup tables")
+    logger.info("Analytics: copying previous import data to backup tables")
 
     session.execute(
         """
@@ -57,7 +57,7 @@ def _backup_previous_run(session: Session):
         truncate raw.collections;
         """
     )
-    logger.info(f"Analytics: copied collections to collections_previous_run")
+    logger.info("Analytics: copied collections to collections_previous_run")
 
     session.execute(
         """
@@ -67,4 +67,4 @@ def _backup_previous_run(session: Session):
         truncate raw.materials;
         """
     )
-    logger.info(f"Analytics: copied materials to materials_previous_run")
+    logger.info("Analytics: copied materials to materials_previous_run")

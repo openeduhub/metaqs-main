@@ -129,3 +129,11 @@ Nginx must be configured with letsencrypt. Run::
 enter your desired domain. You need write permissions on that domain::
 
     docker-compose up
+
+Pre-Commit Hooks
+----------------
+
+Install pre-commit hooks::
+
+    cd src
+    pre-commit install

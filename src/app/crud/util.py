@@ -22,7 +22,7 @@ class StatsNotFoundException(HTTPException):
     def __init__(self):
         super().__init__(
             status_code=HTTP_404_NOT_FOUND,
-            detail=f"Stats not found",
+            detail="Stats not found",
         )
 
 

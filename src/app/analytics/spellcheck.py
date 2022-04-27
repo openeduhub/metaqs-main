@@ -5,7 +5,6 @@ import sqlalchemy.dialects.postgresql as sapg
 from fastapi_utils.tasks import repeat_every
 from pylanguagetool import api as languagetool
 
-import app.analytics.rpc_client as dbt
 from app.core.config import (
     BACKGROUND_TASK_SPELLCHECK_INTERVAL,
     DEBUG,
@@ -71,9 +70,6 @@ def run():
         session.commit()
 
     logger.info(f"Spellcheck: processing finished at: {datetime.now()}")
-
-    # result = dbt.run_spellcheck()
-    # logger.info(f"Analytics: spellcheck run started {result}")
 
 
 def _spellcheck(text, lang="de-DE"):

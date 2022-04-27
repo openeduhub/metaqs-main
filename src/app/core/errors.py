@@ -12,6 +12,7 @@ from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
 
 
 async def http_error_handler(request: Request, exc: HTTPException) -> JSONResponse:
+    request
     return JSONResponse({"errors": [exc.detail]}, status_code=exc.status_code)
 
 
@@ -19,7 +20,7 @@ async def http_422_error_handler(request: Request, exc: HTTPException) -> JSONRe
     """
     Handler for 422 error to transform default pydantic error object to gothinkster format
     """
-
+    request
     errors = {"body": []}
 
     if isinstance(exc.detail, Iterable) and not isinstance(

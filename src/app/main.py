@@ -1,5 +1,3 @@
-import logging
-
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from pydantic import BaseModel, Field
@@ -9,13 +7,10 @@ from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
 from starlette_context.middleware import RawContextMiddleware
 
 import app.api as api
-
-# from app.analytics.analytics import background_task as analytics_background_task
-# from app.analytics.search_stats import background_task as search_stats_background_task
-# from app.analytics.spellcheck import background_task as spellcheck_background_task
-from app.api.languagetool import router as languagetool_router
+from app.api.languagetool.api import router as languagetool_router
 from app.core.config import (
     ALLOWED_HOSTS,
+    API_VERSION,
     BACKGROUND_TASK_ANALYTICS_INTERVAL,
     BACKGROUND_TASK_SEARCH_STATS_INTERVAL,
     BACKGROUND_TASK_SPELLCHECK_INTERVAL,
@@ -29,6 +24,17 @@ from app.core.errors import http_422_error_handler, http_error_handler
 from app.core.logging import logger
 from app.elastic.utils import close_elastic_connection, connect_to_elastic
 from app.http import close_client
+
+if API_VERSION == "v1" or API_VERSION == "":
+    from app.api.v1.realtime.api import real_time_router
+
+    if ENABLE_ANALYTICS:
+        from api.v1.analytics.api import analytics_router
+
+real_time_router = real_time_router
+if ENABLE_ANALYTICS:
+    analytics_router = analytics_router
+
 
 API_PORT = 8081
 
@@ -63,13 +69,12 @@ async def ping_api():
     return {"status": "ok"}
 
 
-fastapi_app.include_router(api.real_time_router, prefix=f"/real-time")
+fastapi_app.include_router(real_time_router, prefix="/real-time")
 
 if ENABLE_ANALYTICS:
     analytics_app = FastAPI(
         title=f"{PROJECT_NAME} Analytics API",
-        description=f"""
-    * [**Real-Time API**]({ROOT_PATH}/docs)
+        description=f"""* [**Real-Time API**]({ROOT_PATH}/docs)
     * [**LanguageTool API**]({ROOT_PATH}/languagetool/docs)
         """,
         version=OPEN_API_VERSION,
@@ -80,8 +85,7 @@ if ENABLE_ANALYTICS:
 
 languagetool_app = FastAPI(
     title=f"{PROJECT_NAME} LanguageTool API",
-    description=f"""
-* [**Real-Time API**]({ROOT_PATH}/docs)
+    description=f"""* [**Real-Time API**]({ROOT_PATH}/docs)
 * [**Analytics API**]({ROOT_PATH}/analytics/docs)
     """,
     debug=DEBUG,
@@ -100,6 +104,12 @@ fastapi_app.add_event_handler("startup", connect_to_elastic)
 fastapi_app.add_event_handler("shutdown", close_elastic_connection)
 
 if ENABLE_ANALYTICS:
+    from app.analytics.analytics import background_task as analytics_background_task
+    from app.analytics.search_stats import (
+        background_task as search_stats_background_task,
+    )
+    from app.analytics.spellcheck import background_task as spellcheck_background_task
+
     if BACKGROUND_TASK_ANALYTICS_INTERVAL:
         fastapi_app.add_event_handler("startup", analytics_background_task)
     if BACKGROUND_TASK_SEARCH_STATS_INTERVAL:

@@ -2,7 +2,6 @@ from typing import List, Optional, Set
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Response
-from pydantic import BaseModel, Field
 from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 from starlette_context import context
 
@@ -15,7 +14,6 @@ from app.api.util import (
     portal_id_param,
     portal_id_with_root_param,
 )
-from app.core.logging import logger
 from app.crud import MissingCollectionAttributeFilter
 from app.crud.elastic import ResourceType
 from app.crud.quality_matrix import all_sources, quality_matrix

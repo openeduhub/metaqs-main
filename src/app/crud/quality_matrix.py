@@ -3,7 +3,12 @@ import json
 from elasticsearch_dsl import AttrDict
 from elasticsearch_dsl.response import Response
 
-from app.core.constants import PROPERTIES, REPLICATION_SOURCE_ID, REPLICATION_SOURCE, TOTAL_COUNT
+from app.core.constants import (
+    PROPERTIES,
+    REPLICATION_SOURCE,
+    REPLICATION_SOURCE_ID,
+    TOTAL_COUNT,
+)
 from app.core.logging import logger
 from app.crud.elastic import base_match_filter
 from app.elastic import Search, qbool, qmatch
@@ -30,7 +35,7 @@ def create_sources_search(aggregation_name: str):
 
 
 def extract_sources_from_response(
-        response: Response, aggregation_name: str
+    response: Response, aggregation_name: str
 ) -> dict[str:int]:
     return {
         entry["key"]: entry["doc_count"]
@@ -94,7 +99,9 @@ def create_non_empty_entries_search(field, source):
 def api_ready_output(raw_input: dict) -> list[dict]:
     output = []
     for entry in raw_input[PROPERTIES]:
-        data = {source: raw_input[source][entry] for source in raw_input[REPLICATION_SOURCE]}
+        data = {
+            source: raw_input[source][entry] for source in raw_input[REPLICATION_SOURCE]
+        }
         data |= {"metadatum": entry}
         output.append(data)
     return output
@@ -111,9 +118,7 @@ async def quality_matrix() -> list[dict]:
         if total_count > 0:
             for field in properties:
                 empty = get_empty_entries(field, replication_source)
-                source_data |= {
-                    f"{field}": round(1 - empty / total_count, 4) * 100.
-                }
+                source_data |= {f"{field}": round(1 - empty / total_count, 4) * 100.0}
         output |= {replication_source: source_data}
     logger.debug(f"Quality matrix output:\n{output}")
     return api_ready_output(output)
