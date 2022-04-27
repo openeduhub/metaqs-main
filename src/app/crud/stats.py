@@ -25,12 +25,18 @@ def score_search(noderef_id, resource_type) -> Search:
     if resource_type is ResourceType.COLLECTION:
         query, aggs = query_collections, aggs_collection_validation
     elif resource_type is ResourceType.MATERIAL:
-        print("material")
         query, aggs = query_materials, aggs_material_validation
     s = Search().query(query(ancestor_id=noderef_id))
     for name, _agg in aggs.items():
         s.aggs.bucket(name, _agg)
     return s
+
+
+def score(response):
+    return {
+        "total": response.hits.total.value,
+        **{k: v["doc_count"] for k, v in response.aggregations.to_dict().items()},
+    }
 
 
 async def run_stats_score(noderef_id: UUID, resource_type: ResourceType) -> dict:
@@ -39,10 +45,7 @@ async def run_stats_score(noderef_id: UUID, resource_type: ResourceType) -> dict
     response: Response = s[:0].execute()
 
     if response.success():
-        return {
-            "total": response.hits.total.value,
-            **{k: v["doc_count"] for k, v in response.aggregations.to_dict().items()},
-        }
+        return score(response)
 
 
 async def material_counts_by_type(root_noderef_id: UUID) -> dict:

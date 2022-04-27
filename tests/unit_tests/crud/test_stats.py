@@ -1,33 +1,46 @@
+from unittest.mock import MagicMock
+
 import pytest
+from elasticsearch_dsl.response import Hit, Response
 
 from app.crud.elastic import ResourceType
-from app.crud.stats import score_search
+from app.crud.stats import score, score_search
+from app.score import calc_scores
 
-score_response = {
-    "score": 90,
-    "collections": {
-        "total": 122,
-        "short_description": 1.0,
-        "short_title": 1.0,
-        "missing_edu_context": 0.319672131147541,
-        "missing_description": 0.8852459016393442,
-        "few_keywords": 1.0,
-        "missing_keywords": 1.0,
-        "missing_title": 1.0,
-    },
-    "materials": {
-        "total": 411,
-        "missing_edu_context": 1.0,
-        "missing_object_type": 1.0,
-        "missing_description": 0.6374695863746959,
-        "missing_license": 1.0,
-        "missing_ads_qualifier": 1.0,
-        "missing_keywords": 1.0,
-        "missing_title": 1.0,
-        "missing_subjects": 1.0,
-        "missing_material_type": 0.9951338199513382,
-    },
-}
+
+def test_score():
+    dummy_hit = Hit({"_source": MagicMock()})
+    response = Response(
+        "", {"test": "hello", "aggregations": {}, "hits": {"hits": [dummy_hit]}}
+    )
+    output = score(response)
+
+    expected_score = {
+        "score": 90,
+        "collections": {
+            "total": 122,
+            "short_description": 1.0,
+            "short_title": 1.0,
+            "missing_edu_context": 0.319672131147541,
+            "missing_description": 0.8852459016393442,
+            "few_keywords": 1.0,
+            "missing_keywords": 1.0,
+            "missing_title": 1.0,
+        },
+        "materials": {
+            "total": 411,
+            "missing_edu_context": 1.0,
+            "missing_object_type": 1.0,
+            "missing_description": 0.6374695863746959,
+            "missing_license": 1.0,
+            "missing_ads_qualifier": 1.0,
+            "missing_keywords": 1.0,
+            "missing_title": 1.0,
+            "missing_subjects": 1.0,
+            "missing_material_type": 0.9951338199513382,
+        },
+    }
+    assert output == expected_score
 
 
 def test_score_search_material():
@@ -154,3 +167,11 @@ def test_score_search_exception():
     resource_type = ""
     search = score_search(noderef_id, resource_type)
     assert search.to_dict() == {}
+
+
+def test_calc_scores_zero_total():
+    stats = {"total": 0, "dummy_key": "dummy_value"}
+    modulator = ""
+    score = calc_scores(stats, modulator)
+    stats |= {"dummy_key": 0}
+    assert score == stats
