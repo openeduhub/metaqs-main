@@ -71,9 +71,6 @@ def run():
 
     logger.info(f"Spellcheck: processing finished at: {datetime.now()}")
 
-    # result = dbt.run_spellcheck()
-    # logger.info(f"Analytics: spellcheck run started {result}")
-
 
 def _spellcheck(text, lang="de-DE"):
     response = languagetool.check(
