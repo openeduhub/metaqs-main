@@ -74,24 +74,3 @@ Sphinx
 ------
 
 This project documentation can be exposed as a static website.
-
-dbt-docs
---------
-
-dbt offers to autogenerate documentation on the SQL transformation as a static website.
-
-One option to host this site is running metaqs-dbt image with a different entrypoint and startup command::
-
-    services:
-      ...
-      dbt-docs:
-        image: community.docker.edu-sharing.com/metaqs-dbt:latest
-        container_name: metaqs-dbt-docs
-        ...
-        volumes:
-          - ./:/dbt
-        entrypoint:
-          - /bin/sh
-          - -c
-        command:
-          - dbt docs generate && dbt docs serve

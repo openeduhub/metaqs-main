@@ -3,7 +3,6 @@ version: '3.9'
 volumes:
   pg-data:
   superset-data:
-  shared-dbt-docs:
 
 networks:
   backend:
@@ -61,7 +60,6 @@ services:
       - ./nginx/gzip_params:/etc/nginx/gzip_params:ro
       - ./nginx/proxy_params:/etc/nginx/proxy_params:ro
       - ../mkdocs/site:/usr/share/nginx/html/docs:ro
-      - shared-dbt-docs:/usr/share/nginx/html/dbt-docs:ro
     networks: [ frontend ]
     ports:
       - "80:80"
@@ -162,16 +160,3 @@ services:
     networks: [ frontend, backend ]
     expose:
       - 8088
-
-
-  dbt-docs:
-    image: docker.edu-sharing.com/projects/oeh-redaktion/edusharing-projects-oeh-redaktion-metaqs-dbt:latest
-    container_name: metaqs-dbt-docs
-    depends_on:
-      - postgres
-    environment:
-      <<: *postgres-vars-dbt
-    volumes:
-      - shared-dbt-docs:/dbt/target
-    networks: [ backend ]
-    command: [ "dbt", "docs", "generate" ]
