@@ -40,21 +40,3 @@ sphinxcontrib-mermaid = "^0.7.1"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.vulture]
-exclude = []
-ignore_decorators = ["@app.route", "@require_*"]
-ignore_names = []
-make_whitelist = true
-min_confidence = 80
-paths = ["."]
-sort_by_size = true
-verbose = true
-
-[tool.black]
-extend-ignore = "E203"
-
-[tool.flake8]
-max-line-length = 140
-extend-ignore = "E203"
-max-complexity = 10
