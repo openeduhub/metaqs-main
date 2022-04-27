@@ -80,7 +80,7 @@ def test_create_non_empty_entries_search():
                     {"match": {"properties.cm:edu_metadataset": "mds_oeh"}},
                     {"match": {"nodeRef.storeRef.protocol": "workspace"}},
                 ],
-                "must_not": [{"match": {f"properties.dummy_property": ""}}],
+                "must_not": [{"match": {"properties.dummy_property": ""}}],
             }
         }
     }

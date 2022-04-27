@@ -18,11 +18,11 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
-#  - repo: https://gitlab.com/pycqa/flake8
-#    rev: 3.8.4
-#    hooks:
-#      - id: flake8
-#        args: [ "--max-line-length", "120" ]
+  - repo: https://gitlab.com/pycqa/flake8
+    rev: 3.8.4
+    hooks:
+      - id: flake8
+        args: [ "--max-line-length", "120" ]
 #  - repo: https://github.com/jendrikseipp/vulture
 #    rev: 'v2.3'  # or any later Vulture version
 #    hooks:
