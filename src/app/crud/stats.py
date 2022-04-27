@@ -1,4 +1,3 @@
-# import asyncio
 from collections import defaultdict
 from uuid import UUID
 
@@ -21,16 +20,21 @@ from .elastic import (
 )
 
 
-async def run_stats_score(noderef_id: UUID, resource_type: ResourceType) -> dict:
+def score_search(noderef_id, resource_type) -> Search:
     query, aggs = None, None
     if resource_type is ResourceType.COLLECTION:
         query, aggs = query_collections, aggs_collection_validation
     elif resource_type is ResourceType.MATERIAL:
+        print("material")
         query, aggs = query_materials, aggs_material_validation
-
     s = Search().query(query(ancestor_id=noderef_id))
     for name, _agg in aggs.items():
         s.aggs.bucket(name, _agg)
+    return s
+
+
+async def run_stats_score(noderef_id: UUID, resource_type: ResourceType) -> dict:
+    s = score_search(noderef_id, resource_type)
 
     response: Response = s[:0].execute()
 
