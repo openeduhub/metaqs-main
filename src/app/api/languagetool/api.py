@@ -12,7 +12,7 @@ import app.crud.languagetool as crud_languagetool
 import app.crud.learning_material as crud_material
 from app.api.auth import authenticated
 from app.core.logging import logger
-from app.http import get_client
+from app.http_client import get_client
 from app.models.learning_material import LearningMaterial, LearningMaterialAttribute
 
 router = APIRouter()
