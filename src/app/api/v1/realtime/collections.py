@@ -231,14 +231,10 @@ def score_weights_param(
 async def score(
     *,
     noderef_id: UUID = Depends(portal_id_param),
-    score_modulator: ScoreModulator = Depends(score_modulator_param),
-    score_weights: ScoreWeights = Depends(score_weights_param),
     response: Response,
 ):
-    if not score_modulator:
-        score_modulator = ScoreModulator.LINEAR
-    if not score_weights:
-        score_weights = ScoreWeights.UNIFORM
+    score_modulator = ScoreModulator.LINEAR
+    score_weights = ScoreWeights.UNIFORM
 
     collection_stats = await crud_stats.run_stats_score(
         noderef_id=noderef_id, resource_type=ResourceType.COLLECTION
