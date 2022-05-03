@@ -54,21 +54,27 @@ def calc_scores(stats: dict, score_modulator: ScoreModulator) -> dict:
     }
 
 
+def get_score_weight_or_zero(key: str, material_type: str, score_weights: ScoreWeights):
+    return score_weights.weights[material_type].get(key, 0)
+
+
 def calc_weighted_score(
     collection_scores: dict, material_scores: dict, score_weights: ScoreWeights
 ) -> int:
     score_ = sum(
-        score_weights.weights["collections"].get(k, 0) * v
+        get_score_weight_or_zero(k, "collections", score_weights) * v
         for k, v in collection_scores.items()
     ) + sum(
-        score_weights.weights["materials"].get(k, 0) * v
+        get_score_weight_or_zero(k, "materials", score_weights) * v
         for k, v in material_scores.items()
     )
 
     sum_weights = sum(
-        score_weights.weights["collections"].get(k, 0) for k in collection_scores.keys()
+        get_score_weight_or_zero(k, "collections", score_weights)
+        for k in collection_scores.keys()
     ) + sum(
-        score_weights.weights["materials"].get(k, 0) for k in material_scores.keys()
+        get_score_weight_or_zero(k, "materials", score_weights)
+        for k in material_scores.keys()
     )
 
     return int((100 * score_) / sum_weights)

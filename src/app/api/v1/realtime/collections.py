@@ -206,7 +206,6 @@ if ENABLE_COLLECTIONS_API:
 
         response.headers["X-Total-Count"] = str(len(stats))
         response.headers["X-Query-Count"] = str(len(context.get("elastic_queries")))
-        # response.headers["X-Total-Errors"] = str(len(errors))
         return stats
 
 
