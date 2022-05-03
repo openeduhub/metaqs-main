@@ -24,45 +24,50 @@ def test_score_empty_hits():
     assert output == expected_score
 
 
-@pytest.mark.skip()
 def test_score_with_hits():
     mocked_response = Response(
-        search="", response={"test": "hello", "aggregations": {}, "hits": {"hits": []}}
+        search="",
+        response={
+            "took": 19,
+            "timed_out": False,
+            "_shards": {"total": 1, "successful": 1, "skipped": 0, "failed": 0},
+            "hits": {
+                "total": {"value": 2326, "relation": "eq"},
+                "max_score": 0.0,
+                "hits": [],
+            },
+            "aggregations": {
+                "missing_edu_context": {"doc_count": 3},
+                "missing_object_type": {"doc_count": 5},
+                "missing_description": {"doc_count": 818},
+                "missing_license": {"doc_count": 5},
+                "missing_title": {"doc_count": 0},
+                "missing_keywords": {"doc_count": 1},
+                "missing_ads_qualifier": {"doc_count": 1628},
+                "missing_subjects": {"doc_count": 1},
+                "missing_material_type": {"doc_count": 12},
+            },
+        },
     )
     mocked_response._search = MagicMock()
     mocked_response._d_ = {"hits": []}
     mocked_response._hits = MagicMock()
     mocked_response.hits = MagicMock()
     mocked_response.hits.total.value = 0
-    print(mocked_response)
     output = score(mocked_response)
 
     expected_score = {
-        "score": 90,
-        "collections": {
-            "total": 122,
-            "short_description": 1.0,
-            "short_title": 1.0,
-            "missing_edu_context": 0.319672131147541,
-            "missing_description": 0.8852459016393442,
-            "few_keywords": 1.0,
-            "missing_keywords": 1.0,
-            "missing_title": 1.0,
-        },
-        "materials": {
-            "total": 411,
-            "missing_edu_context": 1.0,
-            "missing_object_type": 1.0,
-            "missing_description": 0.6374695863746959,
-            "missing_license": 1.0,
-            "missing_ads_qualifier": 1.0,
-            "missing_keywords": 1.0,
-            "missing_title": 1.0,
-            "missing_subjects": 1.0,
-            "missing_material_type": 0.9951338199513382,
-        },
+        "total": 0,
+        "missing_edu_context": 3,
+        "missing_object_type": 5,
+        "missing_description": 818,
+        "missing_license": 5,
+        "missing_ads_qualifier": 1628,
+        "missing_keywords": 1.0,
+        "missing_title": 0,
+        "missing_subjects": 1.0,
+        "missing_material_type": 12,
     }
-    expected_score = {"total": 0}
     assert output == expected_score
 
 
