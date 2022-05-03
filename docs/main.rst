@@ -137,3 +137,24 @@ Install pre-commit hooks::
 
     cd src
     pre-commit install
+
+CertBot
+-------
+
+Run::
+
+    ./init_letsencrypt.sh
+
+If build folders are missing, run::
+
+    mkdir src
+    mkdir dbt
+    mkdir superset
+
+and run init again.
+
+Use domain corresponding to the IP of the VM, e.g.,::
+
+    cXYZ-UVW.cloud.gwdg.de
+
+Add `.env` file to VM according to `.env.example`. Take care to add the corresponding domain in the `.env`.

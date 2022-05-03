@@ -23,7 +23,7 @@ from app.core.config import (
 from app.core.errors import http_422_error_handler, http_error_handler
 from app.core.logging import logger
 from app.elastic.utils import close_elastic_connection, connect_to_elastic
-from app.http import close_client
+from app.http_client import close_client
 
 if API_VERSION == "v1" or API_VERSION == "":
     from app.api.v1.realtime.api import real_time_router
