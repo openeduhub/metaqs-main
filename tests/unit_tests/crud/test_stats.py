@@ -1,19 +1,41 @@
 from unittest.mock import MagicMock
 
 import pytest
-from elasticsearch_dsl.response import Hit, Response
+from elasticsearch_dsl.response import Response
 
 from app.crud.elastic import ResourceType
 from app.crud.stats import score, score_search
 from app.score import ScoreModulator, calc_scores
 
 
-def test_score():
-    dummy_hit = Hit({"_source": MagicMock()})
-    response = Response(
-        "", {"test": "hello", "aggregations": {}, "hits": {"hits": [dummy_hit]}}
+def test_score_empty_hits():
+    dummy_hits = {"hits": []}
+    mocked_response = Response(
+        search="", response={"test": "hello", "aggregations": {}, "hits": dummy_hits}
     )
-    output = score(response)
+    mocked_response._search = MagicMock()
+    mocked_response._d_ = dummy_hits
+    mocked_response._hits = MagicMock()
+    mocked_response.hits = MagicMock()
+    mocked_response.hits.total.value = 0
+    output = score(mocked_response)
+
+    expected_score = {"total": len(dummy_hits["hits"])}
+    assert output == expected_score
+
+
+@pytest.mark.skip()
+def test_score_with_hits():
+    mocked_response = Response(
+        search="", response={"test": "hello", "aggregations": {}, "hits": {"hits": []}}
+    )
+    mocked_response._search = MagicMock()
+    mocked_response._d_ = {"hits": []}
+    mocked_response._hits = MagicMock()
+    mocked_response.hits = MagicMock()
+    mocked_response.hits.total.value = 0
+    print(mocked_response)
+    output = score(mocked_response)
 
     expected_score = {
         "score": 90,
@@ -40,6 +62,7 @@ def test_score():
             "missing_material_type": 0.9951338199513382,
         },
     }
+    expected_score = {"total": 0}
     assert output == expected_score
 
 
