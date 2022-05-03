@@ -44,13 +44,6 @@ server {
     gzip on;
     include gzip_params;
 
-    location /docs {
-        auth_basic "OpenEduHub";
-        auth_basic_user_file /etc/nginx/.htpasswd;
-        try_files $uri $uri/ =404;
-        index index.html;
-    }
-
     location ${ROOT_PATH} {
         rewrite ${ROOT_PATH}/(.*) /$1 break;
 
