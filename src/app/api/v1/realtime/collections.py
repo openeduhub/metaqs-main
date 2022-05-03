@@ -19,7 +19,7 @@ from app.crud import MissingCollectionAttributeFilter
 from app.crud.elastic import ResourceType
 from app.crud.quality_matrix import all_sources, quality_matrix
 from app.crud.util import build_portal_tree
-from app.models.base import ColumnOutput
+from app.models.base import ColumnOutput, ScoreOutput
 from app.models.collection import (
     Collection,
     CollectionAttribute,
@@ -223,7 +223,7 @@ def score_weights_param(
 
 @router.get(
     "/collections/{noderef_id}/stats/score",
-    response_model=dict,
+    response_model=ScoreOutput,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=["Statistics"],
