@@ -157,4 +157,4 @@ Use domain corresponding to the IP of the VM, e.g.,::
 
     cXYZ-UVW.cloud.gwdg.de
 
-Add `.env` file to VM according to `.env.example`. Take are to add the corresponding domain in the `.env`.
+Add `.env` file to VM according to `.env.example`. Take care to add the corresponding domain in the `.env`.
