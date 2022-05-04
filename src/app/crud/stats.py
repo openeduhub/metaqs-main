@@ -20,7 +20,7 @@ from .elastic import (
 )
 
 
-def score_search(noderef_id, resource_type) -> Search:
+def score_search(noderef_id: UUID, resource_type: ResourceType) -> Search:
     query, aggs = None, None
     if resource_type is ResourceType.COLLECTION:
         query, aggs = query_collections, aggs_collection_validation
@@ -32,14 +32,14 @@ def score_search(noderef_id, resource_type) -> Search:
     return s
 
 
-def score(response):
+def score(response: Response) -> dict:
     return {
         "total": response.hits.total.value,
         **{k: v["doc_count"] for k, v in response.aggregations.to_dict().items()},
     }
 
 
-async def run_stats_score(noderef_id: UUID, resource_type: ResourceType) -> dict:
+async def query_score(noderef_id: UUID, resource_type: ResourceType) -> dict:
     s = score_search(noderef_id, resource_type)
 
     response: Response = s[:0].execute()

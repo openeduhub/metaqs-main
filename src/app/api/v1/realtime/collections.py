@@ -221,13 +221,13 @@ async def score(
     noderef_id: UUID = Depends(portal_id_param),
     response: Response,
 ):
-    collection_stats = await crud_stats.run_stats_score(
+    collection_stats = await crud_stats.query_score(
         noderef_id=noderef_id, resource_type=ResourceType.COLLECTION
     )
 
     collection_scores = calc_scores(stats=collection_stats)
 
-    material_stats = await crud_stats.run_stats_score(
+    material_stats = await crud_stats.query_score(
         noderef_id=noderef_id, resource_type=ResourceType.MATERIAL
     )
 
