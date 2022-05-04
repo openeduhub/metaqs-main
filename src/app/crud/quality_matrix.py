@@ -76,31 +76,34 @@ def create_empty_entries_search(
     return s
 
 
-def get_empty_entries(properties: PROPERTY_TYPE, replication_source: str) -> Response:
+def all_missing_properties(
+    properties: PROPERTY_TYPE, replication_source: str
+) -> Response:
     return create_empty_entries_search(properties, replication_source).execute()
 
 
+def join_data(data, key):
+    data |= {"metadatum": key}
+    return data
+
+
 def api_ready_output(raw_input: dict) -> list[dict]:
-    output = []
-    for key, data in raw_input.items():
-        data |= {"metadatum": key}
-        output.append(data)
-    return output
+    return [join_data(data, key) for key, data in raw_input.items()]
 
 
-def missing_fields_ratio(total_count: int, value: dict):
+def missing_fields_ratio(value: dict, total_count: int):
     return round((1 - value["doc_count"] / total_count) * 100, 2)
 
 
 def missing_fields(value: dict, total_count: int, replication_source: str) -> dict:
-    return {replication_source: missing_fields_ratio(total_count, value)}
+    return {replication_source: missing_fields_ratio(value, total_count)}
 
 
 async def quality_matrix() -> list[dict]:
     properties = get_properties()
     output = {k: {} for k in properties}
     for replication_source, total_count in all_sources().items():
-        response = get_empty_entries(properties, replication_source)
+        response = all_missing_properties(properties, replication_source)
         for key, value in response.aggregations.to_dict().items():
             output[key] |= missing_fields(value, total_count, replication_source)
 
