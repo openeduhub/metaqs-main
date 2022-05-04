@@ -88,9 +88,12 @@ def api_ready_output(raw_input: dict) -> list[dict]:
     return output
 
 
+def missing_fields_ratio(total_count: int, value: dict):
+    return round((1 - value["doc_count"] / total_count) * 100, 2)
+
+
 def missing_fields(value: dict, total_count: int, replication_source: str) -> dict:
-    empty = round(1 - value["doc_count"] / total_count, 4) * 100.0
-    return {replication_source: empty}
+    return {replication_source: missing_fields_ratio(total_count, value)}
 
 
 async def quality_matrix() -> list[dict]:
