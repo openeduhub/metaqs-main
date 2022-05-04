@@ -99,7 +99,6 @@ services:
     depends_on:
       # - postgres
       - dbt
-      - languagetool
     environment:
       <<: *postgres-vars
       POSTGRES_HOST: postgres
@@ -136,12 +135,3 @@ services:
     expose:
       - 8580
     command: [ "dbt", "rpc" ]
-
-  languagetool:
-    container_name: metaqs-languagetool
-    image: erikvl87/languagetool
-    <<: *restart-policy
-    environment:
-      Java_Xms: 512m
-      Java_Xmx: 2g
-    networks: [ backend ]

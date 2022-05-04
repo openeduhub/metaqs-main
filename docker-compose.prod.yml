@@ -97,7 +97,6 @@ services:
     depends_on:
       - postgres
       - dbt
-      - languagetool
     environment:
       <<: *postgres-vars
       POSTGRES_HOST: postgres
