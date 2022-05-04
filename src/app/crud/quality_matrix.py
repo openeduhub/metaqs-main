@@ -107,10 +107,41 @@ def api_ready_output(raw_input: dict) -> list[dict]:
     return output
 
 
+def aggregated_missing_fields(properties: list, sources: dict):
+    print(sources)
+
+    s = add_base_match_filters(
+        Search().query(
+            qbool(
+                must=[
+                    qmatch(
+                        **{
+                            f"{PROPERTIES}.{REPLICATION_SOURCE_ID}": list(
+                                sources.keys()
+                            )[0]
+                        }
+                    ),
+                ]
+            )
+        )
+    )
+    for keyword in properties:
+        print(keyword)
+        s.aggs.bucket(keyword, "missing", field=f"{PROPERTIES}.{keyword}.keyword")
+
+    response: Response = s.execute()
+    print(s.to_dict())
+    output = []
+    for key, value in response.aggregations.to_dict().items():
+        output.append({key: value["doc_count"]})
+    return output
+
+
 async def quality_matrix() -> list[dict]:
     output = {}
 
     properties = get_properties()
+    aggregated_missing_fields(properties, all_sources())
     output |= {PROPERTIES: properties, REPLICATION_SOURCE: []}
     for replication_source, total_count in all_sources().items():
         source_data = {TOTAL_COUNT: total_count}
