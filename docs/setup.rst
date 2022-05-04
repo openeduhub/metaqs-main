@@ -24,7 +24,6 @@ After these steps the output from docker ps should be similar to the following::
     e4d5eb5434d1   nginx:stable-alpine     "/docker-entrypoint.…"    0.0.0.0:80->80/tcp, :::80->80/tcp     nginx
     0b1fa78b9037   metaqs-api              "/start-reload.sh"        80/tcp                                api
     13d2f71dc4b9   metaqs-dbt              "/bin/sh -c 'dbt com…"    8580/tcp                              dbt
-    5bc6326076f4   erikvl87/languagetool   "bash start.sh"           8010/tcp                              languagetool
     df4f2c3472be   postgres:14             "docker-entrypoint.s…"    5432/tcp                              postgres
 
 

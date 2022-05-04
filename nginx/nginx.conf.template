@@ -2,10 +2,6 @@ upstream fastapi-80 {
     server fastapi:80 fail_timeout=0;
 }
 
-upstream superset-8088 {
-    server superset:8088 fail_timeout=0;
-}
-
 server {
     listen [::]:80;
     listen 80;
@@ -33,46 +29,4 @@ server {
         include proxy_params;
     }
 
-    location / {
-        proxy_pass  http://superset-8088;
-        include proxy_params;
-    }
 }
-
-#server {
-#    listen [::]:80;
-#    listen 80;
-#    server_name api.${NGINX_HOST};
-#
-#    access_log /var/log/nginx/access.log;
-#    error_log  /var/log/nginx/error.log;
-#    keepalive_timeout 65;
-#
-#    gzip on;
-#    include gzip_params;
-#
-#    location /${API_VERSION} {
-#        rewrite /${API_VERSION}/(.*) /$1 break;
-#
-#        proxy_pass  http://fastapi-80;
-#        include proxy_params;
-#    }
-#}
-
-#server {
-#    listen [::]:80;
-#    listen 80;
-#    server_name superset.${NGINX_HOST};
-#
-#    access_log /var/log/nginx/access.log;
-#    error_log  /var/log/nginx/error.log;
-#    keepalive_timeout 65;
-#
-#    gzip on;
-#    include gzip_params;
-#
-#    location / {
-#        proxy_pass  http://superset-8088;
-#        include proxy_params;
-#    }
-#}
