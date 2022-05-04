@@ -81,7 +81,7 @@ Use::
     docker-compose up
 
 
-to download images for dbt, language tool, postgreSQL.
+to download images for dbt, postgreSQL.
 
 Fast API
 
@@ -90,10 +90,6 @@ DBT::
     docker-compose build dbt
     docker push community.docker.edu-sharing.com/metaqs-dbt:latest
 
-Superset::
-
-    docker-compose build superset
-    docker push community.docker.edu-sharing.com/metaqs-superset:latest
 
 Preparing SQL
 -------------
@@ -149,7 +145,6 @@ If build folders are missing, run::
 
     mkdir src
     mkdir dbt
-    mkdir superset
 
 and run init again.
 

@@ -44,13 +44,6 @@ Environment variables::
     LOG_LEVEL	info	options [error, warn, info, debug ]
     ELASTICSEARCH_URL		example: http://elastic-host:elastic-port
 
-languagetool
-------------
-
-The service runs the erikvl87/languagetool docker image.
-
-REST-API endpoints / openapi.spec are exposed / included in fastapi service.
-
 dbt
 ---
 
@@ -58,17 +51,6 @@ Custom image based on stock python extended with the dbt data analytics framewor
 
 Optional services
 =================
-
-superset
---------
-
-One can optionally install a dashboard service to explore and visualize analytics results.
-
-Certain visualizations are already preconfigured. See Dashboard setup for further details.
-
-The service runs the latest Apache Superset docker image.
-
-Documentation services
 
 Sphinx
 ------

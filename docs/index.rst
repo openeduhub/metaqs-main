@@ -13,4 +13,3 @@ WLO - MetaQS
 .. include:: architecture.rst
 .. include:: setup.rst
 .. include:: analytics.rst
-.. include:: dashboard.rst

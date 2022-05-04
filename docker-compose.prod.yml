@@ -2,7 +2,6 @@ version: '3.9'
 
 volumes:
   pg-data:
-  superset-data:
 
 networks:
   backend:
@@ -135,28 +134,3 @@ services:
     expose:
       - 8580
     command: [ "dbt", "rpc" ]
-
-  languagetool:
-    container_name: metaqs-languagetool
-    image: erikvl87/languagetool
-    <<: *restart-policy
-    environment:
-      Java_Xms: 512m
-      Java_Xmx: 2g
-    networks: [ backend ]
-
-  superset:
-    container_name: metaqs-superset
-    build:
-      context: ./superset/
-      network: host
-    image: docker.edu-sharing.com/projects/oeh-redaktion/edusharing-projects-oeh-redaktion-metaqs-superset:latest
-    <<: *restart-policy
-    <<: *logging-config
-    depends_on:
-      - postgres
-    volumes:
-      - superset-data:/app/superset_home
-    networks: [ frontend, backend ]
-    expose:
-      - 8088
