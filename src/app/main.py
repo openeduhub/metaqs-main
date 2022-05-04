@@ -42,10 +42,6 @@ OPEN_API_VERSION = "2.1.0"
 fastapi_app = FastAPI(
     root_path=ROOT_PATH,
     title=f"{PROJECT_NAME} API",
-    description=f"""
-* [**Analytics API**]({ROOT_PATH}/analytics/docs)
-* [**LanguageTool API**]({ROOT_PATH}/languagetool/docs)
-    """,
     version=OPEN_API_VERSION,
     debug=DEBUG,
 )
@@ -74,9 +70,6 @@ fastapi_app.include_router(real_time_router, prefix="/real-time")
 if ENABLE_ANALYTICS:
     analytics_app = FastAPI(
         title=f"{PROJECT_NAME} Analytics API",
-        description=f"""* [**Real-Time API**]({ROOT_PATH}/docs)
-    * [**LanguageTool API**]({ROOT_PATH}/languagetool/docs)
-        """,
         version=OPEN_API_VERSION,
         debug=DEBUG,
     )
@@ -85,9 +78,6 @@ if ENABLE_ANALYTICS:
 
 languagetool_app = FastAPI(
     title=f"{PROJECT_NAME} LanguageTool API",
-    description=f"""* [**Real-Time API**]({ROOT_PATH}/docs)
-* [**Analytics API**]({ROOT_PATH}/analytics/docs)
-    """,
     debug=DEBUG,
     version=OPEN_API_VERSION,
 )
