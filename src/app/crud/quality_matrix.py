@@ -110,46 +110,53 @@ def api_ready_output(raw_input: dict) -> list[dict]:
 def aggregated_missing_fields(properties: list, sources: dict):
     print(sources)
 
-    s = add_base_match_filters(
-        Search().query(
-            qbool(
-                must=[
-                    qmatch(
-                        **{
-                            f"{PROPERTIES}.{REPLICATION_SOURCE_ID}": list(
-                                sources.keys()
-                            )[0]
-                        }
-                    ),
-                ]
+    output = {}
+    for replication_source, total_count in sources.items():
+        s = add_base_match_filters(
+            Search().query(
+                qbool(
+                    must=[
+                        qmatch(
+                            **{
+                                f"{PROPERTIES}.{REPLICATION_SOURCE_ID}": replication_source
+                            }
+                        ),
+                    ]
+                )
             )
         )
-    )
-    for keyword in properties:
-        print(keyword)
-        s.aggs.bucket(keyword, "missing", field=f"{PROPERTIES}.{keyword}.keyword")
+        for keyword in properties:
+            s.aggs.bucket(keyword, "missing", field=f"{PROPERTIES}.{keyword}.keyword")
 
-    response: Response = s.execute()
-    print(s.to_dict())
-    output = []
-    for key, value in response.aggregations.to_dict().items():
-        output.append({key: value["doc_count"]})
-    return output
+        response: Response = s.execute()
+        print(s.to_dict())
+        for key, value in response.aggregations.to_dict().items():
+
+            if key not in output.keys():
+                output |= {key: {replication_source: value["doc_count"]}}
+            else:
+                output[key] |= {replication_source: value["doc_count"]}
+    print(output)
+    list_output = []
+    for key, value in output.items():
+        value |= {"metadatum": key}
+        list_output.append(value)
+    return list_output
 
 
 async def quality_matrix() -> list[dict]:
     output = {}
 
     properties = get_properties()
-    aggregated_missing_fields(properties, all_sources())
-    output |= {PROPERTIES: properties, REPLICATION_SOURCE: []}
-    for replication_source, total_count in all_sources().items():
-        source_data = {TOTAL_COUNT: total_count}
-        output[REPLICATION_SOURCE].append(replication_source)
-        if total_count > 0:
-            for field in properties:
-                empty = get_empty_entries(field, replication_source)
-                source_data |= {f"{field}": round(1 - empty / total_count, 4) * 100.0}
-        output |= {replication_source: source_data}
-    logger.debug(f"Quality matrix output:\n{output}")
-    return api_ready_output(output)
+    return aggregated_missing_fields(properties, all_sources())
+    # output |= {PROPERTIES: properties, REPLICATION_SOURCE: []}
+    # for replication_source, total_count in all_sources().items():
+    #     source_data = {TOTAL_COUNT: total_count}
+    #     output[REPLICATION_SOURCE].append(replication_source)
+    #     if total_count > 0:
+    #         for field in properties:
+    #             empty = get_empty_entries(field, replication_source)
+    #             source_data |= {f"{field}": round(1 - empty / total_count, 4) * 100.0}
+    #     output |= {replication_source: source_data}
+    # logger.debug(f"Quality matrix output:\n{output}")
+    # return api_ready_output(output)
