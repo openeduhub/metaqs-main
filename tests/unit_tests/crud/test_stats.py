@@ -5,7 +5,7 @@ from elasticsearch_dsl.response import Response
 
 from app.crud.elastic import ResourceType
 from app.crud.stats import score, score_search
-from app.score import ScoreModulator, ScoreWeights, calc_scores, calc_weighted_score
+from app.score import ScoreWeights, calc_scores, calc_weighted_score
 
 
 def test_score_empty_hits():
@@ -199,16 +199,14 @@ def test_score_search_exception():
 
 def test_calc_scores_zero_total():
     stats = {"total": 0, "dummy_key": "dummy_value"}
-    modulator = ""
-    score = calc_scores(stats, modulator)
+    score = calc_scores(stats)
     stats |= {"dummy_key": 0}
     assert score == stats
 
 
 def test_calc_scores():
     stats = {"total": 10, "dummy_key": 1}
-    modulator = ScoreModulator.LINEAR
-    score = calc_scores(stats, modulator)
+    score = calc_scores(stats)
     stats = {"dummy_key": 0.9}
     assert score == stats
 

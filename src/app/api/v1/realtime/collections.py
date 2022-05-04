@@ -26,7 +26,7 @@ from app.models.collection import (
     CollectionMaterialsCount,
     PortalTreeNode,
 )
-from app.score import ScoreModulator, ScoreWeights, calc_scores, calc_weighted_score
+from app.score import calc_scores, calc_weighted_score
 
 router = APIRouter()
 
@@ -209,18 +209,6 @@ if ENABLE_COLLECTIONS_API:
         return stats
 
 
-def score_modulator_param(
-    *, score_modulator: Optional[ScoreModulator] = Query(None)
-) -> ScoreModulator:
-    return score_modulator
-
-
-def score_weights_param(
-    *, score_weights: Optional[ScoreWeights] = Query(None)
-) -> ScoreWeights:
-    return score_weights
-
-
 @router.get(
     "/collections/{noderef_id}/stats/score",
     response_model=ScoreOutput,
@@ -233,27 +221,21 @@ async def score(
     noderef_id: UUID = Depends(portal_id_param),
     response: Response,
 ):
-    score_modulator = ScoreModulator.LINEAR
-    score_weights = ScoreWeights.UNIFORM
-
     collection_stats = await crud_stats.run_stats_score(
         noderef_id=noderef_id, resource_type=ResourceType.COLLECTION
     )
 
-    collection_scores = calc_scores(
-        stats=collection_stats, score_modulator=score_modulator
-    )
+    collection_scores = calc_scores(stats=collection_stats)
 
     material_stats = await crud_stats.run_stats_score(
         noderef_id=noderef_id, resource_type=ResourceType.MATERIAL
     )
 
-    material_scores = calc_scores(stats=material_stats, score_modulator=score_modulator)
+    material_scores = calc_scores(stats=material_stats)
 
     score_ = calc_weighted_score(
         collection_scores=collection_scores,
         material_scores=material_scores,
-        score_weights=score_weights,
     )
 
     response.headers["X-Query-Count"] = str(len(context.get("elastic_queries", [])))
