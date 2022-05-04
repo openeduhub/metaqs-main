@@ -5,7 +5,7 @@ from elasticsearch_dsl.response import Response
 
 from app.crud.elastic import ResourceType
 from app.crud.stats import score, score_search
-from app.score import ScoreWeights, calc_scores, calc_weighted_score
+from app.score import calc_scores, calc_weighted_score
 
 
 def test_score_empty_hits():
@@ -212,20 +212,16 @@ def test_calc_scores():
 
 
 def test_calc_weighted_score_dummy_values():
-    score_value = calc_weighted_score({"missing_title": 0.9}, {}, ScoreWeights.UNIFORM)
+    score_value = calc_weighted_score({"missing_title": 0.9}, {})
     assert score_value == 90
-    score_value = calc_weighted_score({}, {"missing_title": 0.9}, ScoreWeights.UNIFORM)
+    score_value = calc_weighted_score({}, {"missing_title": 0.9})
     assert score_value == 90
-    score_value = calc_weighted_score(
-        {"missing_title": 0.9}, {"missing_title": 0.9}, ScoreWeights.UNIFORM
-    )
+    score_value = calc_weighted_score({"missing_title": 0.9}, {"missing_title": 0.9})
     assert score_value == 90
-    score_value = calc_weighted_score(
-        {"missing_title": 0.9}, {"missing_title": 0.8}, ScoreWeights.UNIFORM
-    )
+    score_value = calc_weighted_score({"missing_title": 0.9}, {"missing_title": 0.8})
     assert score_value == 85
 
 
 def test_calc_weighted_score_empty_responses():
     with pytest.raises(ZeroDivisionError):
-        calc_weighted_score({}, {}, ScoreWeights.UNIFORM)
+        calc_weighted_score({}, {})

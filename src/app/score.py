@@ -27,5 +27,8 @@ def calc_weighted_score(collection_scores: dict, material_scores: dict) -> int:
     ) + sum(
         v for k, v in material_scores.items() if k in material_terms_relevant_for_score
     )
+    number_of_relevant_terms = sum(
+        1 for k in collection_scores.keys() if k in collections_terms_relevant_for_score
+    ) + sum(1 for k in material_scores.keys() if k in material_terms_relevant_for_score)
 
-    return int((100 * score_sum))
+    return int((100 * score_sum) / number_of_relevant_terms)
