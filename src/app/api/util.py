@@ -18,11 +18,11 @@ from app.models.collection import CollectionAttribute
 from app.models.learning_material import LearningMaterialAttribute
 
 
-def portal_id_param(
+def collection_id_param(
     *,
-    noderef_id: UUID = Path(..., examples=crud_collection.PORTALS),
+    collection_id: UUID = Path(..., examples=crud_collection.COLLECTIONS),
 ) -> UUID:
-    return noderef_id
+    return collection_id
 
 
 def portal_id_with_root_param(
@@ -31,7 +31,7 @@ def portal_id_with_root_param(
         ...,
         examples={
             "Alle Fachportale": {"value": PORTAL_ROOT_ID},
-            **crud_collection.PORTALS,
+            **crud_collection.COLLECTIONS,
         },
     ),
 ) -> UUID:

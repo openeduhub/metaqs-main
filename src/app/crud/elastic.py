@@ -212,6 +212,20 @@ def agg_material_types_by_collection(size: int = ELASTIC_MAX_SIZE) -> Agg:
     )
 
 
+# TODO: Refactor, by reworking aggs_XYZ_validation objects
+def field_names_used_for_score_calculation(properties: dict) -> list[str]:
+    values = []
+    for value in properties.values():
+        value = list(list(value.to_dict().values())[0].values())[0]
+        if isinstance(value, dict):
+            value = list(value.keys())[0]
+
+        value.replace(".keyword", "")
+        if value != "should":
+            values += [value]
+    return values
+
+
 aggs_collection_validation = {
     "missing_title": amissing(qfield=CollectionAttribute.TITLE),
     "short_title": afilter(Q("range", char_count_title={"gt": 0, "lt": 5})),

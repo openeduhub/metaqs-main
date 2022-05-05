@@ -7,7 +7,7 @@ from asyncpg import Pool
 from fastapi import APIRouter, Depends
 from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 
-from app.api.util import portal_id_param
+from app.api.util import collection_id_param
 from app.crud.util import StatsNotFoundException, build_portal_tree
 from app.models.collection import Collection, PortalTreeNode
 from app.models.oeh_validation import MaterialFieldValidation, OehValidationError
@@ -33,7 +33,7 @@ router = APIRouter()
 )
 async def read_stats(
     *,
-    noderef_id: UUID = Depends(portal_id_param),
+    noderef_id: UUID = Depends(collection_id_param),
     pool: Pool = Depends(get_postgres_async),
 ):
     async with pool.acquire() as conn:
@@ -75,7 +75,7 @@ async def read_stats(
 )
 async def read_stats_validation(
     *,
-    noderef_id: UUID = Depends(portal_id_param),
+    noderef_id: UUID = Depends(collection_id_param),
     pool: Pool = Depends(get_postgres_async),
 ):
     async with pool.acquire() as conn:
@@ -112,7 +112,7 @@ async def read_stats_validation(
 )
 async def read_stats_validation_collection(
     *,
-    noderef_id: UUID = Depends(portal_id_param),
+    noderef_id: UUID = Depends(collection_id_param),
     pool: Pool = Depends(get_postgres_async),
 ):
     async with pool.acquire() as conn:
@@ -148,7 +148,7 @@ async def read_stats_validation_collection(
 )
 async def read_stats_portal_tree(
     *,
-    noderef_id: UUID = Depends(portal_id_param),
+    noderef_id: UUID = Depends(collection_id_param),
     pool: Pool = Depends(get_postgres_async),
 ):
     async with pool.acquire() as conn:

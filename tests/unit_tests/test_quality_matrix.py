@@ -6,19 +6,20 @@ from elasticsearch_dsl.response import Hit, Response
 
 from app.crud.quality_matrix import (
     add_base_match_filters,
+    all_missing_properties,
     all_sources,
     create_empty_entries_search,
-    create_non_empty_entries_search,
     create_properties_search,
     create_sources_search,
-    get_empty_entries,
+    missing_fields,
+    missing_fields_ratio,
     quality_matrix,
 )
 from app.elastic import Search
 
 
 @pytest.mark.asyncio
-async def test_get_quality_matrix_no_sources():
+async def test_get_quality_matrix_no_sources_no_properties():
     with mock.patch("app.crud.quality_matrix.all_sources") as mocked_get_sourced:
         with mock.patch(
             "app.crud.quality_matrix.get_properties"
@@ -29,63 +30,77 @@ async def test_get_quality_matrix_no_sources():
 
 
 @pytest.mark.asyncio
-async def test_get_quality_matrix_no_properties():
+async def test_get_quality_matrix_no_sources():
     with mock.patch("app.crud.quality_matrix.all_sources") as mocked_get_sourced:
         with mock.patch(
             "app.crud.quality_matrix.get_properties"
         ) as mocked_get_properties:
-            mocked_get_sourced.return_value = {"dummy_source": 10}
-            mocked_get_properties.return_value = []
-            assert await quality_matrix() == []
+            mocked_get_properties.return_value = ["dummy_properties"]
+            mocked_get_sourced.return_value = {}
+            assert await quality_matrix() == [{"metadatum": "dummy_properties"}]
+
+
+@pytest.mark.asyncio
+async def test_get_quality_matrix():
+    with mock.patch("app.crud.quality_matrix.all_sources") as mocked_get_sourced:
+        with mock.patch(
+            "app.crud.quality_matrix.get_properties"
+        ) as mocked_get_properties:
+            with mock.patch(
+                "app.crud.quality_matrix.all_missing_properties"
+            ) as mocked_all_missing_properties:
+                mocked_get_properties.return_value = ["dummy_properties"]
+                mocked_get_sourced.return_value = {"dummy_source": 10}
+                mocked_response = MagicMock()
+                mocked_response.aggregations.to_dict.return_value = {}
+                mocked_all_missing_properties.return_value = mocked_response
+                assert await quality_matrix() == [{"metadatum": "dummy_properties"}]
+
+                mocked_response.aggregations.to_dict.return_value = {
+                    "dummy_properties": {"doc_count": 5}
+                }
+                mocked_all_missing_properties.return_value = mocked_response
+                assert await quality_matrix() == [
+                    {
+                        "metadatum": "dummy_properties",
+                        "dummy_source": 50.0,
+                    }
+                ]
 
 
 def test_get_empty_entries_dummy_entries():
-    with mock.patch("app.crud.quality_matrix.Search.count") as mocked_count:
-        dummy_count = 3
-        mocked_count.return_value = dummy_count
-        assert get_empty_entries("dummy_property", source="dummy_source") == dummy_count
+    with mock.patch("app.crud.quality_matrix.Search.execute") as mocked_execute:
+        dummy_response = 3
+        mocked_execute.return_value = dummy_response
+        assert (
+            all_missing_properties(
+                ["dummy_property"], replication_source="dummy_source"
+            )
+            == dummy_response
+        )
 
 
 def test_create_empty_entries_search():
     expected_query = {
+        "_source": {"includes": ["aggregations"]},
+        "aggs": {
+            "dummy_property": {
+                "missing": {"field": "properties.dummy_property.keyword"}
+            }
+        },
         "query": {
             "bool": {
                 "must": [
                     {"match": {"properties.ccm:replicationsource": "dummy_source"}},
-                    {"match": {"properties.dummy_property": ""}},
                     {"match": {"permissions.Read": "GROUP_EVERYONE"}},
                     {"match": {"properties.cm:edu_metadataset": "mds_oeh"}},
                     {"match": {"nodeRef.storeRef.protocol": "workspace"}},
                 ]
             }
-        }
+        },
     }
     assert (
-        create_empty_entries_search("dummy_property", "dummy_source").to_dict()
-        == expected_query
-    )
-
-
-def test_create_non_empty_entries_search():
-    expected_query = {
-        "query": {
-            "bool": {
-                "must": [
-                    {
-                        "match": {
-                            "properties.ccm:replicationsource": "dummy_source",
-                        },
-                    },
-                    {"match": {"permissions.Read": "GROUP_EVERYONE"}},
-                    {"match": {"properties.cm:edu_metadataset": "mds_oeh"}},
-                    {"match": {"nodeRef.storeRef.protocol": "workspace"}},
-                ],
-                "must_not": [{"match": {"properties.dummy_property": ""}}],
-            }
-        }
-    }
-    assert (
-        create_non_empty_entries_search("dummy_property", "dummy_source").to_dict()
+        create_empty_entries_search(["dummy_property"], "dummy_source").to_dict()
         == expected_query
     )
 
@@ -153,3 +168,22 @@ def test_add_base_match_filters():
     }
 
     assert add_base_match_filters(Search()).to_dict() == excpectation
+
+
+def test_missing_fields_zero_division_error():
+    with pytest.raises(ZeroDivisionError):
+        missing_fields({"doc_count": 0}, 0, "dummy_source")
+
+
+def test_missing_fields():
+    response = missing_fields({"doc_count": 0}, 10, "dummy_source")
+    assert response == {"dummy_source": 100.0}
+    response = missing_fields({"doc_count": 5}, 10, "dummy_source")
+    assert response == {"dummy_source": 50.0}
+
+
+def test_missing_fields_ratio():
+    response = missing_fields_ratio({"doc_count": 0}, 10)
+    assert response == 100
+    response = missing_fields_ratio({"doc_count": 5}, 10)
+    assert response == 50
