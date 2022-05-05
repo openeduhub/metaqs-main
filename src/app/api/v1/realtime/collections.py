@@ -37,6 +37,10 @@ router = APIRouter()
     response_model=List[ColumnOutput],
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=["Statistics"],
+    description="""Calculation of the quality matrix.
+    For each replication source and each property, e.g., `cm:creator`, the quality matrix returns the ratio of
+    elements which miss this entry compared to the total number of entries.
+    A missing entry may be `cm:creator = null`.""",
 )
 async def get_quality_matrix():
     return await quality_matrix()
@@ -215,6 +219,12 @@ if ENABLE_COLLECTIONS_API:
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=["Statistics"],
+    description="""Returns the average ratio of non-empty properties.
+    For certain properties, e.g. `properties.cclom:title`, the ratio of
+    elements which miss this entry compared to the total number of entries is calculated.
+    A missing entry may be `properties.cclom:title = null`. Not all properties are considered here.
+    The overall score is the average of all these ratios.
+    """,
 )
 async def score(
     *,
