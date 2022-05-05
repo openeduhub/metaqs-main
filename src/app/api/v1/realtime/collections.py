@@ -16,7 +16,12 @@ from app.api.util import (
 )
 from app.core.config import ENABLE_COLLECTIONS_API
 from app.crud import MissingCollectionAttributeFilter
-from app.crud.elastic import ResourceType
+from app.crud.elastic import (
+    ResourceType,
+    aggs_collection_validation,
+    aggs_material_validation,
+    field_names_used_for_score_calculation,
+)
 from app.crud.quality_matrix import all_sources, quality_matrix
 from app.crud.util import build_portal_tree
 from app.models.base import ColumnOutput, ScoreOutput
@@ -219,11 +224,14 @@ if ENABLE_COLLECTIONS_API:
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=["Statistics"],
-    description="""Returns the average ratio of non-empty properties for the chosen collection.
+    description=f"""Returns the average ratio of non-empty properties for the chosen collection.
     For certain properties, e.g. `properties.cclom:title`, the ratio of
     elements which miss this entry compared to the total number of entries is calculated.
     A missing entry may be `properties.cclom:title = null`. Not all properties are considered here.
     The overall score is the average of all these ratios.
+    The queried properties are:
+    `{field_names_used_for_score_calculation(aggs_collection_validation)
+      + field_names_used_for_score_calculation(aggs_material_validation)}`
     """,
 )
 async def score(
