@@ -1,3 +1,5 @@
+from typing import Union
+
 from elasticsearch_dsl import AttrDict
 from elasticsearch_dsl.response import Response
 
@@ -7,6 +9,7 @@ from app.crud.elastic import base_match_filter
 from app.elastic import Search, qbool, qmatch
 
 PROPERTY_TYPE = list[str]
+QUALITY_MATRIX_RETURN_TYPE = list[dict[str, Union[str, float]]]
 
 
 def add_base_match_filters(search: Search) -> Search:
@@ -87,19 +90,21 @@ def join_data(data, key):
     return data
 
 
-def api_ready_output(raw_input: dict) -> list[dict]:
+def api_ready_output(raw_input: dict) -> QUALITY_MATRIX_RETURN_TYPE:
     return [join_data(data, key) for key, data in raw_input.items()]
 
 
-def missing_fields_ratio(value: dict, total_count: int):
+def missing_fields_ratio(value: dict, total_count: int) -> float:
     return round((1 - value["doc_count"] / total_count) * 100, 2)
 
 
-def missing_fields(value: dict, total_count: int, replication_source: str) -> dict:
+def missing_fields(
+    value: dict, total_count: int, replication_source: str
+) -> dict[str, float]:
     return {replication_source: missing_fields_ratio(value, total_count)}
 
 
-async def quality_matrix() -> list[dict]:
+async def quality_matrix() -> QUALITY_MATRIX_RETURN_TYPE:
     properties = get_properties()
     output = {k: {} for k in properties}
     for replication_source, total_count in all_sources().items():

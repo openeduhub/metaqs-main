@@ -23,7 +23,7 @@ from .elastic import (
 from .learning_material import MissingAttributeFilter as MissingMaterialAttributeFilter
 from .learning_material import get_many as get_many_materials
 
-PORTALS = {
+COLLECTIONS = {
     # "Physik": {"value": "unknown"},
     "Mathematik": {"value": "bd8be6d5-0fbe-4534-a4b3-773154ba6abc"},
     "Biologie": {"value": "15fce411-54d9-467f-8f35-61ea374a298d"},

@@ -8,10 +8,10 @@ from starlette_context import context
 import app.crud.collection as crud_collection
 import app.crud.stats as crud_stats
 from app.api.util import (
+    collection_id_param,
     collection_response_fields,
     collections_filter_params,
     filter_response_fields,
-    portal_id_param,
     portal_id_with_root_param,
 )
 from app.core.config import ENABLE_COLLECTIONS_API
@@ -140,7 +140,7 @@ if ENABLE_COLLECTIONS_API:
     )
     async def material_counts_by_type(
         *,
-        noderef_id: UUID = Depends(portal_id_param),
+        noderef_id: UUID = Depends(collection_id_param),
         response: Response,
     ):
         material_counts = await crud_stats.material_counts_by_type(
@@ -214,12 +214,12 @@ if ENABLE_COLLECTIONS_API:
 
 
 @router.get(
-    "/collections/{noderef_id}/stats/score",
+    "/collections/{collection_id}/stats/score",
     response_model=ScoreOutput,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=["Statistics"],
-    description="""Returns the average ratio of non-empty properties.
+    description="""Returns the average ratio of non-empty properties for the chosen collection.
     For certain properties, e.g. `properties.cclom:title`, the ratio of
     elements which miss this entry compared to the total number of entries is calculated.
     A missing entry may be `properties.cclom:title = null`. Not all properties are considered here.
@@ -228,17 +228,17 @@ if ENABLE_COLLECTIONS_API:
 )
 async def score(
     *,
-    noderef_id: UUID = Depends(portal_id_param),
+    collection_id: UUID = Depends(collection_id_param),
     response: Response,
 ):
     collection_stats = await crud_stats.query_score(
-        noderef_id=noderef_id, resource_type=ResourceType.COLLECTION
+        noderef_id=collection_id, resource_type=ResourceType.COLLECTION
     )
 
     collection_scores = calc_scores(stats=collection_stats)
 
     material_stats = await crud_stats.query_score(
-        noderef_id=noderef_id, resource_type=ResourceType.MATERIAL
+        noderef_id=collection_id, resource_type=ResourceType.MATERIAL
     )
 
     material_scores = calc_scores(stats=material_stats)
