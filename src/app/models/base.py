@@ -70,6 +70,63 @@ class ColumnOutput(BaseModel):
         default=0, description=PERCENTAGE_DESCRIPTOR
     )
     zum_spider: Optional[float] = Field(default=0, description=PERCENTAGE_DESCRIPTOR)
+    leifi_spider: Optional[float] = Field(default=0, description=PERCENTAGE_DESCRIPTOR)
+    learning_apps_spider: Optional[float] = Field(
+        default=0, description=PERCENTAGE_DESCRIPTOR
+    )
+    memucho_spider: Optional[float] = Field(
+        default=0, description=PERCENTAGE_DESCRIPTOR
+    )
+    rlp_spider: Optional[float] = Field(default=0, description=PERCENTAGE_DESCRIPTOR)
+    digitallearninglab_spider: Optional[float] = Field(
+        default=0, description=PERCENTAGE_DESCRIPTOR
+    )
+    planet_schule_spider: Optional[float] = Field(
+        default=0, description=PERCENTAGE_DESCRIPTOR
+    )
+    niedersachsen_abi_spider: Optional[float] = Field(
+        default=0, description=PERCENTAGE_DESCRIPTOR
+    )
+    umwelt_im_unterricht_spider: Optional[float] = Field(
+        default=0, description=PERCENTAGE_DESCRIPTOR
+    )
+    fobizz_spider: Optional[float] = Field(default=0, description=PERCENTAGE_DESCRIPTOR)
+    zum_deutschlernen_spider: Optional[float] = Field(
+        default=0, description=PERCENTAGE_DESCRIPTOR
+    )
+    segu_spider: Optional[float] = Field(default=0, description=PERCENTAGE_DESCRIPTOR)
+    wirlernenonline_spider: Optional[float] = Field(
+        default=0, description=PERCENTAGE_DESCRIPTOR
+    )
+    zum_dwu_spider: Optional[float] = Field(
+        default=0, description=PERCENTAGE_DESCRIPTOR
+    )
+    kmap_spider: Optional[float] = Field(default=0, description=PERCENTAGE_DESCRIPTOR)
+    chemie_lernprogramme_spider: Optional[float] = Field(
+        default=0, description=PERCENTAGE_DESCRIPTOR
+    )
+    schule_im_aufbruch_spider: Optional[float] = Field(
+        default=0, description=PERCENTAGE_DESCRIPTOR
+    )
+    ginkgomaps_spider: Optional[float] = Field(
+        default=0, description=PERCENTAGE_DESCRIPTOR
+    )
+    zdf_rss_spider: Optional[float] = Field(
+        default=0, description=PERCENTAGE_DESCRIPTOR
+    )
+    kindoergarten_spider: Optional[float] = Field(
+        default=0, description=PERCENTAGE_DESCRIPTOR
+    )
+    ddb: Optional[float] = Field(default=0, description=PERCENTAGE_DESCRIPTOR)
+    irights_spider: Optional[float] = Field(
+        default=0, description=PERCENTAGE_DESCRIPTOR
+    )
+    quizdidaktik_spider: Optional[float] = Field(
+        default=0, description=PERCENTAGE_DESCRIPTOR
+    )
+    biologie_lernprogramme_spider: Optional[float] = Field(
+        default=0, description=PERCENTAGE_DESCRIPTOR
+    )
 
 
 class MissingCollectionProperties(BaseModel):
