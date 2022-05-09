@@ -3,7 +3,7 @@ import os
 from databases import DatabaseURL
 from starlette.datastructures import CommaSeparatedStrings
 
-RUNNING_WITHOUT_ELASTICSEARCH = "PYTEST_CURRENT_TEST" in os.environ
+RUNNING_WITH_ELASTICSEARCH = "PYTEST_RUN_CONFIG" not in os.environ.keys()
 
 
 ROOT_PATH = os.getenv("ROOT_PATH", "")

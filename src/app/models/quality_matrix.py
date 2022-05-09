@@ -2,7 +2,7 @@ import asyncio
 
 from pydantic import Field, create_model
 
-from app.core.config import RUNNING_WITHOUT_ELASTICSEARCH
+from app.core.config import RUNNING_WITH_ELASTICSEARCH
 from app.core.constants import PERCENTAGE_DESCRIPTOR
 from app.crud.replication_sources import all_sources
 from app.elastic.utils import close_elastic_connection, connect_to_elastic
@@ -16,7 +16,7 @@ def sources_transformed_to_field_list(sources: dict) -> dict[str, Field]:
 
 
 def all_sources_for_open_api() -> dict[str:float]:
-    if RUNNING_WITHOUT_ELASTICSEARCH:
+    if RUNNING_WITH_ELASTICSEARCH:
         asyncio.run(connect_to_elastic())
         sources = sources_transformed_to_field_list(all_sources())
         asyncio.run(close_elastic_connection())
