@@ -119,7 +119,10 @@ def test_create_sources_search():
         },
         "aggs": {
             aggregation_name: {
-                "terms": {"field": "properties.ccm:replicationsource.keyword"}
+                "terms": {
+                    "field": "properties.ccm:replicationsource.keyword",
+                    "size": 1_000_000,
+                }
             }
         },
     }
