@@ -4,7 +4,11 @@ from elasticsearch_dsl import connections
 from elasticsearch_dsl.response import AggResponse
 from glom import merge
 
-from app.core.config import ELASTICSEARCH_TIMEOUT, ELASTICSEARCH_URL
+from app.core.config import (
+    ELASTICSEARCH_CONNECTION_ALIAS,
+    ELASTICSEARCH_TIMEOUT,
+    ELASTICSEARCH_URL,
+)
 from app.core.logging import logger
 
 from .fields import Field, FieldType
@@ -14,12 +18,14 @@ async def connect_to_elastic():
     logger.debug(f"Attempt to open connection: {ELASTICSEARCH_URL}")
 
     connections.create_connection(
-        hosts=[ELASTICSEARCH_URL], timeout=ELASTICSEARCH_TIMEOUT
+        hosts=[ELASTICSEARCH_URL],
+        timeout=ELASTICSEARCH_TIMEOUT,
+        alias=ELASTICSEARCH_CONNECTION_ALIAS,
     )
 
 
 async def close_elastic_connection():
-    pass
+    connections.remove_connection(alias=ELASTICSEARCH_CONNECTION_ALIAS)
 
 
 def handle_text_field(qfield: Union[Field, str]) -> str:

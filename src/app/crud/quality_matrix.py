@@ -3,49 +3,14 @@ from typing import Union
 from elasticsearch_dsl import AttrDict
 from elasticsearch_dsl.response import Response
 
-from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import PROPERTIES, REPLICATION_SOURCE_ID
 from app.core.logging import logger
-from app.crud.elastic import base_match_filter
+from app.crud.elastic import add_base_match_filters
+from app.crud.replication_sources import all_sources
 from app.elastic import Search, qbool, qmatch
 
 PROPERTY_TYPE = list[str]
 QUALITY_MATRIX_RETURN_TYPE = list[dict[str, Union[str, float]]]
-
-
-def add_base_match_filters(search: Search) -> Search:
-    for entry in base_match_filter:
-        search = search.query(entry)
-    return search
-
-
-def create_sources_search(aggregation_name: str):
-    s = add_base_match_filters(Search())
-    s.aggs.bucket(
-        aggregation_name,
-        "terms",
-        field=f"{PROPERTIES}.{REPLICATION_SOURCE_ID}.keyword",
-        size=ELASTIC_TOTAL_SIZE,
-    )
-    return s
-
-
-def extract_sources_from_response(
-    response: Response, aggregation_name: str
-) -> dict[str:int]:
-    return {
-        entry["key"]: entry["doc_count"]
-        for entry in response.aggregations.to_dict()[aggregation_name]["buckets"]
-    }
-
-
-def all_sources() -> dict[str:int]:
-    aggregation_name = "unique_sources"
-    s = create_sources_search(aggregation_name)
-    response: Response = s.execute()
-    return extract_sources_from_response(
-        response=response, aggregation_name=aggregation_name
-    )
 
 
 def extract_properties(hits: list[AttrDict]) -> PROPERTY_TYPE:
