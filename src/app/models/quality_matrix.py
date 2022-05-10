@@ -1,36 +1,13 @@
-import asyncio
+from pydantic import Field
 
-from pydantic import Field, create_model
-
-from app.core.config import RUNNING_WITH_ELASTICSEARCH
-from app.core.constants import PERCENTAGE_DESCRIPTOR
-from app.crud.replication_sources import all_sources
-from app.elastic.utils import close_elastic_connection, connect_to_elastic
 from app.models.base import BaseModel
 
 
-def sources_transformed_to_field_list(sources: dict) -> dict[str, Field]:
-    return {
-        k: Field(default=0, description=PERCENTAGE_DESCRIPTOR) for k in sources.keys()
-    }
-
-
-def all_sources_for_open_api() -> dict[str:float]:
-    if RUNNING_WITH_ELASTICSEARCH:
-        asyncio.run(connect_to_elastic())
-        sources = sources_transformed_to_field_list(all_sources())
-        asyncio.run(close_elastic_connection())
-    else:
-        sources = {}
-    return sources
-
-
-ColumnOutputModel = create_model(
-    "ColumnOutputModel",
-    metadatum=Field(default="", description="Name of the evaluated metadatum."),
-    **all_sources_for_open_api(),
-    __base__=BaseModel,
-)
+class ColumnOutputModel(BaseModel):
+    metadatum: str = Field(default="", description="Name of the evaluated metadatum.")
+    columns: dict[str, float] = Field(
+        description="The ratio of quality for the required columns."
+    )
 
 
 class MissingCollectionProperties(BaseModel):

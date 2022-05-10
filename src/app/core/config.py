@@ -3,9 +3,6 @@ import os
 from databases import DatabaseURL
 from starlette.datastructures import CommaSeparatedStrings
 
-RUNNING_WITH_ELASTICSEARCH = "PYTEST_RUN_CONFIG" not in os.environ.keys()
-
-
 ROOT_PATH = os.getenv("ROOT_PATH", "")
 API_KEY = os.getenv("API_KEY")
 API_KEY_NAME = "X-API-KEY"
