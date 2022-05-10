@@ -91,7 +91,6 @@ services:
     <<: *logging-config
     depends_on:
       - postgres
-      - dbt
     environment:
       <<: *postgres-vars
       POSTGRES_HOST: postgres
