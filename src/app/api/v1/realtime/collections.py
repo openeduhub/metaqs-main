@@ -46,7 +46,9 @@ router = APIRouter()
     description="""Calculation of the quality matrix.
     For each replication source and each property, e.g., `cm:creator`, the quality matrix returns the ratio of
     elements which miss this entry compared to the total number of entries.
-    A missing entry may be `cm:creator = null`.""",
+    A missing entry may be `cm:creator = null`.
+    Entries are grouped in columns and can be accessed key-wise.
+    """,
 )
 async def get_quality_matrix():
     return await quality_matrix()
