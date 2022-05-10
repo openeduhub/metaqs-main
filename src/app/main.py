@@ -11,7 +11,6 @@ from app.core.config import ALLOWED_HOSTS, DEBUG, LOG_LEVEL, PROJECT_NAME, ROOT_
 from app.core.errors import http_422_error_handler, http_error_handler
 from app.core.logging import logger
 from app.elastic.utils import close_elastic_connection, connect_to_elastic
-from app.http_client import close_client
 
 API_PORT = 8081
 
@@ -55,8 +54,6 @@ fastapi_app.add_event_handler("shutdown", close_elastic_connection)
 
 fastapi_app.add_exception_handler(HTTPException, http_error_handler)
 fastapi_app.add_exception_handler(HTTP_422_UNPROCESSABLE_ENTITY, http_422_error_handler)
-
-fastapi_app.add_event_handler("shutdown", close_client)
 
 app = CORSMiddleware(
     app=fastapi_app,

@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 from elasticsearch_dsl.response import Hit, Response
 
-from app.crud.quality_matrix import (
+from app.api.quality_matrix.quality_matrix import (
     add_base_match_filters,
     all_missing_properties,
     all_sources,
@@ -20,9 +20,11 @@ from app.elastic import Search
 
 @pytest.mark.asyncio
 async def test_get_quality_matrix_no_sources_no_properties():
-    with mock.patch("app.crud.quality_matrix.all_sources") as mocked_get_sourced:
+    with mock.patch(
+        "app.api.quality_matrix.quality_matrix.all_sources"
+    ) as mocked_get_sourced:
         with mock.patch(
-            "app.crud.quality_matrix.get_properties"
+            "app.api.quality_matrix.quality_matrix.get_properties"
         ) as mocked_get_properties:
             mocked_get_properties.return_value = []
             mocked_get_sourced.return_value = {}
@@ -31,9 +33,11 @@ async def test_get_quality_matrix_no_sources_no_properties():
 
 @pytest.mark.asyncio
 async def test_get_quality_matrix_no_sources():
-    with mock.patch("app.crud.quality_matrix.all_sources") as mocked_get_sourced:
+    with mock.patch(
+        "app.api.quality_matrix.quality_matrix.all_sources"
+    ) as mocked_get_sourced:
         with mock.patch(
-            "app.crud.quality_matrix.get_properties"
+            "app.api.quality_matrix.quality_matrix.get_properties"
         ) as mocked_get_properties:
             mocked_get_properties.return_value = ["dummy_properties"]
             mocked_get_sourced.return_value = {}
@@ -42,12 +46,14 @@ async def test_get_quality_matrix_no_sources():
 
 @pytest.mark.asyncio
 async def test_get_quality_matrix():
-    with mock.patch("app.crud.quality_matrix.all_sources") as mocked_get_sourced:
+    with mock.patch(
+        "app.api.quality_matrix.quality_matrix.all_sources"
+    ) as mocked_get_sourced:
         with mock.patch(
-            "app.crud.quality_matrix.get_properties"
+            "app.api.quality_matrix.quality_matrix.get_properties"
         ) as mocked_get_properties:
             with mock.patch(
-                "app.crud.quality_matrix.all_missing_properties"
+                "app.api.quality_matrix.quality_matrix.all_missing_properties"
             ) as mocked_all_missing_properties:
                 mocked_get_properties.return_value = ["dummy_properties"]
                 mocked_get_sourced.return_value = {"dummy_source": 10}
@@ -69,7 +75,9 @@ async def test_get_quality_matrix():
 
 
 def test_get_empty_entries_dummy_entries():
-    with mock.patch("app.crud.quality_matrix.Search.execute") as mocked_execute:
+    with mock.patch(
+        "app.api.quality_matrix.quality_matrix.Search.execute"
+    ) as mocked_execute:
         dummy_response = 3
         mocked_execute.return_value = dummy_response
         assert (
@@ -128,7 +136,9 @@ def test_create_sources_search():
 
 @pytest.mark.skip(reason="Cannot mock Hit properly,yet. TODO")
 def test_sources():
-    with mock.patch("app.crud.quality_matrix.Search.execute") as mocked_execute:
+    with mock.patch(
+        "app.api.quality_matrix.quality_matrix.Search.execute"
+    ) as mocked_execute:
         dummy_count = {"aggregations": {"unique_sources": {"buckets": []}}}
         dummy_hit = Hit({"_source": MagicMock()})
         response = Response(

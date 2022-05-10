@@ -3,9 +3,8 @@ from unittest.mock import MagicMock
 import pytest
 from elasticsearch_dsl.response import Response
 
-from app.api.score.score import calc_scores, calc_weighted_score
+from app.api.score.score import calc_scores, calc_weighted_score, score, score_search
 from app.crud.elastic import ResourceType
-from app.crud.stats import score, score_search
 
 
 def test_score_empty_hits():

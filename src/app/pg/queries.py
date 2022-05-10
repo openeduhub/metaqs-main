@@ -1,3 +1,4 @@
+from enum import Enum
 from pprint import pformat
 from typing import Dict, List
 from uuid import UUID
@@ -6,7 +7,14 @@ from asyncpg import Connection
 
 from app.core.config import DEBUG
 from app.core.logging import logger
-from app.models.stats import StatType
+
+
+class StatType(str, Enum):
+    PORTAL_TREE = "portal-tree"
+    SEARCH = "search"
+    MATERIAL_TYPES = "material-types"
+    VALIDATION_COLLECTIONS = "validation-collections"
+    VALIDATION_MATERIALS = "validation-materials"
 
 
 async def stats_latest(

@@ -6,16 +6,16 @@ from starlette.responses import Response
 from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 from starlette_context import context
 
+import app.api.score.score
+from app.api.quality_matrix.quality_matrix import quality_matrix
 from app.api.score.score import calc_scores, calc_weighted_score
 from app.api.util import collection_id_param
-from app.crud import stats as crud_stats
 from app.crud.elastic import (
     ResourceType,
     aggs_collection_validation,
     aggs_material_validation,
     field_names_used_for_score_calculation,
 )
-from app.crud.quality_matrix import quality_matrix
 from app.models.base import ColumnOutput, ScoreOutput
 
 router = APIRouter()
@@ -57,13 +57,13 @@ async def score(
     collection_id: UUID = Depends(collection_id_param),
     response: Response,
 ):
-    collection_stats = await crud_stats.query_score(
+    collection_stats = await app.api.score.score.query_score(
         noderef_id=collection_id, resource_type=ResourceType.COLLECTION
     )
 
     collection_scores = calc_scores(stats=collection_stats)
 
-    material_stats = await crud_stats.query_score(
+    material_stats = await app.api.score.score.query_score(
         noderef_id=collection_id, resource_type=ResourceType.MATERIAL
     )
 
