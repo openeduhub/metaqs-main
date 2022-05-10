@@ -23,7 +23,7 @@ CollectionAttribute = ElasticField(
 )
 
 
-class _LearningMaterialAttribute(Field):
+class _LearningMaterialAttribute(ElasticField):
     TITLE = ("properties.cclom:title", FieldType.TEXT)
     SUBJECTS = ("properties.ccm:taxonid", FieldType.TEXT)
     SUBJECTS_DE = ("i18n.de_DE.ccm:taxonid", FieldType.TEXT)
@@ -49,7 +49,7 @@ class _LearningMaterialAttribute(Field):
     OBJECT_TYPE = ("properties.ccm:objecttype", FieldType.TEXT)
 
 
-LearningMaterialAttribute = Field(
+LearningMaterialAttribute = ElasticField(
     "LearningMaterialAttribute",
     [
         (f.name, (f.value, f.field_type))

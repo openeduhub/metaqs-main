@@ -11,11 +11,24 @@ from app.api.quality_matrix.quality_matrix import (
     create_empty_entries_search,
     create_properties_search,
     create_sources_search,
+    get_properties,
     missing_fields,
     missing_fields_ratio,
     quality_matrix,
 )
+from app.core.config import ELASTICSEARCH_URL
 from app.elastic.search import Search
+from app.elastic.utils import connect_to_elastic
+
+
+@pytest.mark.asyncio
+@pytest.mark.skipif(
+    condition=ELASTICSEARCH_URL is None, reason="No connection to Elasticsearch"
+)
+async def test_get_properties():
+    await connect_to_elastic()
+    data = get_properties()
+    assert "cm:author" in data
 
 
 @pytest.mark.asyncio
