@@ -5,7 +5,7 @@ from elasticsearch_dsl.response import Response
 
 from app.core.constants import PROPERTIES, REPLICATION_SOURCE_ID
 from app.core.logging import logger
-from app.crud.elastic import add_base_match_filters
+from app.crud.elastic import base_match_filter
 from app.crud.replication_sources import all_sources
 from app.elastic import Search, qbool, qmatch
 
@@ -83,3 +83,9 @@ async def quality_matrix() -> QUALITY_MATRIX_RETURN_TYPE:
 
     logger.debug(f"Quality matrix output:\n{output}")
     return api_ready_output(output)
+
+
+def add_base_match_filters(search: Search) -> Search:
+    for entry in base_match_filter:
+        search = search.query(entry)
+    return search
