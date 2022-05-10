@@ -4,7 +4,6 @@ from datetime import datetime
 from fastapi_utils.tasks import repeat_every
 from sqlalchemy.orm import Session
 
-import app.analytics.rpc_client as dbt
 from app.core.config import BACKGROUND_TASK_ANALYTICS_INTERVAL
 from app.core.logging import logger
 from app.pg.util import get_postgres
@@ -38,12 +37,6 @@ def run():
         session.commit()
 
     logger.info(f"Finished analytics import at: {datetime.now()}")
-
-    result = dbt.run_analytics()
-    logger.info(f"Analytics: run started {result}")
-    #
-    result = dbt.poll(request_token=result["request_token"])
-    logger.info(f"Analytics: run took: {result.get('elapsed')}")
 
 
 def _backup_previous_run(session: Session):
