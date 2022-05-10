@@ -3,10 +3,9 @@ from uuid import UUID
 
 from elasticsearch_dsl.query import Q, Query
 
+from app.api.score.models import CollectionAttribute, LearningMaterialAttribute
 from app.elastic.dsl import afilter, amissing, qbool, qboolor, qnotexists, qterm, qterms
-from app.models.collection import CollectionAttribute
 from app.models.elastic import ElasticResourceAttribute
-from app.models.learning_material import LearningMaterialAttribute
 
 
 class ResourceType(str, Enum):

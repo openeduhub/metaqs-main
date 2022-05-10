@@ -8,7 +8,9 @@ from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 from starlette_context import context
 
 import app.api.score.score
+from app.api.quality_matrix.models import ColumnOutput
 from app.api.quality_matrix.quality_matrix import quality_matrix
+from app.api.score.models import ScoreOutput
 from app.api.score.score import calc_scores, calc_weighted_score, collection_id_param
 from app.elastic.elastic import (
     ResourceType,
@@ -16,7 +18,6 @@ from app.elastic.elastic import (
     aggs_material_validation,
     field_names_used_for_score_calculation,
 )
-from app.models.base import ColumnOutput, ScoreOutput
 
 router = APIRouter()
 
