@@ -5,7 +5,6 @@ from uuid import UUID
 
 from asyncpg import Connection
 
-from app.core.config import DEBUG
 from app.core.logging import logger
 
 
@@ -142,7 +141,6 @@ async def stats_latest(
 
     results = [dict(record) for record in results]
 
-    if DEBUG:
-        logger.debug(f"Read from postgres:\n{pformat(results)}")
+    logger.debug(f"Read from postgres:\n{pformat(results)}")
 
     return results

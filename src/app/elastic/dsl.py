@@ -8,14 +8,6 @@ from .fields import Field
 from .utils import handle_text_field
 
 
-def qsimplequerystring(query: str, qfields: List[Union[Field, str]], **kwargs) -> Query:
-    kwargs["query"] = query
-    kwargs["fields"] = [
-        (qfield.path if isinstance(qfield, Field) else qfield) for qfield in qfields
-    ]
-    return Q("simple_query_string", **kwargs)
-
-
 def qterm(qfield: Union[Field, str], value, **kwargs) -> Query:
     kwargs[handle_text_field(qfield)] = value
     return Q("term", **kwargs)
@@ -28,12 +20,6 @@ def qterms(qfield: Union[Field, str], values: list, **kwargs) -> Query:
 
 def qmatch(**kwargs) -> Query:
     return Q("match", **kwargs)
-
-
-def qwildcard(qfield: Union[Field, str], value: str) -> Query:
-    if isinstance(qfield, Field):
-        qfield = qfield.path
-    return Q("wildcard", **{qfield: {"value": value}})
 
 
 def qbool(**kwargs) -> Query:
@@ -57,31 +43,9 @@ def qboolor(conditions: List[Query]) -> Query:
     )
 
 
-def aterms(qfield: Union[Field, str], **kwargs) -> Agg:
-    kwargs["field"] = handle_text_field(qfield)
-    return A("terms", **kwargs)
-
-
 def afilter(query: Query) -> Agg:
     return A("filter", query)
 
 
 def amissing(qfield: Union[Field, str]) -> Agg:
     return A("missing", field=handle_text_field(qfield))
-
-
-def acomposite(sources: List[Union[Query, dict]], **kwargs) -> Agg:
-    return A("composite", sources=sources, **kwargs)
-
-
-def abucketsort(sort: List[Union[Query, dict]], **kwargs) -> Agg:
-    return A("bucket_sort", sort=sort, **kwargs)
-
-
-def script(source: str, params: dict = None) -> dict:
-    snippet = {
-        "source": source,
-    }
-    if params:
-        snippet["params"] = params
-    return snippet

@@ -2,6 +2,7 @@ from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
+from pydantic import BaseModel, Field
 from starlette.responses import Response
 from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 from starlette_context import context
@@ -79,3 +80,20 @@ async def score(
         "collections": {"total": collection_stats["total"], **collection_scores},
         "materials": {"total": material_stats["total"], **material_scores},
     }
+
+
+class Ping(BaseModel):
+    status: str = Field(
+        default="not ok",
+        description="Ping output. Should be 'ok' in happy case.",
+    )
+
+
+@router.get(
+    "/_ping",
+    description="Ping function for automatic health check.",
+    response_model=Ping,
+    tags=["Healthcheck"],
+)
+async def ping_api():
+    return {"status": "ok"}

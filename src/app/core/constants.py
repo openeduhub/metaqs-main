@@ -1,7 +1,5 @@
 REPLICATION_SOURCE_ID = "ccm:replicationsource"
-REPLICATION_SOURCE = "replication_source"
 PROPERTIES = "properties"
-TOTAL_COUNT = "total_count"
 
 PERCENTAGE_DESCRIPTOR = (
     "Percentage of non-empty entries for this replication source and metadata"
@@ -34,3 +32,4 @@ COLLECTIONS = {
     "Musik": {"value": "2eda0065-f69b-46c8-ae09-d258c8226a5e"},
     "Philosophie": {"value": "9d364fd0-4374-40b4-a153-3c722b9cda35"},
 }
+OPEN_API_VERSION = "2.1.0"

@@ -1,62 +1,45 @@
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
-from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException
 from starlette.middleware.cors import CORSMiddleware
 from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
 from starlette_context.middleware import RawContextMiddleware
 
 from app.api.api import router
-from app.core.config import ALLOWED_HOSTS, DEBUG, LOG_LEVEL, PROJECT_NAME, ROOT_PATH
+from app.core.config import ALLOWED_HOSTS, API_DEBUG, API_PORT, LOG_LEVEL, ROOT_PATH
+from app.core.constants import OPEN_API_VERSION
 from app.core.errors import http_422_error_handler, http_error_handler
 from app.core.logging import logger
-from app.elastic.utils import close_elastic_connection, connect_to_elastic
-
-API_PORT = 8081
-
-OPEN_API_VERSION = "2.1.0"
-fastapi_app = FastAPI(
-    root_path=ROOT_PATH,
-    title=f"{PROJECT_NAME} API",
-    version=OPEN_API_VERSION,
-    debug=DEBUG,
-)
-logger.debug(f"Launching FastAPI on root path {ROOT_PATH}")
+from app.elastic.utils import connect_to_elastic
 
 
-class Ping(BaseModel):
-    status: str = Field(
-        default="not ok",
-        description="Ping output. Should be 'ok' in happy case.",
+def api() -> FastAPI:
+    _api = FastAPI(
+        root_path=ROOT_PATH,
+        title="MetaQS API",
+        version=OPEN_API_VERSION,
+        debug=API_DEBUG,
     )
+    logger.debug(f"Launching FastAPI on root path {ROOT_PATH}")
 
+    _api.include_router(router)
 
-@fastapi_app.get(
-    "/_ping",
-    description="Ping function for automatic health check.",
-    response_model=Ping,
-    tags=["Healthcheck"],
-)
-async def ping_api():
-    return {"status": "ok"}
+    for route in _api.routes:
+        if isinstance(route, APIRoute):
+            route.operation_id = route.name
 
+    _api.add_middleware(RawContextMiddleware)
 
-fastapi_app.include_router(router, prefix="/real-time")
+    _api.add_event_handler("startup", connect_to_elastic)
 
-for route in fastapi_app.routes:
-    if isinstance(route, APIRoute):
-        route.operation_id = route.name
+    _api.add_exception_handler(HTTPException, http_error_handler)
+    _api.add_exception_handler(HTTP_422_UNPROCESSABLE_ENTITY, http_422_error_handler)
 
-fastapi_app.add_middleware(RawContextMiddleware)
+    return _api
 
-fastapi_app.add_event_handler("startup", connect_to_elastic)
-fastapi_app.add_event_handler("shutdown", close_elastic_connection)
-
-fastapi_app.add_exception_handler(HTTPException, http_error_handler)
-fastapi_app.add_exception_handler(HTTP_422_UNPROCESSABLE_ENTITY, http_422_error_handler)
 
 app = CORSMiddleware(
-    app=fastapi_app,
+    app=api(),
     allow_origins=ALLOWED_HOSTS,
     allow_credentials=False,
     allow_methods=["*"],

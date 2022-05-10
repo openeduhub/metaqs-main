@@ -1,8 +1,8 @@
 from starlette.testclient import TestClient
 
-from app.main import fastapi_app
+from app.main import api
 
-client = TestClient(fastapi_app)
+client = TestClient(api())
 
 
 def test_404():

@@ -12,11 +12,6 @@ x-postgres-vars: &postgres-vars
   POSTGRES_PASSWORD: postgres
   POSTGRES_DB: analytics
 
-x-postgres-vars-dbt: &postgres-vars-dbt
-  <<: *postgres-vars
-  POSTGRES_HOST: postgres
-  POSTGRES_PORT: 5432
-
 x-restart-policy: &restart-policy
   restart: unless-stopped
 
@@ -116,20 +111,3 @@ services:
     networks:
       - backend
       - frontend
-
-  dbt:
-    container_name: metaqs-dbt
-    build:
-      context: ./dbt/
-      network: host
-    image: docker.edu-sharing.com/projects/oeh-redaktion/edusharing-projects-oeh-redaktion-metaqs-dbt:latest
-    <<: *restart-policy
-    <<: *logging-config
-    depends_on:
-      - postgres
-    environment:
-      <<: *postgres-vars-dbt
-    networks: [ backend ]
-    expose:
-      - 8580
-    command: [ "dbt", "rpc" ]
