@@ -6,7 +6,8 @@ from elasticsearch_dsl.response import Response
 from app.core.constants import PROPERTIES, REPLICATION_SOURCE_ID
 from app.core.logging import logger
 from app.crud.elastic import base_match_filter
-from app.elastic import Search, qbool, qmatch
+from app.elastic.dsl import qbool, qmatch
+from app.elastic.search import Search
 
 PROPERTY_TYPE = list[str]
 QUALITY_MATRIX_RETURN_TYPE = list[dict[str, Union[str, float]]]

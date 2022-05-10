@@ -15,7 +15,7 @@ from app.api.quality_matrix.quality_matrix import (
     missing_fields_ratio,
     quality_matrix,
 )
-from app.elastic import Search
+from app.elastic.search import Search
 
 
 @pytest.mark.asyncio

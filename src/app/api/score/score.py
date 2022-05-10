@@ -9,7 +9,7 @@ from app.crud.elastic import (
     query_collections,
     query_materials,
 )
-from app.elastic import Search
+from app.elastic.search import Search
 
 material_terms_relevant_for_score = [
     "missing_title",

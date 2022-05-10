@@ -6,7 +6,7 @@ from elasticsearch_dsl.aggs import Agg
 from elasticsearch_dsl.query import Q, Query
 
 from app.core.config import ELASTIC_MAX_SIZE
-from app.elastic import (
+from app.elastic.dsl import (
     acomposite,
     afilter,
     amissing,

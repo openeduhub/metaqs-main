@@ -5,7 +5,6 @@ from elasticsearch_dsl.response import Response
 from pydantic import BaseModel
 
 from app.core.config import ELASTIC_MAX_SIZE, PORTAL_ROOT_ID
-from app.elastic import Field, Search, abucketsort, qbool, qwildcard
 from app.models.collection import Collection, CollectionAttribute
 from app.models.elastic import (
     DescendantCollectionsMaterialsCounts,
@@ -13,6 +12,9 @@ from app.models.elastic import (
 )
 from app.models.learning_material import LearningMaterial, LearningMaterialAttribute
 
+from ..elastic.dsl import abucketsort, qbool, qwildcard
+from ..elastic.fields import Field
+from ..elastic.search import Search
 from .elastic import (
     ResourceType,
     agg_materials_by_collection,
@@ -20,7 +22,7 @@ from .elastic import (
     query_collections,
     query_materials,
 )
-from .learning_material import MissingAttributeFilter as MissingMaterialAttributeFilter
+from .learning_material import MissingMaterialAttributeFilter
 from .learning_material import get_many as get_many_materials
 
 COLLECTIONS = {
@@ -66,7 +68,7 @@ MissingCollectionField = Field(
 )
 
 
-class MissingAttributeFilter(BaseModel):
+class MissingCollectionAttributeFilter(BaseModel):
     attr: MissingCollectionField
 
     def __call__(self, query_dict: dict):
@@ -105,7 +107,7 @@ async def get_single(noderef_id: UUID) -> Collection:
 
 async def get_many(
     ancestor_id: Optional[UUID] = None,
-    missing_attr_filter: Optional[MissingAttributeFilter] = None,
+    missing_attr_filter: Optional[MissingCollectionAttributeFilter] = None,
     max_hits: Optional[int] = ELASTIC_MAX_SIZE,
     source_fields: Optional[Set[CollectionAttribute]] = None,
 ) -> List[Collection]:
@@ -170,7 +172,7 @@ async def get_child_materials_with_missing_attributes(
 # TODO: eliminate
 async def get_child_collections_with_missing_attributes(
     noderef_id: UUID,
-    missing_attr_filter: MissingAttributeFilter,
+    missing_attr_filter: MissingCollectionAttributeFilter,
     source_fields: Optional[Set[CollectionAttribute]],
     max_hits: Optional[int] = ELASTIC_MAX_SIZE,
 ) -> List[Collection]:

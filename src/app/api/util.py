@@ -7,9 +7,7 @@ from starlette.responses import Response
 
 import app.crud.collection as crud_collection
 from app.core.config import PORTAL_ROOT_ID
-from app.crud import (
-    MissingCollectionAttributeFilter,
-    MissingCollectionField,
+from app.crud.learning_material import (
     MissingMaterialAttributeFilter,
     MissingMaterialField,
 )
@@ -73,9 +71,9 @@ def filter_response_fields(
 
 
 def collections_filter_params(
-    *, missing_attr: MissingCollectionField = Path(...)
-) -> MissingCollectionAttributeFilter:
-    return MissingCollectionAttributeFilter(attr=missing_attr)
+    *, missing_attr: crud_collection.MissingCollectionField = Path(...)
+) -> crud_collection.MissingCollectionAttributeFilter:
+    return crud_collection.MissingCollectionAttributeFilter(attr=missing_attr)
 
 
 def materials_filter_params(

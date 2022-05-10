@@ -8,11 +8,12 @@ from elasticsearch_dsl.response import Response
 from glom import Iter, glom
 from pydantic import BaseModel
 
-# from app.core.util import slugify
 from app.core.config import ELASTIC_MAX_SIZE
-from app.elastic import Field, Search, qbool, qwildcard
 from app.models.learning_material import LearningMaterial, LearningMaterialAttribute
 
+from ..elastic.dsl import qbool, qwildcard
+from ..elastic.fields import Field
+from ..elastic.search import Search
 from .elastic import (
     ResourceType,
     agg_material_types,
@@ -39,7 +40,7 @@ MissingMaterialField = Field(
 )
 
 
-class MissingAttributeFilter(BaseModel):
+class MissingMaterialAttributeFilter(BaseModel):
     attr: MissingMaterialField
 
     def __call__(self, query_dict: dict):
@@ -53,7 +54,7 @@ class MissingAttributeFilter(BaseModel):
 
 async def get_many(
     ancestor_id: Optional[UUID] = None,
-    missing_attr_filter: Optional[MissingAttributeFilter] = None,
+    missing_attr_filter: Optional[MissingMaterialAttributeFilter] = None,
     source_fields: Optional[Set[LearningMaterialAttribute]] = None,
     max_hits: Optional[int] = ELASTIC_MAX_SIZE,
 ) -> List[LearningMaterial]:
