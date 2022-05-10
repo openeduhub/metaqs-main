@@ -8,9 +8,8 @@ from starlette_context import context
 
 import app.api.score.score
 from app.api.quality_matrix.quality_matrix import quality_matrix
-from app.api.score.score import calc_scores, calc_weighted_score
-from app.api.util import collection_id_param
-from app.crud.elastic import (
+from app.api.score.score import calc_scores, calc_weighted_score, collection_id_param
+from app.elastic.elastic import (
     ResourceType,
     aggs_collection_validation,
     aggs_material_validation,

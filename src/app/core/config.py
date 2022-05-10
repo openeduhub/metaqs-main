@@ -75,5 +75,4 @@ PORTAL_ROOT_PATH = "/".join(
     ]
 )
 
-ENABLE_MATERIALS_API = False
 ENABLE_COLLECTIONS_API = False

@@ -5,8 +5,8 @@ from elasticsearch_dsl.response import Response
 
 from app.core.constants import PROPERTIES, REPLICATION_SOURCE_ID
 from app.core.logging import logger
-from app.crud.elastic import base_match_filter
 from app.elastic.dsl import qbool, qmatch
+from app.elastic.elastic import base_match_filter
 from app.elastic.search import Search
 
 PROPERTY_TYPE = list[str]

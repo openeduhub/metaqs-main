@@ -1,8 +1,10 @@
 from uuid import UUID
 
 from elasticsearch_dsl.response import Response
+from fastapi import Path
 
-from app.crud.elastic import (
+import app.core.constants
+from app.elastic.elastic import (
     ResourceType,
     aggs_collection_validation,
     aggs_material_validation,
@@ -73,3 +75,10 @@ async def query_score(noderef_id: UUID, resource_type: ResourceType) -> dict:
 
     if response.success():
         return score(response)
+
+
+def collection_id_param(
+    *,
+    collection_id: UUID = Path(..., examples=app.core.constants.COLLECTIONS),
+) -> UUID:
+    return collection_id
