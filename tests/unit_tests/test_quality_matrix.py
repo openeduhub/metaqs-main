@@ -4,8 +4,8 @@ from unittest.mock import MagicMock
 import pytest
 from elasticsearch_dsl.response import Hit, Response
 
+from app.crud.elastic import add_base_match_filters
 from app.crud.quality_matrix import (
-    add_base_match_filters,
     all_missing_properties,
     create_empty_entries_search,
     create_properties_search,

@@ -7,6 +7,7 @@ from elasticsearch_dsl.query import Q, Query
 
 from app.core.config import ELASTIC_MAX_SIZE
 from app.elastic import (
+    Search,
     acomposite,
     afilter,
     amissing,
@@ -261,3 +262,9 @@ def agg_material_score(size: int = ELASTIC_MAX_SIZE) -> Agg:
         agg.bucket(name, _agg)
 
     return agg
+
+
+def add_base_match_filters(search: Search) -> Search:
+    for entry in base_match_filter:
+        search = search.query(entry)
+    return search

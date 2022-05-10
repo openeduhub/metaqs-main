@@ -2,7 +2,7 @@ from elasticsearch_dsl.response import Response
 
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import PROPERTIES, REPLICATION_SOURCE_ID
-from app.crud.quality_matrix import add_base_match_filters
+from app.crud.elastic import add_base_match_filters
 from app.elastic import Search
 
 
