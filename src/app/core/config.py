@@ -50,7 +50,6 @@ ELASTIC_INDEX = "workspace"
 ELASTIC_MAX_SIZE = 10000
 ELASTIC_TOTAL_SIZE = 1_000_000  # Maximum number of entries elasticsearch queries, very large to query all entries
 ELASTICSEARCH_TIMEOUT = int(os.getenv("ELASTICSEARCH_TIMEOUT", 20))
-ELASTICSEARCH_CONNECTION_ALIAS = "default"
 
 LANGUAGETOOL_ENABLED_CATEGORIES = [
     "TYPOGRAPHY",
