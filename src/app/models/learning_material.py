@@ -9,9 +9,6 @@ from .base import ResponseModel
 from .elastic import ElasticResource, ElasticResourceAttribute
 from .util import EmptyStrToNone
 
-# from pydantic import HttpUrl
-
-
 _LEARNING_MATERIAL = TypeVar("_LEARNING_MATERIAL")
 
 

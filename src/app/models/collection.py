@@ -8,7 +8,7 @@ from glom import Coalesce, Iter, glom
 
 from app.elastic.fields import Field, FieldType
 
-from .base import BaseModel, ResponseModel
+from .base import ResponseModel
 from .elastic import ElasticResource, ElasticResourceAttribute
 from .util import EmptyStrToNone
 
@@ -87,20 +87,3 @@ class CollectionBase(ElasticResource):
 
 class Collection(ResponseModel, CollectionBase):
     pass
-
-
-# TODO: move to api package
-class CollectionMaterialsCount(ResponseModel):
-    noderef_id: UUID
-    title: str
-    materials_count: int
-
-
-# TODO: move to api package
-class PortalTreeNode(BaseModel):
-    noderef_id: UUID
-    title: str
-    children: List[PortalTreeNode]
-
-
-PortalTreeNode.update_forward_refs()

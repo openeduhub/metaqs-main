@@ -1,9 +1,7 @@
-from typing import ClassVar, Dict, List, Optional, Type, TypeVar
+from typing import ClassVar, Dict, Optional, Type, TypeVar
 from uuid import UUID
 
-from elasticsearch_dsl.response import Response
 from glom import Coalesce, glom
-from pydantic import BaseModel as PydanticBaseModel
 from pydantic import Extra
 
 from app.elastic.fields import Field, FieldType
@@ -68,37 +66,3 @@ class ElasticResource(BaseModel):
         hit: Dict,
     ) -> _ELASTIC_RESOURCE:
         return cls.construct(**cls.parse_elastic_hit_to_dict(hit))
-
-
-# TODO: eliminate
-class CollectionMaterialsCount(PydanticBaseModel):
-    noderef_id: UUID
-    materials_count: int
-
-
-# TODO: eliminate
-class DescendantCollectionsMaterialsCounts(PydanticBaseModel):
-    results: List[CollectionMaterialsCount]
-
-    class Config:
-        arbitrary_types_allowed = True
-        allow_population_by_field_name = True
-        extra = Extra.forbid
-
-    @classmethod
-    def parse_elastic_response(
-        cls: Type[_DESCENDANT_COLLECTIONS_MATERIALS_COUNTS],
-        response: Response,
-    ) -> _DESCENDANT_COLLECTIONS_MATERIALS_COUNTS:
-        results = glom(
-            response,
-            (
-                "aggregations.grouped_by_collection.buckets",
-                [{"noderef_id": "key.noderef_id", "materials_count": "doc_count"}],
-            ),
-        )
-        return cls.construct(
-            results=[
-                CollectionMaterialsCount.construct(**record) for record in results
-            ],
-        )
