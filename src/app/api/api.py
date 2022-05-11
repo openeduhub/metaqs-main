@@ -3,9 +3,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
-from starlette.responses import Response
 from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
-from starlette_context import context
 
 import app.api.score.score
 from app.api.quality_matrix.models import ColumnOutputModel
@@ -50,14 +48,10 @@ async def get_quality_matrix():
     The overall score is the average of all these ratios.
     The queried properties are:
     `{field_names_used_for_score_calculation(aggs_collection_validation)
-      + field_names_used_for_score_calculation(aggs_material_validation)}`
+      + field_names_used_for_score_calculation(aggs_material_validation)}`.
     """,
 )
-async def score(
-    *,
-    collection_id: UUID = Depends(collection_id_param),
-    response: Response,
-):
+async def score(*, collection_id: UUID = Depends(collection_id_param)):
     collection_stats = await app.api.score.score.query_score(
         noderef_id=collection_id, resource_type=ResourceType.COLLECTION
     )
@@ -75,7 +69,6 @@ async def score(
         material_scores=material_scores,
     )
 
-    response.headers["X-Query-Count"] = str(len(context.get("elastic_queries", [])))
     return {
         "score": score_,
         "collections": {"total": collection_stats["total"], **collection_scores},

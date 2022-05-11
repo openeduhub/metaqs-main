@@ -71,7 +71,7 @@ def score(response: Response) -> dict:
 async def query_score(noderef_id: UUID, resource_type: ResourceType) -> dict:
     s = score_search(noderef_id, resource_type)
 
-    response: Response = s[:0].execute()
+    response: Response = s.execute()
 
     if response.success():
         return score(response)
