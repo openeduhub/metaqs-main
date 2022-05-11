@@ -95,4 +95,5 @@ jobs:
           PWD=$(pwd)
           export PYTHONPATH=$PWD/src:$PWD/tests:$PYTHONPATH
           echo "PYTHONPATH=$PYTHONPATH"
+          export "PYTEST_RUN_CONFIG=true"
           pytest

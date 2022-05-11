@@ -3,6 +3,7 @@ from typing import Union
 from elasticsearch_dsl import AttrDict
 from elasticsearch_dsl.response import Response
 
+from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import PROPERTIES, REPLICATION_SOURCE_ID
 from app.core.logging import logger
 from app.elastic.dsl import qbool, qmatch
@@ -22,7 +23,10 @@ def add_base_match_filters(search: Search) -> Search:
 def create_sources_search(aggregation_name: str):
     s = add_base_match_filters(Search())
     s.aggs.bucket(
-        aggregation_name, "terms", field=f"{PROPERTIES}.{REPLICATION_SOURCE_ID}.keyword"
+        aggregation_name,
+        "terms",
+        field=f"{PROPERTIES}.{REPLICATION_SOURCE_ID}.keyword",
+        size=ELASTIC_TOTAL_SIZE,
     )
     return s
 
@@ -87,8 +91,7 @@ def all_missing_properties(
 
 
 def join_data(data, key):
-    data |= {"metadatum": key}
-    return data
+    return {"metadatum": key, "columns": data}
 
 
 def api_ready_output(raw_input: dict) -> QUALITY_MATRIX_RETURN_TYPE:

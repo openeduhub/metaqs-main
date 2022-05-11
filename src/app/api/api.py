@@ -8,7 +8,7 @@ from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 from starlette_context import context
 
 import app.api.score.score
-from app.api.quality_matrix.models import ColumnOutput
+from app.api.quality_matrix.models import ColumnOutputModel
 from app.api.quality_matrix.quality_matrix import quality_matrix
 from app.api.score.models import ScoreOutput
 from app.api.score.score import calc_scores, calc_weighted_score, collection_id_param
@@ -25,7 +25,7 @@ router = APIRouter()
 @router.get(
     "/quality_matrix",
     status_code=HTTP_200_OK,
-    response_model=List[ColumnOutput],
+    response_model=List[ColumnOutputModel],
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=["Statistics"],
     description="""Calculation of the quality matrix.

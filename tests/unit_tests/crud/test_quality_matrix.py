@@ -54,7 +54,9 @@ async def test_get_quality_matrix_no_sources():
         ) as mocked_get_properties:
             mocked_get_properties.return_value = ["dummy_properties"]
             mocked_get_sourced.return_value = {}
-            assert await quality_matrix() == [{"metadatum": "dummy_properties"}]
+            assert await quality_matrix() == [
+                {"metadatum": "dummy_properties", "columns": {}}
+            ]
 
 
 @pytest.mark.asyncio
@@ -73,17 +75,16 @@ async def test_get_quality_matrix():
                 mocked_response = MagicMock()
                 mocked_response.aggregations.to_dict.return_value = {}
                 mocked_all_missing_properties.return_value = mocked_response
-                assert await quality_matrix() == [{"metadatum": "dummy_properties"}]
+                assert await quality_matrix() == [
+                    {"metadatum": "dummy_properties", "columns": {}}
+                ]
 
                 mocked_response.aggregations.to_dict.return_value = {
                     "dummy_properties": {"doc_count": 5}
                 }
                 mocked_all_missing_properties.return_value = mocked_response
                 assert await quality_matrix() == [
-                    {
-                        "metadatum": "dummy_properties",
-                        "dummy_source": 50.0,
-                    }
+                    {"metadatum": "dummy_properties", "columns": {"dummy_source": 50.0}}
                 ]
 
 
@@ -140,7 +141,10 @@ def test_create_sources_search():
         },
         "aggs": {
             aggregation_name: {
-                "terms": {"field": "properties.ccm:replicationsource.keyword"}
+                "terms": {
+                    "field": "properties.ccm:replicationsource.keyword",
+                    "size": 1_000_000,
+                }
             }
         },
     }
