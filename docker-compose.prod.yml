@@ -45,7 +45,7 @@ services:
       - fastapi
     environment:
       NGINX_HOST: "${NGINX_HOST}"
-      ROOT_PATH: "/metaqs-api/${API_VERSION:-v1}"
+      ROOT_PATH: ""
     volumes:
       - ./nginx/nginx-ssl.conf.template:/etc/nginx/templates/default.conf.template:ro
       - ./nginx/certbot/conf:/etc/letsencrypt
@@ -94,7 +94,7 @@ services:
     environment:
       <<: *postgres-vars
       POSTGRES_HOST: postgres
-      ROOT_PATH: "/metaqs-api/${API_VERSION:-v1}"
+      ROOT_PATH: ""
       API_VERSION: "${API_VERSION:-v1}"
       API_KEY: "${API_KEY:-openeduhub}"
       ALLOWED_HOSTS: "${ALLOWED_HOSTS:-*}"
