@@ -24,18 +24,6 @@ jobs:
       - name: Push
         run: docker push ${{env.docker_repository}}${{env.path_prefix}}api:${{env.image_tag}}
 
-  build-and-push-dbt:
-    name: Build and Push DBT image to community edu hub
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Log in to edu sharing
-        run: docker login ${{env.docker_repository}} -u ${{ secrets.DOCKER_EDU_HUB_REGISTRY_USERNAME }} -p ${{ secrets.DOCKER_EDU_HUB_REGISTRY_PASSWORD }}
-      - name: Build
-        run: docker build -t ${{env.docker_repository}}${{env.path_prefix}}dbt:${{env.image_tag}} ./dbt
-      - name: Push
-        run: docker push ${{env.docker_repository}}${{env.path_prefix}}dbt:${{env.image_tag}}
-
   analyze:
     name: Analyze
     runs-on: ubuntu-latest

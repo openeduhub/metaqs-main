@@ -34,24 +34,6 @@ class ResourceField(Enum):
     REPLICATION_SOURCE_ID = "replication_source_id"
 
 
-class Collection(Base):
-    __table__ = sa.Table(
-        "collections",
-        Base.metadata,
-        schema="raw",
-        autoload_with=engine,
-    )
-
-
-class Material(Base):
-    __table__ = sa.Table(
-        "materials",
-        Base.metadata,
-        schema="raw",
-        autoload_with=engine,
-    )
-
-
 search_stats = sa.Table(
     "search_stats",
     Base.metadata,

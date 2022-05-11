@@ -1,118 +1,45 @@
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
-from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException
 from starlette.middleware.cors import CORSMiddleware
 from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
 from starlette_context.middleware import RawContextMiddleware
 
-import app.api as api
-from app.core.config import (
-    ALLOWED_HOSTS,
-    API_VERSION,
-    BACKGROUND_TASK_ANALYTICS_INTERVAL,
-    BACKGROUND_TASK_SEARCH_STATS_INTERVAL,
-    BACKGROUND_TASK_SPELLCHECK_INTERVAL,
-    DEBUG,
-    ENABLE_ANALYTICS,
-    LOG_LEVEL,
-    PROJECT_NAME,
-    ROOT_PATH,
-)
+from app.api.api import router
+from app.core.config import ALLOWED_HOSTS, API_DEBUG, API_PORT, LOG_LEVEL, ROOT_PATH
+from app.core.constants import OPEN_API_VERSION
 from app.core.errors import http_422_error_handler, http_error_handler
 from app.core.logging import logger
-from app.elastic.utils import close_elastic_connection, connect_to_elastic
-from app.http_client import close_client
-
-if API_VERSION == "v1" or API_VERSION == "":
-    from app.api.v1.realtime.api import real_time_router
-
-    if ENABLE_ANALYTICS:
-        from api.v1.analytics.api import analytics_router
-
-real_time_router = real_time_router
-if ENABLE_ANALYTICS:
-    analytics_router = analytics_router
+from app.elastic.utils import connect_to_elastic
 
 
-API_PORT = 8081
-
-OPEN_API_VERSION = "2.1.0"
-fastapi_app = FastAPI(
-    root_path=ROOT_PATH,
-    title=f"{PROJECT_NAME} API",
-    version=OPEN_API_VERSION,
-    debug=DEBUG,
-)
-logger.debug(f"Launching FastAPI on root path {ROOT_PATH}")
-
-
-class Ping(BaseModel):
-    status: str = Field(
-        default="not ok",
-        description="Ping output. Should be 'ok' in happy case.",
-    )
-
-
-@fastapi_app.get(
-    "/_ping",
-    description="Ping function for automatic health check.",
-    response_model=Ping,
-    tags=["Healthcheck"],
-)
-async def ping_api():
-    return {"status": "ok"}
-
-
-fastapi_app.include_router(real_time_router, prefix="/real-time")
-
-if ENABLE_ANALYTICS:
-    analytics_app = FastAPI(
-        title=f"{PROJECT_NAME} Analytics API",
+def api() -> FastAPI:
+    _api = FastAPI(
+        root_path=ROOT_PATH,
+        title="MetaQS API",
         version=OPEN_API_VERSION,
-        debug=DEBUG,
+        debug=API_DEBUG,
     )
-    analytics_app.include_router(api.analytics_router)
-    fastapi_app.mount(path="/analytics", app=analytics_app)
+    logger.debug(f"Launching FastAPI on root path {ROOT_PATH}")
 
-    languagetool_app = FastAPI(
-        title=f"{PROJECT_NAME} LanguageTool API",
-        debug=DEBUG,
-        version=OPEN_API_VERSION,
-    )
-    # languagetool_app.include_router(languagetool_router)
-    fastapi_app.mount(path="/languagetool", app=languagetool_app)
+    _api.include_router(router)
 
-for route in fastapi_app.routes:
-    if isinstance(route, APIRoute):
-        route.operation_id = route.name
+    for route in _api.routes:
+        if isinstance(route, APIRoute):
+            route.operation_id = route.name
 
-fastapi_app.add_middleware(RawContextMiddleware)
+    _api.add_middleware(RawContextMiddleware)
 
-fastapi_app.add_event_handler("startup", connect_to_elastic)
-fastapi_app.add_event_handler("shutdown", close_elastic_connection)
+    _api.add_event_handler("startup", connect_to_elastic)
 
-if ENABLE_ANALYTICS:
-    from app.analytics.analytics import background_task as analytics_background_task
-    from app.analytics.search_stats import (
-        background_task as search_stats_background_task,
-    )
-    from app.analytics.spellcheck import background_task as spellcheck_background_task
+    _api.add_exception_handler(HTTPException, http_error_handler)
+    _api.add_exception_handler(HTTP_422_UNPROCESSABLE_ENTITY, http_422_error_handler)
 
-    if BACKGROUND_TASK_ANALYTICS_INTERVAL:
-        fastapi_app.add_event_handler("startup", analytics_background_task)
-    if BACKGROUND_TASK_SEARCH_STATS_INTERVAL:
-        fastapi_app.add_event_handler("startup", search_stats_background_task)
-    if BACKGROUND_TASK_SPELLCHECK_INTERVAL:
-        fastapi_app.add_event_handler("startup", spellcheck_background_task)
+    return _api
 
-fastapi_app.add_exception_handler(HTTPException, http_error_handler)
-fastapi_app.add_exception_handler(HTTP_422_UNPROCESSABLE_ENTITY, http_422_error_handler)
-
-fastapi_app.add_event_handler("shutdown", close_client)
 
 app = CORSMiddleware(
-    app=fastapi_app,
+    app=api(),
     allow_origins=ALLOWED_HOSTS,
     allow_credentials=False,
     allow_methods=["*"],

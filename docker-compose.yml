@@ -12,11 +12,6 @@ x-postgres-vars: &postgres-vars
   POSTGRES_PASSWORD: postgres
   POSTGRES_DB: analytics
 
-x-postgres-vars-dbt: &postgres-vars-dbt
-  <<: *postgres-vars
-  POSTGRES_HOST: postgres
-  POSTGRES_PORT: 5432
-
 x-restart-policy: &restart-policy
   restart: unless-stopped
 
@@ -50,7 +45,7 @@ services:
       - fastapi
     environment:
       NGINX_HOST: "${NGINX_HOST}"
-      ROOT_PATH: "/metaqs-api/${API_VERSION:-v1}"
+      ROOT_PATH: "/"
     volumes:
       - ./nginx/nginx-ssl.conf.template:/etc/nginx/templates/default.conf.template:ro
       - ./nginx/certbot/conf:/etc/letsencrypt
@@ -96,13 +91,12 @@ services:
     <<: *logging-config
     volumes:
       - ./:/tmp
-    depends_on:
+    #depends_on:
       # - postgres
-      - dbt
     environment:
       <<: *postgres-vars
       POSTGRES_HOST: postgres
-      ROOT_PATH: "/metaqs-api/${API_VERSION:-v1}"
+      ROOT_PATH: "/"
       API_VERSION: "${API_VERSION:-v1}"
       API_KEY: "${API_KEY:-openeduhub}"
       ALLOWED_HOSTS: "${ALLOWED_HOSTS:-*}"
@@ -118,20 +112,3 @@ services:
     networks:
       - backend
       - frontend
-
-  dbt:
-    container_name: metaqs-dbt
-    build:
-      context: ./dbt/
-      network: host
-    image: docker.edu-sharing.com/projects/oeh-redaktion/edusharing-projects-oeh-redaktion-metaqs-dbt:dev
-    <<: *restart-policy
-    <<: *logging-config
-    depends_on:
-      - postgres
-    environment:
-      <<: *postgres-vars-dbt
-    networks: [ backend ]
-    expose:
-      - 8580
-    command: [ "dbt", "rpc" ]
