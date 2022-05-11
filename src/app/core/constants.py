@@ -1,9 +1,6 @@
 REPLICATION_SOURCE_ID = "ccm:replicationsource"
 PROPERTIES = "properties"
 
-PERCENTAGE_DESCRIPTOR = (
-    "Percentage of non-empty entries for this replication source and metadata"
-)
 COLLECTIONS = {
     # "Physik": {"value": "unknown"},
     "Mathematik": {"value": "bd8be6d5-0fbe-4534-a4b3-773154ba6abc"},

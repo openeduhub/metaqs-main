@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 from app.elastic.fields import Field as ElasticField
 from app.elastic.fields import FieldType
-from app.models.elastic import ElasticResourceAttribute
+from app.models import ElasticResourceAttribute
 
 
 class _CollectionAttribute(ElasticField):

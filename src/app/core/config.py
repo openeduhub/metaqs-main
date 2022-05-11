@@ -46,6 +46,5 @@ MIN_CONNECTIONS_COUNT = int(os.getenv("MIN_CONNECTIONS_COUNT", 10))
 API_VERSION = os.getenv("API_VERSION", "v1")
 
 ELASTIC_INDEX = "workspace"
-ELASTIC_MAX_SIZE = 10000
 ELASTIC_TOTAL_SIZE = 1_000_000  # Maximum number of entries elasticsearch queries, very large to query all entries
 ELASTICSEARCH_TIMEOUT = int(os.getenv("ELASTICSEARCH_TIMEOUT", 20))
