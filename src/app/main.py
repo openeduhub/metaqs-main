@@ -7,7 +7,6 @@ from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
 from starlette_context.middleware import RawContextMiddleware
 
 import app.api as api
-from app.api.languagetool.api import router as languagetool_router
 from app.core.config import (
     ALLOWED_HOSTS,
     API_VERSION,
@@ -76,13 +75,13 @@ if ENABLE_ANALYTICS:
     analytics_app.include_router(api.analytics_router)
     fastapi_app.mount(path="/analytics", app=analytics_app)
 
-languagetool_app = FastAPI(
-    title=f"{PROJECT_NAME} LanguageTool API",
-    debug=DEBUG,
-    version=OPEN_API_VERSION,
-)
-languagetool_app.include_router(languagetool_router)
-fastapi_app.mount(path="/languagetool", app=languagetool_app)
+    languagetool_app = FastAPI(
+        title=f"{PROJECT_NAME} LanguageTool API",
+        debug=DEBUG,
+        version=OPEN_API_VERSION,
+    )
+    # languagetool_app.include_router(languagetool_router)
+    fastapi_app.mount(path="/languagetool", app=languagetool_app)
 
 for route in fastapi_app.routes:
     if isinstance(route, APIRoute):

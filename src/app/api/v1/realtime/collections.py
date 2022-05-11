@@ -22,15 +22,16 @@ from app.crud.elastic import (
     aggs_material_validation,
     field_names_used_for_score_calculation,
 )
-from app.crud.quality_matrix import all_sources, quality_matrix
+from app.crud.quality_matrix import quality_matrix
+from app.crud.replication_sources import all_sources
 from app.crud.util import build_portal_tree
-from app.models.base import ColumnOutput, ScoreOutput
 from app.models.collection import (
     Collection,
     CollectionAttribute,
     CollectionMaterialsCount,
     PortalTreeNode,
 )
+from app.models.quality_matrix import ColumnOutputModel, ScoreOutput
 from app.score import calc_scores, calc_weighted_score
 
 router = APIRouter()
@@ -39,13 +40,15 @@ router = APIRouter()
 @router.get(
     "/quality_matrix",
     status_code=HTTP_200_OK,
-    response_model=List[ColumnOutput],
+    response_model=List[ColumnOutputModel],
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=["Statistics"],
     description="""Calculation of the quality matrix.
     For each replication source and each property, e.g., `cm:creator`, the quality matrix returns the ratio of
     elements which miss this entry compared to the total number of entries.
-    A missing entry may be `cm:creator = null`.""",
+    A missing entry may be `cm:creator = null`.
+    Entries are grouped in columns and can be accessed key-wise.
+    """,
 )
 async def get_quality_matrix():
     return await quality_matrix()

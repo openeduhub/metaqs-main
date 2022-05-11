@@ -4,17 +4,16 @@ from unittest.mock import MagicMock
 import pytest
 from elasticsearch_dsl.response import Hit, Response
 
+from app.crud.elastic import add_base_match_filters
 from app.crud.quality_matrix import (
-    add_base_match_filters,
     all_missing_properties,
-    all_sources,
     create_empty_entries_search,
     create_properties_search,
-    create_sources_search,
     missing_fields,
     missing_fields_ratio,
     quality_matrix,
 )
+from app.crud.replication_sources import all_sources, create_sources_search
 from app.elastic import Search
 
 
@@ -37,7 +36,9 @@ async def test_get_quality_matrix_no_sources():
         ) as mocked_get_properties:
             mocked_get_properties.return_value = ["dummy_properties"]
             mocked_get_sourced.return_value = {}
-            assert await quality_matrix() == [{"metadatum": "dummy_properties"}]
+            assert await quality_matrix() == [
+                {"metadatum": "dummy_properties", "columns": {}}
+            ]
 
 
 @pytest.mark.asyncio
@@ -54,17 +55,16 @@ async def test_get_quality_matrix():
                 mocked_response = MagicMock()
                 mocked_response.aggregations.to_dict.return_value = {}
                 mocked_all_missing_properties.return_value = mocked_response
-                assert await quality_matrix() == [{"metadatum": "dummy_properties"}]
+                assert await quality_matrix() == [
+                    {"metadatum": "dummy_properties", "columns": {}}
+                ]
 
                 mocked_response.aggregations.to_dict.return_value = {
                     "dummy_properties": {"doc_count": 5}
                 }
                 mocked_all_missing_properties.return_value = mocked_response
                 assert await quality_matrix() == [
-                    {
-                        "metadatum": "dummy_properties",
-                        "dummy_source": 50.0,
-                    }
+                    {"metadatum": "dummy_properties", "columns": {"dummy_source": 50.0}}
                 ]
 
 
@@ -119,7 +119,10 @@ def test_create_sources_search():
         },
         "aggs": {
             aggregation_name: {
-                "terms": {"field": "properties.ccm:replicationsource.keyword"}
+                "terms": {
+                    "field": "properties.ccm:replicationsource.keyword",
+                    "size": 1_000_000,
+                }
             }
         },
     }
