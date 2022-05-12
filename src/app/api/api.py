@@ -31,6 +31,19 @@ TAG_STATISTICS = "Statistics"
 
 
 @router.get(
+    "/quality_matrix",
+    status_code=HTTP_200_OK,
+    response_model=List[ColumnOutputModel],
+    responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
+    tags=[TAG_STATISTICS],
+    description=QUALITY_MATRIX_DESCRIPTION,
+)
+async def get_quality_matrix(timestamp: Optional[int] = None):
+    print(timestamp)
+    return await quality_matrix()
+
+
+@router.get(
     "/quality_matrix/{timestamp}",
     status_code=HTTP_200_OK,
     response_model=List[ColumnOutputModel],
@@ -39,7 +52,7 @@ TAG_STATISTICS = "Statistics"
     description=QUALITY_MATRIX_DESCRIPTION
     + """A timestamp of the format XYZ yields the quality matrix at the respective date.""",
 )
-async def get_quality_matrix(timestamp: Optional[int] = None):
+async def get_past_quality_matrix(timestamp: Optional[int] = None):
     print(timestamp)
     return await quality_matrix()
 
@@ -57,7 +70,7 @@ async def get_quality_matrix(timestamp: Optional[int] = None):
     description="""Return timestamps of the format XYZ of past calculations of the quality matrix.""",
 )
 async def get_timestamps():
-    return [0, 1, 2]
+    return [0, 1651755081, 1652359881]
 
 
 @router.get(
