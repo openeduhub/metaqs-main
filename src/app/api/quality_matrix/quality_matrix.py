@@ -33,14 +33,14 @@ def create_sources_search(aggregation_name: str):
 
 def extract_sources_from_response(
     response: Response, aggregation_name: str
-) -> dict[str:int]:
+) -> dict[str, int]:
     return {
         entry["key"]: entry["doc_count"]
         for entry in response.aggregations.to_dict()[aggregation_name]["buckets"]
     }
 
 
-def all_sources() -> dict[str:int]:
+def all_sources() -> dict[str, int]:
     aggregation_name = "unique_sources"
     s = create_sources_search(aggregation_name)
     response: Response = s.execute()
