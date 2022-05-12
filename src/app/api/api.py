@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
@@ -23,20 +23,41 @@ from app.elastic.elastic import (
 
 router = APIRouter()
 
+QUALITY_MATRIX_DESCRIPTION = """Calculation of the quality matrix.
+    For each replication source and each property, e.g., `cm:creator`, the quality matrix returns the ratio of
+    elements which miss this entry compared to the total number of entries.
+    A missing entry may be `cm:creator = null`."""
+TAG_STATISTICS = "Statistics"
+
 
 @router.get(
-    "/quality_matrix",
+    "/quality_matrix/{timestamp}",
     status_code=HTTP_200_OK,
     response_model=List[ColumnOutputModel],
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
-    tags=["Statistics"],
-    description="""Calculation of the quality matrix.
-    For each replication source and each property, e.g., `cm:creator`, the quality matrix returns the ratio of
-    elements which miss this entry compared to the total number of entries.
-    A missing entry may be `cm:creator = null`.""",
+    tags=[TAG_STATISTICS],
+    description=QUALITY_MATRIX_DESCRIPTION
+    + """A timestamp of the format XYZ yields the quality matrix at the respective date.""",
 )
-async def get_quality_matrix():
+async def get_quality_matrix(timestamp: Optional[int] = None):
+    print(timestamp)
     return await quality_matrix()
+
+
+@router.get(
+    "/quality_matrix_timestamps",
+    status_code=HTTP_200_OK,
+    response_model=List[int],
+    responses={
+        HTTP_404_NOT_FOUND: {
+            "description": "Timestamps of old quality matrix results not determinable"
+        }
+    },
+    tags=[TAG_STATISTICS],
+    description="""Return timestamps of the format XYZ of past calculations of the quality matrix.""",
+)
+async def get_timestamps():
+    return [0, 1, 2]
 
 
 @router.get(
@@ -44,7 +65,7 @@ async def get_quality_matrix():
     response_model=ScoreOutput,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=["Statistics"],
+    tags=[TAG_STATISTICS],
     description=f"""Returns the average ratio of non-empty properties for the chosen collection.
     For certain properties, e.g. `properties.cclom:title`, the ratio of
     elements which miss this entry compared to the total number of entries is calculated.
