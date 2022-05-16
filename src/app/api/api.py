@@ -24,6 +24,11 @@ from app.elastic.elastic import (
     field_names_used_for_score_calculation,
 )
 
+
+def get_database(request: Request) -> Database:
+    return request.app.state._db
+
+
 router = APIRouter()
 
 QUALITY_MATRIX_DESCRIPTION = """Calculation of the quality matrix.
@@ -41,9 +46,8 @@ TAG_STATISTICS = "Statistics"
     tags=[TAG_STATISTICS],
     description=QUALITY_MATRIX_DESCRIPTION,
 )
-async def get_quality_matrix(timestamp: Optional[int] = None):
-    print(timestamp)
-    return await quality_matrix()
+async def get_quality_matrix(database: Database = Depends(get_database)):
+    return await quality_matrix(database)
 
 
 @router.get(
@@ -58,10 +62,6 @@ async def get_quality_matrix(timestamp: Optional[int] = None):
 async def get_past_quality_matrix(timestamp: Optional[int] = None):
     print(timestamp)
     return await quality_matrix()
-
-
-def get_database(request: Request) -> Database:
-    return request.app.state._db
 
 
 @router.get(

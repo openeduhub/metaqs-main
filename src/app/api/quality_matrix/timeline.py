@@ -1,9 +1,11 @@
 import os
-from typing import Any
+from typing import Mapping
 
 from databases import Database
-from sqlalchemy import JSON, Column, Integer, create_engine, select
-from sqlalchemy.orm import as_declarative, declared_attr, sessionmaker
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import sessionmaker
+
+from app.api.quality_matrix.models import Base, QualityMatrix
 
 
 def database_url():
@@ -27,28 +29,19 @@ def session():
     return sessionmaker(autocommit=False, autoflush=False, bind=_engine)
 
 
-@as_declarative()
-class Base:
-    id: Any
-    __name__: str
-
-    @declared_attr
-    def __tablename__(cls) -> str:
-        return cls.__name__.lower()
+def get_timestamp(entry: QualityMatrix) -> int:
+    return entry.timestamp
 
 
-class QualityMatrix(Base):
-    id = Column(Integer, primary_key=True, index=True)
-    timestamp = Column(Integer, nullable=False)
-    quality_matrix = Column(JSON, nullable=False)
+def timestamp_of_db_entry(entries: list[Mapping]):
+    return list(map(get_timestamp, entries))
 
 
 async def timestamps(database: Database):
-    s = select([QualityMatrix.timestamp])
-    result = await database.execute(s)
+    s = select([QualityMatrix])
+    await database.connect()
+    result: list[Mapping] = await database.fetch_all(s)
+
     if result is None:
         return []
-
-    for row in result:
-        print(row)
-    return [0, 1651755081, 1652359881]
+    return timestamp_of_db_entry(result)

@@ -1,5 +1,6 @@
 from typing import Union
 
+from databases import Database
 from elasticsearch_dsl import AttrDict
 from elasticsearch_dsl.response import Response
 
@@ -108,7 +109,11 @@ def missing_fields(
     return {replication_source: missing_fields_ratio(value, total_count)}
 
 
-async def quality_matrix() -> QUALITY_MATRIX_RETURN_TYPE:
+def stored_in_timeline(data: QUALITY_MATRIX_RETURN_TYPE, database: Database):
+    print(data)
+
+
+async def quality_matrix(database: Database) -> QUALITY_MATRIX_RETURN_TYPE:
     properties = get_properties()
     output = {k: {} for k in properties}
     for replication_source, total_count in all_sources().items():
@@ -117,4 +122,6 @@ async def quality_matrix() -> QUALITY_MATRIX_RETURN_TYPE:
             output[key] |= missing_fields(value, total_count, replication_source)
 
     logger.debug(f"Quality matrix output:\n{output}")
-    return api_ready_output(output)
+    output = api_ready_output(output)
+    stored_in_timeline(output, database)
+    return output
