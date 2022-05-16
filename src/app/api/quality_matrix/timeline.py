@@ -1,4 +1,8 @@
 import os
+from typing import Any
+
+from sqlalchemy import JSON, Column, Integer, create_engine, select
+from sqlalchemy.orm import as_declarative, declared_attr, sessionmaker
 
 
 def database_url():
@@ -12,6 +16,35 @@ def database_url():
     return f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DB}"
 
 
+def session():
+    engine = create_engine(database_url())
+    Base.metadata.create_all(bind=engine)
+    return sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+@as_declarative()
+class Base:
+    id: Any
+    __name__: str
+
+    @declared_attr
+    def __tablename__(cls) -> str:
+        return cls.__name__.lower()
+
+
+class QualityMatrix(Base):
+    id = Column(Integer, primary_key=True, index=True)
+    timestamp = Column(Integer, nullable=False)
+    quality_matrix = Column(JSON, nullable=False)
+
+
 def timestamps():
-    print(database_url())
+    print("timestamps")
+    with session() as conn:
+        print(f"running conn {conn}")
+        s = select()
+        print(f"running session {s}")
+        result = conn.execute(s)
+        for row in result:
+            print(row)
     return [0, 1651755081, 1652359881]
