@@ -1,7 +1,7 @@
 from typing import Any
 
 from pydantic import BaseModel, Field
-from sqlalchemy import JSON, Column, Integer
+from sqlalchemy import JSON, Column, Integer, MetaData, Table
 from sqlalchemy.orm import as_declarative, declared_attr
 
 
@@ -20,6 +20,16 @@ class Base:
     @declared_attr
     def __tablename__(cls) -> str:
         return cls.__name__.lower()
+
+
+def timeline_table(meta: MetaData):
+    return Table(
+        "timeline",
+        meta,
+        Column("id", Integer),
+        Column("timestamp", Integer),
+        Column("quality_matrix", JSON),
+    )
 
 
 class Timeline(Base):

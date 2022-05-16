@@ -1,9 +1,11 @@
+from datetime import datetime
 from typing import Union
 
 from databases import Database
 from elasticsearch_dsl import AttrDict
 from elasticsearch_dsl.response import Response
 
+from app.api.quality_matrix.timeline import get_table
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import PROPERTIES, REPLICATION_SOURCE_ID
 from app.core.logging import logger
@@ -109,8 +111,13 @@ def missing_fields(
     return {replication_source: missing_fields_ratio(value, total_count)}
 
 
-def stored_in_timeline(data: QUALITY_MATRIX_RETURN_TYPE, database: Database):
-    print(data)
+async def stored_in_timeline(data: QUALITY_MATRIX_RETURN_TYPE, database: Database):
+    # TODO: use database for connection
+    engine, timeline_table = await get_table()
+    insert_statement = timeline_table.insert().values(
+        timestamp=datetime.now().timestamp(), quality_matrix=data
+    )
+    engine.connect().execute(insert_statement)
 
 
 async def quality_matrix(database: Database) -> QUALITY_MATRIX_RETURN_TYPE:
@@ -123,5 +130,5 @@ async def quality_matrix(database: Database) -> QUALITY_MATRIX_RETURN_TYPE:
 
     logger.debug(f"Quality matrix output:\n{output}")
     output = api_ready_output(output)
-    stored_in_timeline(output, database)
+    await stored_in_timeline(output, database)
     return output

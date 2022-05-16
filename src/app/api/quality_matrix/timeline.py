@@ -2,18 +2,9 @@ import os
 from typing import Mapping
 
 from databases import Database
-from sqlalchemy import (
-    JSON,
-    Column,
-    Integer,
-    MetaData,
-    Table,
-    create_engine,
-    inspect,
-    select,
-)
+from sqlalchemy import MetaData, create_engine, inspect, select
 
-from app.api.quality_matrix.models import Timeline
+from app.api.quality_matrix.models import Timeline, timeline_table
 
 
 def database_url():
@@ -55,14 +46,13 @@ async def has_table(name: str):
 
 
 async def create_timeline_table():
+    engine, table = await get_table()
+    with engine.connect():
+        table.create()
+
+
+async def get_table():
     engine = create_engine(database_url())
     meta = MetaData(engine)
-    timeline_table = Table(
-        "timeline",
-        meta,
-        Column("id", Integer),
-        Column("timestamp", Integer),
-        Column("quality_matrix", JSON),
-    )
-    with engine.connect():
-        timeline_table.create()
+    table = timeline_table(meta)
+    return engine, table
