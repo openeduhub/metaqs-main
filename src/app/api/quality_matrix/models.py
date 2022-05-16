@@ -22,7 +22,7 @@ class Base:
         return cls.__name__.lower()
 
 
-class QualityMatrix(Base):
+class Timeline(Base):
     id = Column(Integer, primary_key=True, index=True)
     timestamp = Column(Integer, nullable=False)
     quality_matrix = Column(JSON, nullable=False)
