@@ -1,13 +1,15 @@
-from typing import List, Optional
+import json
+from typing import List, Mapping, Optional
 from uuid import UUID
 
 from databases import Database
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
+from sqlalchemy import select
 from starlette.requests import Request
 from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 
-from app.api.quality_matrix.models import ColumnOutputModel
+from app.api.quality_matrix.models import ColumnOutputModel, Timeline
 from app.api.quality_matrix.quality_matrix import quality_matrix
 from app.api.quality_matrix.timeline import timestamps
 from app.api.score.models import ScoreOutput
@@ -50,6 +52,11 @@ async def get_quality_matrix(database: Database = Depends(get_database)):
     return await quality_matrix(database)
 
 
+def match_timestamps(entry: Mapping, timestamp: int):
+    print(entry, timestamp)
+    return 1 if entry[0].timestamp == entry[1] else 0
+
+
 @router.get(
     "/quality_matrix/{timestamp}",
     status_code=HTTP_200_OK,
@@ -59,9 +66,23 @@ async def get_quality_matrix(database: Database = Depends(get_database)):
     description=QUALITY_MATRIX_DESCRIPTION
     + """A timestamp of the format XYZ yields the quality matrix at the respective date.""",
 )
-async def get_past_quality_matrix(timestamp: Optional[int] = None):
+async def get_past_quality_matrix(
+    timestamp: Optional[int] = None, database: Database = Depends(get_database)
+):
     print(timestamp)
-    return await quality_matrix()
+    s = select([Timeline])
+    await database.connect()
+    result: list[Mapping] = await database.fetch_all(s)
+
+    if result is None:
+        raise HTTPException(status_code=404, detail="Item not found")
+    print(f"results: {result}")
+    # TODO: functional with map?
+    for entry in result:
+        print(entry)
+        if entry.timestamp == timestamp:
+            output = json.loads(entry.quality_matrix)
+            return output
 
 
 @router.get(
