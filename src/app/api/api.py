@@ -1,8 +1,10 @@
 from typing import List, Optional
 from uuid import UUID
 
+from databases import Database
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
+from starlette.requests import Request
 from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 
 from app.api.quality_matrix.models import ColumnOutputModel
@@ -58,6 +60,10 @@ async def get_past_quality_matrix(timestamp: Optional[int] = None):
     return await quality_matrix()
 
 
+def get_database(request: Request) -> Database:
+    return request.app.state._db
+
+
 @router.get(
     "/quality_matrix_timestamps",
     status_code=HTTP_200_OK,
@@ -70,8 +76,8 @@ async def get_past_quality_matrix(timestamp: Optional[int] = None):
     tags=[TAG_STATISTICS],
     description="""Return timestamps of the format XYZ of past calculations of the quality matrix.""",
 )
-async def get_timestamps():
-    return timestamps()
+async def get_timestamps(database: Database = Depends(get_database)):
+    return await timestamps(database)
 
 
 @router.get(

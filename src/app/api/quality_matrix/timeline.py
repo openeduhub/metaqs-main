@@ -1,6 +1,7 @@
 import os
 from typing import Any
 
+from databases import Database
 from sqlalchemy import JSON, Column, Integer, create_engine, select
 from sqlalchemy.orm import as_declarative, declared_attr, sessionmaker
 
@@ -42,10 +43,12 @@ class QualityMatrix(Base):
     quality_matrix = Column(JSON, nullable=False)
 
 
-def timestamps():
-    conn = engine().connect()
-    s = select()
-    result = conn.execute(s)
+async def timestamps(database: Database):
+    s = select([QualityMatrix.timestamp])
+    result = await database.execute(s)
+    if result is None:
+        return []
+
     for row in result:
         print(row)
     return [0, 1651755081, 1652359881]
