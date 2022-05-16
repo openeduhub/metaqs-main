@@ -16,10 +16,14 @@ def database_url():
     return f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DB}"
 
 
+def engine():
+    return create_engine(database_url())
+
+
 def session():
-    engine = create_engine(database_url())
-    Base.metadata.create_all(bind=engine)
-    return sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    _engine = engine()
+    Base.metadata.create_all(bind=_engine)
+    return sessionmaker(autocommit=False, autoflush=False, bind=_engine)
 
 
 @as_declarative()
@@ -39,12 +43,9 @@ class QualityMatrix(Base):
 
 
 def timestamps():
-    print("timestamps")
-    with session() as conn:
-        print(f"running conn {conn}")
-        s = select()
-        print(f"running session {s}")
-        result = conn.execute(s)
-        for row in result:
-            print(row)
+    conn = engine().connect()
+    s = select()
+    result = conn.execute(s)
+    for row in result:
+        print(row)
     return [0, 1651755081, 1652359881]
