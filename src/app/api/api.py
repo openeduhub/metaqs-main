@@ -7,6 +7,7 @@ from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 
 from app.api.quality_matrix.models import ColumnOutputModel
 from app.api.quality_matrix.quality_matrix import quality_matrix
+from app.api.quality_matrix.timeline import timestamps
 from app.api.score.models import ScoreOutput
 from app.api.score.score import (
     calc_scores,
@@ -70,7 +71,7 @@ async def get_past_quality_matrix(timestamp: Optional[int] = None):
     description="""Return timestamps of the format XYZ of past calculations of the quality matrix.""",
 )
 async def get_timestamps():
-    return [0, 1651755081, 1652359881]
+    return timestamps()
 
 
 @router.get(
