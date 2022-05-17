@@ -4,6 +4,7 @@ from uuid import UUID
 
 from databases import Database
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi_utils.tasks import repeat_every
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from starlette.requests import Request
@@ -19,6 +20,7 @@ from app.api.score.score import (
     collection_id_param,
     query_score,
 )
+from app.core.logging import logger
 from app.elastic.elastic import (
     ResourceType,
     aggs_collection_validation,
@@ -40,6 +42,11 @@ QUALITY_MATRIX_DESCRIPTION = """Calculation of the quality matrix.
 TAG_STATISTICS = "Statistics"
 
 
+# database_uri = f"sqlite:///./test.db?check_same_thread=False"
+# sessionmaker = FastAPISessionMaker(database_uri)
+
+
+@repeat_every(seconds=60, logger=logger)
 @router.get(
     "/quality_matrix",
     status_code=HTTP_200_OK,
@@ -49,6 +56,7 @@ TAG_STATISTICS = "Statistics"
     description=QUALITY_MATRIX_DESCRIPTION,
 )
 async def get_quality_matrix(database: Database = Depends(get_database)):
+    print("calling quality matrix")
     return await quality_matrix(database)
 
 
