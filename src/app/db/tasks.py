@@ -1,8 +1,8 @@
 from databases import Database
 from fastapi import FastAPI
 
-from app.api.quality_matrix.timeline import database_url
 from app.core.logging import logger
+from app.db.core import database_url
 
 
 async def connect_to_db(app: FastAPI) -> None:

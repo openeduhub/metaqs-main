@@ -6,10 +6,10 @@ from elasticsearch_dsl import AttrDict
 from elasticsearch_dsl.response import Response
 from fastapi import HTTPException
 
-from app.api.quality_matrix.timeline import create_timeline_table, get_table, has_table
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import PROPERTIES, REPLICATION_SOURCE_ID
 from app.core.logging import logger
+from app.db.core import create_timeline_table, get_table, has_table
 from app.elastic.dsl import qbool, qmatch
 from app.elastic.elastic import base_match_filter
 from app.elastic.search import Search
