@@ -22,7 +22,7 @@ class Base:
         return cls.__name__.lower()
 
 
-def timeline_table(meta: MetaData):
+def timeline_table(meta: MetaData) -> Table:
     return Table(
         "timeline",
         meta,

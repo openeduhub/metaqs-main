@@ -4,6 +4,7 @@ from typing import Union
 from databases import Database
 from elasticsearch_dsl import AttrDict
 from elasticsearch_dsl.response import Response
+from fastapi import HTTPException
 
 from app.api.quality_matrix.timeline import create_timeline_table, get_table, has_table
 from app.core.config import ELASTIC_TOTAL_SIZE
@@ -262,16 +263,18 @@ def missing_fields(
 
 
 async def stored_in_timeline(data: QUALITY_MATRIX_RETURN_TYPE, database: Database):
-    # TODO: use database for connection
-
     if not await has_table("timeline"):
         await create_timeline_table()
 
-    engine, timeline_table = await get_table()
+    _, timeline_table = await get_table()
     insert_statement = timeline_table.insert().values(
         timestamp=datetime.now().timestamp(), quality_matrix=data
     )
-    engine.connect().execute(insert_statement)
+
+    await database.connect()
+    result = await database.fetch_all(insert_statement)
+    if result is None:
+        raise HTTPException(status_code=500, detail="Could not save to database")
 
 
 async def quality_matrix() -> QUALITY_MATRIX_RETURN_TYPE:
