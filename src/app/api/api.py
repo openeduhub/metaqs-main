@@ -20,7 +20,6 @@ from app.api.score.score import (
     collection_id_param,
     query_score,
 )
-from app.core.logging import logger
 from app.elastic.elastic import (
     ResourceType,
     aggs_collection_validation,
@@ -42,11 +41,6 @@ QUALITY_MATRIX_DESCRIPTION = """Calculation of the quality matrix.
 TAG_STATISTICS = "Statistics"
 
 
-# database_uri = f"sqlite:///./test.db?check_same_thread=False"
-# sessionmaker = FastAPISessionMaker(database_uri)
-
-
-@repeat_every(seconds=60, logger=logger)
 @router.get(
     "/quality_matrix",
     status_code=HTTP_200_OK,
@@ -56,7 +50,7 @@ TAG_STATISTICS = "Statistics"
     description=QUALITY_MATRIX_DESCRIPTION,
 )
 async def get_quality_matrix(
-    database: Database = Depends(get_database), store_to_db=False
+        database: Database = Depends(get_database), store_to_db=False
 ):
     _quality_matrix = await quality_matrix()
     if store_to_db:
@@ -71,10 +65,10 @@ async def get_quality_matrix(
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[TAG_STATISTICS],
     description=QUALITY_MATRIX_DESCRIPTION
-    + """A timestamp of the format XYZ yields the quality matrix at the respective date.""",
+                + """A timestamp of the format XYZ yields the quality matrix at the respective date.""",
 )
 async def get_past_quality_matrix(
-    timestamp: Optional[int] = None, database: Database = Depends(get_database)
+        timestamp: Optional[int] = None, database: Database = Depends(get_database)
 ):
     s = select([Timeline]).where(Timeline.timestamp == timestamp)
     await database.connect()
