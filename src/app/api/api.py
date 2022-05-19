@@ -11,7 +11,7 @@ from starlette.requests import Request
 from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 
 from app.api.quality_matrix.models import ColumnOutputModel, Timeline
-from app.api.quality_matrix.quality_matrix import quality_matrix
+from app.api.quality_matrix.quality_matrix import quality_matrix, stored_in_timeline
 from app.api.quality_matrix.timeline import timestamps
 from app.api.score.models import ScoreOutput
 from app.api.score.score import (
@@ -55,14 +55,13 @@ TAG_STATISTICS = "Statistics"
     tags=[TAG_STATISTICS],
     description=QUALITY_MATRIX_DESCRIPTION,
 )
-async def get_quality_matrix(database: Database = Depends(get_database)):
-    print("calling quality matrix")
-    return await quality_matrix(database)
-
-
-def match_timestamps(entry: Mapping, timestamp: int):
-    print(entry, timestamp)
-    return 1 if entry[0].timestamp == entry[1] else 0
+async def get_quality_matrix(
+    database: Database = Depends(get_database), store_to_db=False
+):
+    _quality_matrix = await quality_matrix()
+    if store_to_db:
+        await stored_in_timeline(_quality_matrix, database)
+    return _quality_matrix
 
 
 @router.get(

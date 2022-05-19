@@ -292,7 +292,7 @@ async def stored_in_timeline(data: QUALITY_MATRIX_RETURN_TYPE, database: Databas
     engine.connect().execute(insert_statement)
 
 
-async def quality_matrix(database: Database) -> QUALITY_MATRIX_RETURN_TYPE:
+async def quality_matrix() -> QUALITY_MATRIX_RETURN_TYPE:
     with open("test_response.json") as test_file:
         output = json.loads(test_file.readlines()[0])
 
@@ -306,5 +306,4 @@ async def quality_matrix(database: Database) -> QUALITY_MATRIX_RETURN_TYPE:
 
         logger.debug(f"Quality matrix output:\n{output}")
         output = api_ready_output(output)
-    # await stored_in_timeline(output, database)
     return output
