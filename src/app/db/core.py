@@ -7,20 +7,18 @@ from app.api.quality_matrix.models import timeline_table
 
 
 def database_url():
-    POSTGRES_USER: str = os.getenv("POSTGRES_USER")
-    POSTGRES_PASSWORD = quote(os.getenv("POSTGRES_PASSWORD"))
-    POSTGRES_SERVER: str = os.getenv("POSTGRES_SERVER", "localhost")
-    POSTGRES_PORT: str = os.getenv(
-        "POSTGRES_PORT", 5432
-    )  # default postgres port is 5432
-    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "tdd")
-    return f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DB}"
+    postgres_user: str = os.getenv("POSTGRES_USER")
+    postgres_password = quote(os.getenv("POSTGRES_PASSWORD"))
+    postgres_server: str = os.getenv("POSTGRES_SERVER", "localhost")
+    postgres_port: str = os.getenv("POSTGRES_PORT", 5432)
+    postgres_db: str = os.getenv("POSTGRES_DB")
+    return f"postgresql://{postgres_user}:{postgres_password}@{postgres_server}:{postgres_port}/{postgres_db}"
 
 
 async def has_table(name: str):
     engine = create_engine(database_url())
-    ins = inspect(engine)
-    return ins.dialect.has_table(engine.connect(), name)
+    inspection = inspect(engine)
+    return inspection.dialect.has_table(engine.connect(), name)
 
 
 async def get_table():

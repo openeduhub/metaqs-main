@@ -6,9 +6,7 @@ from app.db.core import database_url
 
 
 async def connect_to_db(app: FastAPI) -> None:
-    database = Database(
-        database_url(), min_size=2, max_size=10
-    )  # these can be configured in config as well
+    database = Database(database_url(), min_size=2, max_size=10)
 
     try:
         await database.connect()

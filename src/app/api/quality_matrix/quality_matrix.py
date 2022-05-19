@@ -286,5 +286,4 @@ async def quality_matrix() -> QUALITY_MATRIX_RETURN_TYPE:
             output[key] |= missing_fields(value, total_count, replication_source)
 
     logger.debug(f"Quality matrix output:\n{output}")
-    output = api_ready_output(output)
-    return output
+    return api_ready_output(output)
