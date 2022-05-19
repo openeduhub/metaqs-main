@@ -4,7 +4,6 @@ from uuid import UUID
 
 from databases import Database
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi_utils.tasks import repeat_every
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from starlette.requests import Request
@@ -37,7 +36,9 @@ router = APIRouter()
 QUALITY_MATRIX_DESCRIPTION = """Calculation of the quality matrix.
     For each replication source and each property, e.g., `cm:creator`, the quality matrix returns the ratio of
     elements which miss this entry compared to the total number of entries.
-    A missing entry may be `cm:creator = null`."""
+    A missing entry may be `cm:creator = null`.
+    Additional parameters:
+        store_to_db: Default False. Causes returned quality matrix to also be stored in the backend database."""
 TAG_STATISTICS = "Statistics"
 
 
@@ -50,7 +51,7 @@ TAG_STATISTICS = "Statistics"
     description=QUALITY_MATRIX_DESCRIPTION,
 )
 async def get_quality_matrix(
-        database: Database = Depends(get_database), store_to_db=False
+    database: Database = Depends(get_database), store_to_db=False
 ):
     _quality_matrix = await quality_matrix()
     if store_to_db:
@@ -65,10 +66,10 @@ async def get_quality_matrix(
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[TAG_STATISTICS],
     description=QUALITY_MATRIX_DESCRIPTION
-                + """A timestamp of the format XYZ yields the quality matrix at the respective date.""",
+    + """A timestamp of the format XYZ yields the quality matrix at the respective date.""",
 )
 async def get_past_quality_matrix(
-        timestamp: Optional[int] = None, database: Database = Depends(get_database)
+    timestamp: Optional[int] = None, database: Database = Depends(get_database)
 ):
     s = select([Timeline]).where(Timeline.timestamp == timestamp)
     await database.connect()

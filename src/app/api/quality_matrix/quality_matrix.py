@@ -1,4 +1,3 @@
-import json
 from datetime import datetime
 from typing import Union
 
@@ -293,17 +292,13 @@ async def stored_in_timeline(data: QUALITY_MATRIX_RETURN_TYPE, database: Databas
 
 
 async def quality_matrix() -> QUALITY_MATRIX_RETURN_TYPE:
-    with open("test_response.json") as test_file:
-        output = json.loads(test_file.readlines()[0])
+    properties = get_properties()
+    output = {k: {} for k in properties}
+    for replication_source, total_count in all_sources().items():
+        response = all_missing_properties(properties, replication_source)
+        for key, value in response.aggregations.to_dict().items():
+            output[key] |= missing_fields(value, total_count, replication_source)
 
-    if False:
-        properties = get_properties()
-        output = {k: {} for k in properties}
-        for replication_source, total_count in all_sources().items():
-            response = all_missing_properties(properties, replication_source)
-            for key, value in response.aggregations.to_dict().items():
-                output[key] |= missing_fields(value, total_count, replication_source)
-
-        logger.debug(f"Quality matrix output:\n{output}")
-        output = api_ready_output(output)
+    logger.debug(f"Quality matrix output:\n{output}")
+    output = api_ready_output(output)
     return output
