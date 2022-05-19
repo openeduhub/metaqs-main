@@ -71,9 +71,12 @@ async def get_quality_matrix(
 async def get_past_quality_matrix(
     timestamp: Optional[int] = None, database: Database = Depends(get_database)
 ):
+    if not timestamp:
+        return []
+
     s = select([Timeline]).where(Timeline.timestamp == timestamp)
     await database.connect()
-    result: list[Mapping] = await database.fetch_all(s)
+    result: list[Mapping[Timeline]] = await database.fetch_all(s)
 
     if result is None:
         raise HTTPException(status_code=404, detail="Item not found")
