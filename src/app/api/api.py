@@ -77,20 +77,15 @@ def match_timestamps(entry: Mapping, timestamp: int):
 async def get_past_quality_matrix(
     timestamp: Optional[int] = None, database: Database = Depends(get_database)
 ):
-    print(timestamp)
-    s = select([Timeline])
+    s = select([Timeline]).where(Timeline.timestamp == timestamp)
     await database.connect()
     result: list[Mapping] = await database.fetch_all(s)
 
     if result is None:
         raise HTTPException(status_code=404, detail="Item not found")
-    print(f"results: {result}")
-    # TODO: functional with map?
-    for entry in result:
-        print(entry)
-        if entry.timestamp == timestamp:
-            output = json.loads(entry.quality_matrix)
-            return output
+    elif len(result) > 1:
+        raise HTTPException(status_code=500, detail="More than one item found")
+    return json.loads(result[0].quality_matrix)
 
 
 @router.get(

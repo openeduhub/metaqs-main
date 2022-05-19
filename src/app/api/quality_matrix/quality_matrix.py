@@ -306,5 +306,5 @@ async def quality_matrix(database: Database) -> QUALITY_MATRIX_RETURN_TYPE:
 
         logger.debug(f"Quality matrix output:\n{output}")
         output = api_ready_output(output)
-    await stored_in_timeline(output, database)
+    # await stored_in_timeline(output, database)
     return output

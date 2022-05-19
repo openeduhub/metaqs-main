@@ -19,25 +19,17 @@ def database_url():
     return f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DB}"
 
 
-def get_timestamp(entry: Timeline) -> int:
-    return entry.timestamp
-
-
-def timestamp_of_db_entry(entries: list[Mapping]):
-    return list(map(get_timestamp, entries))
-
-
 async def timestamps(database: Database):
     if not await has_table("timeline"):
         await create_timeline_table()
 
-    s = select([Timeline])
+    s = select([Timeline.timestamp])
     await database.connect()
     result: list[Mapping] = await database.fetch_all(s)
 
     if result is None:
         return []
-    return timestamp_of_db_entry(result)
+    return [entry.timestamp for entry in result]
 
 
 async def has_table(name: str):
