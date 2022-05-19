@@ -6,7 +6,7 @@ from databases import Database
 from elasticsearch_dsl import AttrDict
 from elasticsearch_dsl.response import Response
 
-from app.api.quality_matrix.timeline import get_table
+from app.api.quality_matrix.timeline import create_timeline_table, get_table, has_table
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import PROPERTIES, REPLICATION_SOURCE_ID
 from app.core.logging import logger
@@ -281,6 +281,10 @@ def missing_fields(
 
 async def stored_in_timeline(data: QUALITY_MATRIX_RETURN_TYPE, database: Database):
     # TODO: use database for connection
+
+    if not await has_table("timeline"):
+        await create_timeline_table()
+
     engine, timeline_table = await get_table()
     insert_statement = timeline_table.insert().values(
         timestamp=datetime.now().timestamp(), quality_matrix=data
