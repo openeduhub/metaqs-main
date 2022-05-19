@@ -1,5 +1,6 @@
 import os
 from typing import Mapping
+from urllib.parse import quote
 
 from databases import Database
 from sqlalchemy import MetaData, create_engine, inspect, select
@@ -9,7 +10,7 @@ from app.api.quality_matrix.models import Timeline, timeline_table
 
 def database_url():
     POSTGRES_USER: str = os.getenv("POSTGRES_USER")
-    POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+    POSTGRES_PASSWORD = quote(os.getenv("POSTGRES_PASSWORD"))
     POSTGRES_SERVER: str = os.getenv("POSTGRES_SERVER", "localhost")
     POSTGRES_PORT: str = os.getenv(
         "POSTGRES_PORT", 5432
