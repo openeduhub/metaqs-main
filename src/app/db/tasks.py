@@ -1,6 +1,7 @@
 from databases import Database
 from fastapi import FastAPI
 
+from app.api.quality_matrix.models import Timeline
 from app.core.logging import logger
 from app.db.core import create_timeline_table, database_url, has_table
 
@@ -14,7 +15,7 @@ async def connect_to_db(app: FastAPI) -> None:
     except Exception as e:
         logger.warning(e)
 
-    if not await has_table("timeline"):
+    if not await has_table(Timeline.__tablename__):
         await create_timeline_table()
 
 

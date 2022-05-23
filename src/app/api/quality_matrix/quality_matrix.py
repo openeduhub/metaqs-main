@@ -1,15 +1,15 @@
 from datetime import datetime
 from typing import Union
 
+import sqlalchemy
 from databases import Database
 from elasticsearch_dsl import AttrDict
 from elasticsearch_dsl.response import Response
-from fastapi import HTTPException
 
+from app.api.quality_matrix.models import Timeline
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import PROPERTIES, REPLICATION_SOURCE_ID
 from app.core.logging import logger
-from app.db.core import get_table
 from app.elastic.dsl import qbool, qmatch
 from app.elastic.elastic import base_match_filter
 from app.elastic.search import Search
@@ -263,15 +263,12 @@ def missing_fields(
 
 
 async def stored_in_timeline(data: QUALITY_MATRIX_RETURN_TYPE, database: Database):
-    _, timeline_table = await get_table()
-    insert_statement = timeline_table.insert().values(
-        timestamp=datetime.now().timestamp(), quality_matrix=data
-    )
-
     await database.connect()
-    result = await database.fetch_all(insert_statement)
-    if result is None:
-        raise HTTPException(status_code=500, detail="Could not save to database")
+    await database.execute(
+        sqlalchemy.insert(Timeline).values(
+            {"timestamp": datetime.now().timestamp(), "quality_matrix": data}
+        )
+    )
 
 
 async def quality_matrix() -> QUALITY_MATRIX_RETURN_TYPE:

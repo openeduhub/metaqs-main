@@ -1,9 +1,9 @@
 import os
 from urllib.parse import quote
 
-from sqlalchemy import MetaData, create_engine, inspect
+from sqlalchemy import create_engine, inspect
 
-from app.api.quality_matrix.models import timeline_table
+from app.api.quality_matrix.models import Timeline
 
 
 def database_url():
@@ -21,14 +21,7 @@ async def has_table(name: str):
     return inspection.dialect.has_table(engine.connect(), name)
 
 
-async def get_table():
-    engine = create_engine(database_url())
-    meta = MetaData(engine)
-    table = timeline_table(meta)
-    return engine, table
-
-
 async def create_timeline_table():
-    engine, table = await get_table()
+    engine = create_engine(database_url())
     with engine.connect():
-        table.create()
+        Timeline.create()
