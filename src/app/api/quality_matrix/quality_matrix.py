@@ -9,7 +9,7 @@ from fastapi import HTTPException
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import PROPERTIES, REPLICATION_SOURCE_ID
 from app.core.logging import logger
-from app.db.core import create_timeline_table, get_table, has_table
+from app.db.core import get_table
 from app.elastic.dsl import qbool, qmatch
 from app.elastic.elastic import base_match_filter
 from app.elastic.search import Search
@@ -263,9 +263,6 @@ def missing_fields(
 
 
 async def stored_in_timeline(data: QUALITY_MATRIX_RETURN_TYPE, database: Database):
-    if not await has_table("timeline"):
-        await create_timeline_table()
-
     _, timeline_table = await get_table()
     insert_statement = timeline_table.insert().values(
         timestamp=datetime.now().timestamp(), quality_matrix=data

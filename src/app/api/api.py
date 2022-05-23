@@ -1,5 +1,5 @@
 import json
-from typing import List, Mapping, Optional
+from typing import List, Mapping
 from uuid import UUID
 
 from databases import Database
@@ -66,19 +66,19 @@ async def get_quality_matrix(
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[TAG_STATISTICS],
     description=QUALITY_MATRIX_DESCRIPTION
-    + """A timestamp of the format XYZ yields the quality matrix at the respective date.""",
+    + """An unix timestamp in integer seconds since epoch yields the quality matrix at the respective date.""",
 )
 async def get_past_quality_matrix(
-    timestamp: Optional[int] = None, database: Database = Depends(get_database)
+    timestamp: int, database: Database = Depends(get_database)
 ):
     if not timestamp:
-        return []
+        raise HTTPException(status_code=400, detail="Invalid or no timestamp given")
 
     s = select([Timeline]).where(Timeline.timestamp == timestamp)
     await database.connect()
     result: list[Mapping[Timeline]] = await database.fetch_all(s)
 
-    if result is None:
+    if len(result) == 0:
         raise HTTPException(status_code=404, detail="Item not found")
     elif len(result) > 1:
         raise HTTPException(status_code=500, detail="More than one item found")

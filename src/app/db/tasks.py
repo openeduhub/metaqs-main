@@ -2,7 +2,7 @@ from databases import Database
 from fastapi import FastAPI
 
 from app.core.logging import logger
-from app.db.core import database_url
+from app.db.core import create_timeline_table, database_url, has_table
 
 
 async def connect_to_db(app: FastAPI) -> None:
@@ -13,6 +13,9 @@ async def connect_to_db(app: FastAPI) -> None:
         app.state._db = database
     except Exception as e:
         logger.warning(e)
+
+    if not await has_table("timeline"):
+        await create_timeline_table()
 
 
 async def close_db_connection(app: FastAPI) -> None:
