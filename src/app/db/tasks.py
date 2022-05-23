@@ -12,8 +12,10 @@ async def connect_to_db(app: FastAPI) -> None:
     try:
         await database.connect()
         app.state._db = database
-    except Exception as e:
-        logger.warning(e)
+    except Exception:
+        logger.exception()
+
+    await database.disconnect()
 
     if not await has_table(Timeline.__tablename__):
         await create_timeline_table()
@@ -22,5 +24,5 @@ async def connect_to_db(app: FastAPI) -> None:
 async def close_db_connection(app: FastAPI) -> None:
     try:
         await app.state._db.disconnect()
-    except Exception as e:
-        logger.warning(e)
+    except Exception:
+        logger.exception()

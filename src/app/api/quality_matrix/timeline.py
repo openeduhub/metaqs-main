@@ -10,5 +10,6 @@ async def timestamps(database: Database):
     s = select([Timeline.timestamp])
     await database.connect()
     result: list[Mapping] = await database.fetch_all(s)
+    await database.disconnect()
 
     return [entry.timestamp for entry in result]

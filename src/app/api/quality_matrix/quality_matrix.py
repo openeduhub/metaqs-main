@@ -269,6 +269,7 @@ async def stored_in_timeline(data: QUALITY_MATRIX_RETURN_TYPE, database: Databas
             {"timestamp": datetime.now().timestamp(), "quality_matrix": data}
         )
     )
+    await database.disconnect()
 
 
 async def quality_matrix() -> QUALITY_MATRIX_RETURN_TYPE:
