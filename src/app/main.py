@@ -33,8 +33,8 @@ def api() -> FastAPI:
     _api.add_middleware(RawContextMiddleware)
 
     _api.add_event_handler("startup", connect_to_elastic)
-    _api.add_event_handler("startup", create_start_app_handler(_api))
-    _api.add_event_handler("shutdown", create_stop_app_handler(_api))
+    # _api.add_event_handler("startup", create_start_app_handler(_api))
+    # _api.add_event_handler("shutdown", create_stop_app_handler(_api))
 
     _api.add_exception_handler(HTTPException, http_error_handler)
     _api.add_exception_handler(HTTP_422_UNPROCESSABLE_ENTITY, http_422_error_handler)

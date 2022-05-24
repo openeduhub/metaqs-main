@@ -8,8 +8,6 @@ from app.db.core import create_timeline_table, database_url, has_table
 
 async def connect_to_db(app: FastAPI) -> None:
     database = Database(database_url(), min_size=2, max_size=10)
-    print(database_url())
-    logger.info(database_url())
 
     try:
         await database.connect()
