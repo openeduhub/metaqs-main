@@ -2,12 +2,9 @@ import os
 
 from starlette.datastructures import CommaSeparatedStrings
 
-from app.core.logging import logger
-
 API_PORT = 8081
 
 ROOT_PATH = os.getenv("ROOT_PATH", "")
-logger.info(f"Root path: {ROOT_PATH}")
 API_DEBUG = False  # os.getenv("LOG_LEVEL", "").strip().lower() == "debug"
 ALLOWED_HOSTS = CommaSeparatedStrings(os.getenv("ALLOWED_HOSTS", "*"))
 LOG_LEVEL = os.getenv("LOG_LEVEL")
