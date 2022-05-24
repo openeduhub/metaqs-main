@@ -30,3 +30,10 @@ After these steps the output from docker ps should be similar to the following::
 Recovery::
 
     docker-compose up -d --no-deps --force-recreate api
+
+Quality Matrix Timeline Cron Job
+--------------------------------
+
+Set up the crontab on your machine according to the file::
+
+    scripts/crontab

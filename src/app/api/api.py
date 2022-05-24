@@ -1,12 +1,17 @@
-from typing import List
+import json
+from typing import List, Mapping
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from databases import Database
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
+from sqlalchemy import select
+from starlette.requests import Request
 from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 
-from app.api.quality_matrix.models import ColumnOutputModel
-from app.api.quality_matrix.quality_matrix import quality_matrix
+from app.api.quality_matrix.models import ColumnOutputModel, Timeline
+from app.api.quality_matrix.quality_matrix import quality_matrix, stored_in_timeline
+from app.api.quality_matrix.timeline import timestamps
 from app.api.score.models import ScoreOutput
 from app.api.score.score import (
     calc_scores,
@@ -21,7 +26,20 @@ from app.elastic.elastic import (
     field_names_used_for_score_calculation,
 )
 
+
+def get_database(request: Request) -> Database:
+    return request.app.state._db
+
+
 router = APIRouter()
+
+QUALITY_MATRIX_DESCRIPTION = """Calculation of the quality matrix.
+    For each replication source and each property, e.g., `cm:creator`, the quality matrix returns the ratio of
+    elements which miss this entry compared to the total number of entries.
+    A missing entry may be `cm:creator = null`.
+    Additional parameters:
+        store_to_db: Default False. Causes returned quality matrix to also be stored in the backend database."""
+TAG_STATISTICS = "Statistics"
 
 
 @router.get(
@@ -29,14 +47,59 @@ router = APIRouter()
     status_code=HTTP_200_OK,
     response_model=List[ColumnOutputModel],
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
-    tags=["Statistics"],
-    description="""Calculation of the quality matrix.
-    For each replication source and each property, e.g., `cm:creator`, the quality matrix returns the ratio of
-    elements which miss this entry compared to the total number of entries.
-    A missing entry may be `cm:creator = null`.""",
+    tags=[TAG_STATISTICS],
+    description=QUALITY_MATRIX_DESCRIPTION,
 )
-async def get_quality_matrix():
-    return await quality_matrix()
+async def get_quality_matrix(
+    database: Database = Depends(get_database), store_to_db=False
+):
+    _quality_matrix = await quality_matrix()
+    if store_to_db:
+        await stored_in_timeline(_quality_matrix, database)
+    return _quality_matrix
+
+
+@router.get(
+    "/quality_matrix/{timestamp}",
+    status_code=HTTP_200_OK,
+    response_model=List[ColumnOutputModel],
+    responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
+    tags=[TAG_STATISTICS],
+    description=QUALITY_MATRIX_DESCRIPTION
+    + """An unix timestamp in integer seconds since epoch yields the quality matrix at the respective date.""",
+)
+async def get_past_quality_matrix(
+    timestamp: int, database: Database = Depends(get_database)
+):
+    if not timestamp:
+        raise HTTPException(status_code=400, detail="Invalid or no timestamp given")
+
+    s = select([Timeline]).where(Timeline.timestamp == timestamp)
+    await database.connect()
+    result: list[Mapping[Timeline]] = await database.fetch_all(s)
+    await database.disconnect()
+
+    if len(result) == 0:
+        raise HTTPException(status_code=404, detail="Item not found")
+    elif len(result) > 1:
+        raise HTTPException(status_code=500, detail="More than one item found")
+    return json.loads(result[0].quality_matrix)
+
+
+@router.get(
+    "/quality_matrix_timestamps",
+    status_code=HTTP_200_OK,
+    response_model=List[int],
+    responses={
+        HTTP_404_NOT_FOUND: {
+            "description": "Timestamps of old quality matrix results not determinable"
+        }
+    },
+    tags=[TAG_STATISTICS],
+    description="""Return timestamps of the format XYZ of past calculations of the quality matrix.""",
+)
+async def get_timestamps(database: Database = Depends(get_database)):
+    return await timestamps(database)
 
 
 @router.get(
@@ -44,7 +107,7 @@ async def get_quality_matrix():
     response_model=ScoreOutput,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=["Statistics"],
+    tags=[TAG_STATISTICS],
     description=f"""Returns the average ratio of non-empty properties for the chosen collection.
     For certain properties, e.g. `properties.cclom:title`, the ratio of
     elements which miss this entry compared to the total number of entries is calculated.
