@@ -13,7 +13,7 @@ async def connect_to_db(app: FastAPI) -> None:
         await database.connect()
         app.state._db = database
     except Exception:
-        logger.exception()
+        logger.exception("")
 
     await database.disconnect()
 
@@ -25,4 +25,4 @@ async def close_db_connection(app: FastAPI) -> None:
     try:
         await app.state._db.disconnect()
     except Exception:
-        logger.exception()
+        logger.exception("")

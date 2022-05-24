@@ -12,4 +12,4 @@ async def timestamps(database: Database):
     result: list[Mapping] = await database.fetch_all(s)
     await database.disconnect()
 
-    return [entry.timestamp for entry in result]
+    return [entry["timestamp"] for entry in result]
