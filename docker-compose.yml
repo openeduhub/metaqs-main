@@ -79,8 +79,8 @@ services:
     volumes:
       - ./:/tmp
       - .env:/app/.env
-    #depends_on:
-      # - postgres
+    ports:
+      - 5432:5432
     environment:
       ROOT_PATH: "/api"
       ALLOWED_HOSTS: "${ALLOWED_HOSTS:-*}"
