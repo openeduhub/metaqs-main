@@ -7,11 +7,6 @@ networks:
   backend:
   frontend:
 
-x-postgres-vars: &postgres-vars
-  POSTGRES_USER: postgres
-  POSTGRES_PASSWORD: postgres
-  POSTGRES_DB: analytics
-
 x-restart-policy: &restart-policy
   restart: unless-stopped
 
@@ -23,19 +18,6 @@ x-logging-config: &logging-config
       max-size: '100M'
 
 services:
-  postgres:
-    container_name: metaqs-postgres
-    image: postgres:14
-    ports:
-      - "5432:5432"
-    <<: *restart-policy
-    <<: *logging-config
-    environment:
-      <<: *postgres-vars
-    networks: [ backend ]
-    volumes:
-      - pg-data:/var/lib/postgresql/data
-
   nginx:
     container_name: metaqs-nginx
     image: nginx:stable-alpine
@@ -91,10 +73,7 @@ services:
     <<: *logging-config
     volumes:
       - ./:/tmp
-    #depends_on:
-      # - postgres
     environment:
-      <<: *postgres-vars
       POSTGRES_HOST: postgres
       ROOT_PATH: "/api"
       API_VERSION: "${API_VERSION:-v1}"
