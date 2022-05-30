@@ -119,10 +119,21 @@ services:
     image: docker.edu-sharing.com/projects/oeh-redaktion/edusharing-projects-oeh-redaktion-yovisto:dev
     <<: *restart-policy
     <<: *logging-config
+    ports:
+      - "8082:8082"
     environment:
-      ROOT_PATH: "/api"
+      ROOT_PATH: ""
       API_VERSION: "${API_VERSION:-v1}"
       ALLOWED_HOSTS: "${ALLOWED_HOSTS:-*}"
       LOG_LEVEL: "${LOG_LEVEL:-debug}"
       LOGGER: uvicorn
       WEB_CONCURRENCY: 1
+    command: bash -c "uvicorn --host 0.0.0.0 --port 8082 --reload main:app"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/_ping" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    networks:
+      - backend
