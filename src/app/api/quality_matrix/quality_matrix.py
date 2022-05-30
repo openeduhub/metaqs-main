@@ -1,8 +1,12 @@
+from datetime import datetime
 from typing import Union
 
+import sqlalchemy
+from databases import Database
 from elasticsearch_dsl import AttrDict
 from elasticsearch_dsl.response import Response
 
+from app.api.quality_matrix.models import Timeline
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import PROPERTIES, REPLICATION_SOURCE_ID
 from app.core.logging import logger
@@ -256,6 +260,16 @@ def missing_fields(
     value: dict, total_count: int, replication_source: str
 ) -> dict[str, float]:
     return {replication_source: missing_fields_ratio(value, total_count)}
+
+
+async def stored_in_timeline(data: QUALITY_MATRIX_RETURN_TYPE, database: Database):
+    await database.connect()
+    await database.execute(
+        sqlalchemy.insert(Timeline).values(
+            {"timestamp": datetime.now().timestamp(), "quality_matrix": data}
+        )
+    )
+    await database.disconnect()
 
 
 async def quality_matrix() -> QUALITY_MATRIX_RETURN_TYPE:

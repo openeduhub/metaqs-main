@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from starlette.exceptions import HTTPException
@@ -10,6 +11,7 @@ from app.core.config import ALLOWED_HOSTS, API_DEBUG, API_PORT, LOG_LEVEL, ROOT_
 from app.core.constants import OPEN_API_VERSION
 from app.core.errors import http_422_error_handler, http_error_handler
 from app.core.logging import logger
+from app.core.tasks import create_start_app_handler, create_stop_app_handler
 from app.elastic.utils import connect_to_elastic
 
 
@@ -31,12 +33,16 @@ def api() -> FastAPI:
     _api.add_middleware(RawContextMiddleware)
 
     _api.add_event_handler("startup", connect_to_elastic)
+    _api.add_event_handler("startup", create_start_app_handler(_api))
+    _api.add_event_handler("shutdown", create_stop_app_handler(_api))
 
     _api.add_exception_handler(HTTPException, http_error_handler)
     _api.add_exception_handler(HTTP_422_UNPROCESSABLE_ENTITY, http_422_error_handler)
 
     return _api
 
+
+load_dotenv()
 
 app = CORSMiddleware(
     app=api(),

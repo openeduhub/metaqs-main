@@ -1,6 +1,5 @@
 import os
 
-from databases import DatabaseURL
 from starlette.datastructures import CommaSeparatedStrings
 
 API_PORT = 8081
@@ -27,18 +26,6 @@ BACKGROUND_TASK_SEARCH_STATS_SLEEP_INTERVAL = int(
 )
 
 ELASTICSEARCH_URL = os.getenv("ELASTICSEARCH_URL")
-DATABASE_URL = os.getenv("DATABASE_URL")
-if not DATABASE_URL:
-    POSTGRES_HOST = os.getenv("POSTGRES_HOST")
-    POSTGRES_USER = os.getenv("POSTGRES_USER")
-    POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
-    POSTGRES_DB = os.getenv("POSTGRES_DB")
-
-    DATABASE_URL = DatabaseURL(
-        f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:5432/{POSTGRES_DB}"
-    )
-else:
-    DATABASE_URL = DatabaseURL(DATABASE_URL)
 
 MAX_CONNECTIONS_COUNT = int(os.getenv("MAX_CONNECTIONS_COUNT", 10))
 MIN_CONNECTIONS_COUNT = int(os.getenv("MIN_CONNECTIONS_COUNT", 10))
