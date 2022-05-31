@@ -5,6 +5,7 @@ volumes:
 
 networks:
   backend:
+    driver: bridge
   frontend:
 
 x-restart-policy: &restart-policy
@@ -103,7 +104,10 @@ services:
       LOG_LEVEL: "${LOG_LEVEL:-debug}"
       LOGGER: uvicorn
       WEB_CONCURRENCY: 1
+      WANT_RETRAINING: "${WANT_RETRAINING:-true}"
     command: bash -c "uvicorn --host 0.0.0.0 --port 80 --reload main:app"
+    expose:
+      - 443
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:80/_ping" ]
       interval: 30s
