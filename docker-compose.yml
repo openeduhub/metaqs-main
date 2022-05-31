@@ -41,7 +41,6 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      - "8082:8082"
 
   certbot:
     <<: *restart-policy
@@ -98,7 +97,7 @@ services:
     <<: *restart-policy
     <<: *logging-config
     environment:
-      ROOT_PATH: "/api"
+      ROOT_PATH: "/yovisto"
       API_VERSION: "${API_VERSION:-v1}"
       ALLOWED_HOSTS: "${ALLOWED_HOSTS:-*}"
       LOG_LEVEL: "${LOG_LEVEL:-debug}"
