@@ -25,6 +25,7 @@ services:
     <<: *logging-config
     depends_on:
       - fastapi
+      - yovisto
     environment:
       NGINX_HOST: "${NGINX_HOST}"
       ROOT_PATH: "/api"
