@@ -6,7 +6,6 @@ volumes:
 networks:
   backend:
     driver: bridge
-  frontend:
 
 x-restart-policy: &restart-policy
   restart: unless-stopped
@@ -38,7 +37,8 @@ services:
       - ./nginx/gzip_params:/etc/nginx/gzip_params:ro
       - ../mkdocs/site:/usr/share/nginx/html/docs:ro
       - ./nginx/proxy_params:/etc/nginx/proxy_params:ro
-    networks: [ frontend ]
+    networks:
+      - backend
     ports:
       - "80:80"
       - "443:443"
@@ -76,34 +76,27 @@ services:
     volumes:
       - ./:/tmp
       - .env:/app/.env
-    ports:
-      - "5432:5432"
     environment:
-      POSTGRES_HOST: postgres
       ROOT_PATH: "/api"
       ALLOWED_HOSTS: "${ALLOWED_HOSTS:-*}"
       LOG_LEVEL: "${LOG_LEVEL:-debug}"
       LOGGER: uvicorn
       ELASTICSEARCH_URL: "${ELASTICSEARCH_URL:-http://10.254.1.31:9200}"
       ELASTICSEARCH_TIMEOUT: 20
-      WEB_CONCURRENCY: 1
     networks:
       - backend
-      - frontend
 
 
   yovisto:
-    container_name: yovisto
+    container_name: yovisto  # Container from https://github.com/openeduhub/meta-yovisto
     image: docker.edu-sharing.com/projects/oeh-redaktion/edusharing-projects-oeh-redaktion-yovisto:dev
     <<: *restart-policy
     <<: *logging-config
     environment:
       ROOT_PATH: "/yovisto"
-      API_VERSION: "${API_VERSION:-v1}"
       ALLOWED_HOSTS: "${ALLOWED_HOSTS:-*}"
       LOG_LEVEL: "${LOG_LEVEL:-debug}"
       LOGGER: uvicorn
-      WEB_CONCURRENCY: 1
       WANT_RETRAINING: "${WANT_RETRAINING:-true}"
     command: bash -c "uvicorn --host 0.0.0.0 --port 80 --reload main:app"
     expose:
@@ -113,7 +106,6 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 40s
+      start_period: 250s
     networks:
       - backend
-      - frontend
