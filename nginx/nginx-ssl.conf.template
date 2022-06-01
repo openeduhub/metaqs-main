@@ -2,6 +2,11 @@ upstream fastapi-80 {
     server fastapi:80 fail_timeout=0;
 }
 
+upstream yovisto-80 {
+    server yovisto:80 fail_timeout=0;
+}
+
+
 server {
     listen [::]:80;
     listen 80;
@@ -42,4 +47,11 @@ server {
         proxy_pass  http://fastapi-80;
         include proxy_params;
     }
+
+     location /yovisto {
+         rewrite /yovisto/(.*) /$1 break;
+
+         proxy_pass http://yovisto-80;
+         include proxy_params;
+     }
 }
