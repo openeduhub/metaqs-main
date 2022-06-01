@@ -8,7 +8,7 @@ from elasticsearch_dsl.response import Response
 
 from app.api.quality_matrix.models import Timeline
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.constants import PROPERTIES, REPLICATION_SOURCE_ID
+from app.core.constants import PROPERTIES, REPLICATION_SOURCE_ID, RowHeader
 from app.core.logging import logger
 from app.elastic.dsl import qbool, qmatch
 from app.elastic.elastic import base_match_filter
@@ -272,8 +272,11 @@ async def stored_in_timeline(data: QUALITY_MATRIX_RETURN_TYPE, database: Databas
     await database.disconnect()
 
 
-async def quality_matrix() -> QUALITY_MATRIX_RETURN_TYPE:
-    properties = get_properties()
+row_callback = {RowHeader.PROPERTIES: get_properties, RowHeader.COLLECTIONS: lambda: []}
+
+
+async def quality_matrix(row_header: RowHeader) -> QUALITY_MATRIX_RETURN_TYPE:
+    properties = row_callback[row_header]()
     output = {k: {} for k in properties}
     for replication_source, total_count in all_sources().items():
         response = all_missing_properties(properties, replication_source)

@@ -1,3 +1,5 @@
+from enum import Enum
+
 REPLICATION_SOURCE_ID = "ccm:replicationsource"
 PROPERTIES = "properties"
 
@@ -30,3 +32,8 @@ COLLECTIONS = {
     "Philosophie": {"value": "9d364fd0-4374-40b4-a153-3c722b9cda35"},
 }
 OPEN_API_VERSION = "2.1.0"
+
+
+class RowHeader(str, Enum):
+    PROPERTIES = "properties"
+    COLLECTIONS = "collection"

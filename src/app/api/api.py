@@ -19,6 +19,7 @@ from app.api.score.score import (
     collection_id_param,
     query_score,
 )
+from app.core.constants import RowHeader
 from app.elastic.elastic import (
     ResourceType,
     aggs_collection_validation,
@@ -51,9 +52,11 @@ TAG_STATISTICS = "Statistics"
     description=QUALITY_MATRIX_DESCRIPTION,
 )
 async def get_quality_matrix(
-    database: Database = Depends(get_database), store_to_db=False
+    database: Database = Depends(get_database),
+    row_header: RowHeader = RowHeader.PROPERTIES,
+    store_to_db=False,
 ):
-    _quality_matrix = await quality_matrix()
+    _quality_matrix = await quality_matrix(row_header)
     if store_to_db:
         await stored_in_timeline(_quality_matrix, database)
     return _quality_matrix
