@@ -161,3 +161,23 @@ class Ping(BaseModel):
 )
 async def ping_api():
     return {"status": "ok"}
+
+# TODO: Include to read portal tree
+"""
+
+@router.get(
+    "/collections/{noderef_id}/tree",
+    response_model=List[PortalTreeNode],
+    status_code=HTTP_200_OK,
+    responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
+    tags=["Collections"],
+)
+async def get_portal_tree(
+    *, noderef_id: UUID = Depends(portal_id_with_root_param), response: Response,
+):
+    collections = await crud_collection.get_many_sorted(root_noderef_id=noderef_id)
+    tree = await build_portal_tree(collections=collections, root_noderef_id=noderef_id)
+    response.headers["X-Total-Count"] = str(len(collections))
+    response.headers["X-Query-Count"] = str(len(context.get("elastic_queries")))
+    return tree
+"""
