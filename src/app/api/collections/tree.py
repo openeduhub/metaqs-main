@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from uuid import UUID
 
 from aiohttp import ClientSession
@@ -66,9 +67,13 @@ def collection_to_model(data: list):
                 title=collection["prefLabel"],
                 children=[collection_to_model(collection["narrower"])],
             )
-        print(collection["id"], collection["prefLabel"])
+        print(
+            collection["id"], collection["id"].split("/")[-1], collection["prefLabel"]
+        )
         return PortalTreeNode(
-            noderef_id=collection["id"], title=collection["prefLabel"], children=[]
+            noderef_id=uuid.UUID(collection["id"].split("/")[-1]),
+            title=collection["prefLabel"]["de"],
+            children=[],
         )
 
 
