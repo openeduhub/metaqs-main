@@ -306,22 +306,32 @@ def create_empty_entries_collection_search(
     return s
 
 
+def node_count(data: list) -> list[UUID]:
+    output = []
+    for collection in data:
+        if collection.children:
+            output += node_count(collection.children)
+        else:
+            output = [collection.noderef_id]
+    return output
+
+
 async def collection_quality_matrix(node_id: UUID) -> QUALITY_MATRIX_RETURN_TYPE:
     properties = get_properties()
     output = {k: {} for k in properties}
     print(node_id)
     collections = await collection_tree(node_id)
+    nodes = node_count(collections)
     print(collections)
-    for collection in collections:
+    print(nodes)
+    for collection in nodes:
         total_count = 1000
         response = create_empty_entries_collection_search(
-            properties, collection.noderef_id
+            properties, str(collection)
         ).execute()
         print(response)
         for key, value in response.aggregations.to_dict().items():
-            output[key] |= missing_fields(
-                value, total_count, str(collection.noderef_id)
-            )
+            output[key] |= missing_fields(value, total_count, str(collection))
 
     logger.debug(f"Quality matrix output:\n{output}")
     return api_ready_output(output)
