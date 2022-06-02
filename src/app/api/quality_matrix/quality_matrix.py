@@ -1,14 +1,16 @@
 from datetime import datetime
 from typing import Union
+from uuid import UUID
 
 import sqlalchemy
 from databases import Database
 from elasticsearch_dsl import AttrDict
 from elasticsearch_dsl.response import Response
 
+from app.api.collections.tree import collection_tree
 from app.api.quality_matrix.models import Timeline
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.constants import PROPERTIES, REPLICATION_SOURCE_ID, RowHeader
+from app.core.constants import PROPERTIES, REPLICATION_SOURCE_ID
 from app.core.logging import logger
 from app.elastic.dsl import qbool, qmatch
 from app.elastic.elastic import base_match_filter
@@ -272,16 +274,54 @@ async def stored_in_timeline(data: QUALITY_MATRIX_RETURN_TYPE, database: Databas
     await database.disconnect()
 
 
-row_callback = {RowHeader.PROPERTIES: get_properties, RowHeader.COLLECTIONS: lambda: []}
-
-
-async def quality_matrix(row_header: RowHeader) -> QUALITY_MATRIX_RETURN_TYPE:
-    properties = row_callback[row_header]()
+async def quality_matrix() -> QUALITY_MATRIX_RETURN_TYPE:
+    properties = get_properties()
     output = {k: {} for k in properties}
     for replication_source, total_count in all_sources().items():
         response = all_missing_properties(properties, replication_source)
         for key, value in response.aggregations.to_dict().items():
             output[key] |= missing_fields(value, total_count, replication_source)
+
+    logger.debug(f"Quality matrix output:\n{output}")
+    return api_ready_output(output)
+
+
+# TODO fuse with create_empty_entries_search
+def create_empty_entries_collection_search(
+    properties: PROPERTY_TYPE, node_id: str
+) -> Search:
+    s = add_base_match_filters(
+        Search()
+        .query(
+            qbool(
+                must=[
+                    qmatch(**{"path": node_id}),
+                ]
+            )
+        )
+        .source(includes=["aggregations"])
+    )
+    for keyword in properties:
+        s.aggs.bucket(keyword, "missing", field=f"{PROPERTIES}.{keyword}.keyword")
+    return s
+
+
+async def collection_quality_matrix(node_id: UUID) -> QUALITY_MATRIX_RETURN_TYPE:
+    properties = get_properties()
+    output = {k: {} for k in properties}
+    print(node_id)
+    collections = await collection_tree(node_id)
+    print(collections)
+    for collection in collections:
+        total_count = 1000
+        response = create_empty_entries_collection_search(
+            properties, collection.noderef_id
+        ).execute()
+        print(response)
+        for key, value in response.aggregations.to_dict().items():
+            output[key] |= missing_fields(
+                value, total_count, str(collection.noderef_id)
+            )
 
     logger.debug(f"Quality matrix output:\n{output}")
     return api_ready_output(output)

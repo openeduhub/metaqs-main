@@ -40,7 +40,7 @@ PORTALS = {
 
 def portal_id_with_root_param(
     *,
-    noderef_id: UUID = Path(
+    node_id: UUID = Path(
         ...,
         examples={
             "Alle Fachportale": {"value": PORTAL_ROOT_ID},
@@ -48,7 +48,7 @@ def portal_id_with_root_param(
         },
     ),
 ) -> UUID:
-    return noderef_id
+    return node_id
 
 
 class PortalTreeNode(BaseModel):
@@ -85,6 +85,7 @@ async def parsed_tree(session: ClientSession, node_id: UUID):
         return collection_to_model(collections)
 
 
+# TODO: Include parent/current node
 async def collection_tree(node_id: UUID):
     async with ClientSession() as session:
         return await parsed_tree(session, node_id)

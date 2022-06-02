@@ -1,5 +1,5 @@
 import json
-from typing import List, Mapping
+from typing import List, Mapping, Optional
 from uuid import UUID
 
 from databases import Database
@@ -10,12 +10,17 @@ from starlette.requests import Request
 from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 
 from app.api.collections.tree import (
+    PORTAL_ROOT_ID,
     PortalTreeNode,
     collection_tree,
     portal_id_with_root_param,
 )
 from app.api.quality_matrix.models import ColumnOutputModel, Timeline
-from app.api.quality_matrix.quality_matrix import quality_matrix, stored_in_timeline
+from app.api.quality_matrix.quality_matrix import (
+    collection_quality_matrix,
+    quality_matrix,
+    stored_in_timeline,
+)
 from app.api.quality_matrix.timeline import timestamps
 from app.api.score.models import ScoreOutput
 from app.api.score.score import (
@@ -24,7 +29,6 @@ from app.api.score.score import (
     collection_id_param,
     query_score,
 )
-from app.core.constants import RowHeader
 from app.elastic.elastic import (
     ResourceType,
     aggs_collection_validation,
@@ -45,7 +49,27 @@ QUALITY_MATRIX_DESCRIPTION = """Calculation of the quality matrix.
     A missing entry may be `cm:creator = null`.
     Additional parameters:
         store_to_db: Default False. Causes returned quality matrix to also be stored in the backend database."""
+
 TAG_STATISTICS = "Statistics"
+
+
+@router.get(
+    "/collection_quality_matrix",
+    status_code=HTTP_200_OK,
+    response_model=List[ColumnOutputModel],
+    responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
+    tags=[TAG_STATISTICS],
+    description=QUALITY_MATRIX_DESCRIPTION,
+)
+async def get_collection_quality_matrix(
+    database: Database = Depends(get_database),
+    node_id: Optional[UUID] = PORTAL_ROOT_ID,
+    store_to_db=False,
+):
+    _quality_matrix = await collection_quality_matrix(node_id)
+    if store_to_db and node_id == PORTAL_ROOT_ID:  # only store standard case
+        await stored_in_timeline(_quality_matrix, database)
+    return _quality_matrix
 
 
 @router.get(
@@ -58,10 +82,9 @@ TAG_STATISTICS = "Statistics"
 )
 async def get_quality_matrix(
     database: Database = Depends(get_database),
-    row_header: RowHeader = RowHeader.PROPERTIES,
     store_to_db=False,
 ):
-    _quality_matrix = await quality_matrix(row_header)
+    _quality_matrix = await quality_matrix()
     if store_to_db:
         await stored_in_timeline(_quality_matrix, database)
     return _quality_matrix
