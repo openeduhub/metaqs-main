@@ -38,7 +38,7 @@ def node_count(data: list):
 
 @pytest.mark.asyncio
 async def test_collection_tree():
-    root_node_id = "5e40e372-735c-4b17-bbf7-e827a5702b57"
+    root_node_id = uuid.UUID("5e40e372-735c-4b17-bbf7-e827a5702b57")
     data = await collection_tree(root_node_id)
     assert len(data) == 26
     count = node_count(data)
