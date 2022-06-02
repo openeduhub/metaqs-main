@@ -175,5 +175,5 @@ async def ping_api():
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=["Collections"],
 )
-async def get_portal_tree(*, noderef_id: UUID = Depends(portal_id_with_root_param)):
-    return await collection_tree(noderef_id)
+async def get_portal_tree(*, node_id: UUID = Depends(portal_id_with_root_param)):
+    return await collection_tree(node_id)

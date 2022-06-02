@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import uuid
 from uuid import UUID
 
 from aiohttp import ClientSession
@@ -61,54 +60,27 @@ class PortalTreeNode(BaseModel):
 def collection_to_model(data: list[dict]) -> list[PortalTreeNode]:
     response: list[PortalTreeNode] = []
     for collection in data:
-        if "narrower" in collection:
-            print("narrower:", collection_to_model(collection["narrower"]))
-            value = PortalTreeNode(
+        response.append(
+            PortalTreeNode(
                 noderef_id=collection["id"].split("/")[-1],
                 title=collection["prefLabel"]["de"],
-                children=collection_to_model(collection["narrower"]),
+                children=collection_to_model(collection["narrower"])
+                if "narrower" in collection
+                else [],
             )
-            print("recursive return:", value, type(value))
-            response.append(
-                PortalTreeNode(
-                    noderef_id=collection["id"].split("/")[-1],
-                    title=collection["prefLabel"]["de"],
-                    children=collection_to_model(collection["narrower"]),
-                )
-            )
-        else:
-            print(
-                "with id: ",
-                collection["id"],
-                collection["id"].split("/")[-1],
-                collection["prefLabel"],
-            )
-            response.append(
-                PortalTreeNode(
-                    noderef_id=uuid.UUID(collection["id"].split("/")[-1]),
-                    title=collection["prefLabel"]["de"],
-                    children=[],
-                )
-            )
-    print("response: ", response)
+        )
     return response
 
 
-async def collection_tree(noderef_id: UUID):
-    url = f"https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/oeh-topics/{noderef_id}.json"
-
-    async with ClientSession() as session:
-        response = await session.get(url=url)
-        if response.status == 200:
-            data = await response.json()
-        else:
-            data = {}
-
-    tree = []
-    if str(noderef_id) == PORTAL_ROOT_ID:
+async def parsed_tree(session: ClientSession, node_id: UUID):
+    url = f"https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/oeh-topics/{node_id}.json"
+    response = await session.get(url=url)
+    if response.status == 200 and str(node_id) == PORTAL_ROOT_ID:
+        data = await response.json()
         collections = data["hasTopConcept"]
-        tree = collection_to_model(collections)
+        return collection_to_model(collections)
 
-    # tree = [] # await build_portal_tree(collections=collections, root_noderef_id=noderef_id)
-    print(tree)
-    return tree
+
+async def collection_tree(node_id: UUID):
+    async with ClientSession() as session:
+        return await parsed_tree(session, node_id)
