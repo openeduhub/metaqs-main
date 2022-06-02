@@ -58,23 +58,40 @@ class PortalTreeNode(BaseModel):
     children: list[PortalTreeNode]
 
 
-def collection_to_model(data: list):
+def collection_to_model(data: list[dict]) -> list[PortalTreeNode]:
+    response: list[PortalTreeNode] = []
     for collection in data:
         if "narrower" in collection:
             print("narrower:", collection_to_model(collection["narrower"]))
-            return PortalTreeNode(
-                noderef_id=collection["id"],
-                title=collection["prefLabel"],
-                children=[collection_to_model(collection["narrower"])],
+            value = PortalTreeNode(
+                noderef_id=collection["id"].split("/")[-1],
+                title=collection["prefLabel"]["de"],
+                children=collection_to_model(collection["narrower"]),
             )
-        print(
-            collection["id"], collection["id"].split("/")[-1], collection["prefLabel"]
-        )
-        return PortalTreeNode(
-            noderef_id=uuid.UUID(collection["id"].split("/")[-1]),
-            title=collection["prefLabel"]["de"],
-            children=[],
-        )
+            print("recursive return:", value, type(value))
+            response.append(
+                PortalTreeNode(
+                    noderef_id=collection["id"].split("/")[-1],
+                    title=collection["prefLabel"]["de"],
+                    children=collection_to_model(collection["narrower"]),
+                )
+            )
+        else:
+            print(
+                "with id: ",
+                collection["id"],
+                collection["id"].split("/")[-1],
+                collection["prefLabel"],
+            )
+            response.append(
+                PortalTreeNode(
+                    noderef_id=uuid.UUID(collection["id"].split("/")[-1]),
+                    title=collection["prefLabel"]["de"],
+                    children=[],
+                )
+            )
+    print("response: ", response)
+    return response
 
 
 async def collection_tree(noderef_id: UUID):
@@ -87,11 +104,11 @@ async def collection_tree(noderef_id: UUID):
         else:
             data = {}
 
-    print(data)
-
+    tree = []
     if str(noderef_id) == PORTAL_ROOT_ID:
         collections = data["hasTopConcept"]
-        collection_to_model(collections)
+        tree = collection_to_model(collections)
 
     # tree = [] # await build_portal_tree(collections=collections, root_noderef_id=noderef_id)
-    return []
+    print(tree)
+    return tree
