@@ -73,11 +73,15 @@ def collection_to_model(data: list[dict]) -> list[PortalTreeNode]:
 
 
 async def parsed_tree(session: ClientSession, node_id: UUID):
-    url = f"https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/oeh-topics/{node_id}.json"
+    oeh_topic_route = "oeh-topics" if str(node_id) == PORTAL_ROOT_ID else "oehTopics"
+    url = f"https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/{oeh_topic_route}/{node_id}.json"
     response = await session.get(url=url)
-    if response.status == 200 and str(node_id) == PORTAL_ROOT_ID:
+    if response.status == 200:
         data = await response.json()
-        collections = data["hasTopConcept"]
+        if str(node_id) == PORTAL_ROOT_ID:
+            collections = data["hasTopConcept"]
+        else:
+            collections = data["narrower"]
         return collection_to_model(collections)
 
 
