@@ -179,5 +179,5 @@ Nginx must be configured with letsencrypt. Run
 enter your desired domain. You need write permissions on that domain.
 
 ```bash
-docker-compose up
+docker-compose -f docker-compose.dev.yml up
 ```
