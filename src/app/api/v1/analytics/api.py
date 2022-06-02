@@ -1,8 +1,8 @@
 from asyncpg import Pool
 from fastapi import APIRouter, Depends, Security
 
-from app.api.auth import authenticated
-from app.pg.util import close_postgres_connection, get_postgres_async
+from ....pg.util import get_postgres_async, close_postgres_connection
+from ...auth import authenticated
 
 from .analytics import router as analytics_router
 from .background_tasks import router as background_tasks_router

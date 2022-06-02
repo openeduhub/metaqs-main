@@ -79,6 +79,10 @@ to download images for dbt, language tool, postgreSQL.
 
 Fast API
 
+```bash
+docker-compose build fastapi
+```
+
 DBT
 
 ```bash

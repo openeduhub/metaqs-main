@@ -17,7 +17,7 @@ if not DATABASE_URL:
     POSTGRES_PORT = os.getenv("POSTGRES_PORT", 5432)
     POSTGRES_USER = os.getenv("POSTGRES_USER", "postgres")
     POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "postgres")
-    POSTGRES_DB = os.getenv("POSTGRES_DB")
+    POSTGRES_DB = os.getenv("POSTGRES_DB", "analytics")
 
     DATABASE_URL = DatabaseURL(
         f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"

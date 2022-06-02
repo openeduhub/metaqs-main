@@ -8,7 +8,6 @@ from app.core.config import DATABASE_URL
 
 engine = sa.create_engine(str(DATABASE_URL), future=True)
 Base = declarative_base()
-print("has_collections:", engine.dialect.has_table(engine, "collections"))
 
 
 @unique

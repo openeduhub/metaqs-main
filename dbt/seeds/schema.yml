@@ -4,7 +4,7 @@ seeds:
 
   - name: 01.raw_collections
     config:
-      enabled: false
+      enabled: true
       alias: collections
       column_types:
         id: uuid
@@ -14,7 +14,7 @@ seeds:
 
   - name: 02.raw_materials
     config:
-      enabled: false
+      enabled: true
       alias: materials
       column_types:
         id: uuid

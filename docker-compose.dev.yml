@@ -8,6 +8,15 @@ volumes:
 networks:
   backend:
   frontend:
+  host:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16
+          gateway: 10.5.0.1
+          aux_addresses:
+            mysql: 10.5.0.5
+            apigw-tomcat: 10.5.0.6
 
 x-postgres-vars: &postgres-vars
   POSTGRES_USER: postgres
@@ -47,7 +56,6 @@ services:
     container_name: metaqs-fastapi
     build:
       context: ./src/
-      network: host
     image: community.docker.edu-sharing.com/metaqs-fastapi_dev:latest
     <<: *restart-policy
     <<: *logging-config
@@ -68,6 +76,7 @@ services:
       BACKGROUND_TASK_SEARCH_STATS_INTERVAL: "${BACKGROUND_TASK_SEARCH_STATS_INTERVAL:-0}"
       BACKGROUND_TASK_SEARCH_STATS_SLEEP_INTERVAL: "${BACKGROUND_TASK_SEARCH_STATS_SLEEP_INTERVAL:-0}"
       BACKGROUND_TASK_SPELLCHECK_INTERVAL: "${BACKGROUND_TASK_SPELLCHECK_INTERVAL:-0}"
+      ENABLE_ANALYTICS: true
       LOG_LEVEL: "${LOG_LEVEL:-debug}"
       LOGGER: uvicorn
       ELASTICSEARCH_URL: "${ELASTICSEARCH_URL:-http://10.254.1.31:9200}"
@@ -76,6 +85,7 @@ services:
     networks:
       - backend
       - frontend
+    network_mode: host
   nginx:
     container_name: metaqs-nginx
     image: nginx:stable-alpine

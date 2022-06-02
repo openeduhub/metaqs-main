@@ -75,4 +75,4 @@ PORTAL_ROOT_PATH = "/".join(
     ]
 )
 
-ENABLE_ANALYTICS = False
+ENABLE_ANALYTICS = os.getenv("ENABLE_ANALYTICS", "False").lower() == "true"

@@ -7,7 +7,7 @@ wlo_fachportale:
       port: "{{ env_var('POSTGRES_PORT', 5432) | int }}"
       user: "{{ env_var('POSTGRES_USER', 'postgres') }}"
       password: "{{ env_var('POSTGRES_PASSWORD', 'postgres') }}"
-      dbname: "{{ env_var('POSTGRES_DB') }}"
+      dbname: "{{ env_var('POSTGRES_DB', 'analytics') }}"
       schema: staging
       search_path: public
       threads: 1
