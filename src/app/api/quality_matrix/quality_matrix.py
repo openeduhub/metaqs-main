@@ -220,16 +220,14 @@ def get_properties() -> PROPERTY_TYPE:
 
 
 def create_empty_entries_search(
-    properties: PROPERTY_TYPE, replication_source: str
+    properties: PROPERTY_TYPE, replication_source: str, match_keyword: str
 ) -> Search:
     s = add_base_match_filters(
         Search()
         .query(
             qbool(
                 must=[
-                    qmatch(
-                        **{f"{PROPERTIES}.{REPLICATION_SOURCE_ID}": replication_source}
-                    ),
+                    qmatch(**{match_keyword: replication_source}),
                 ]
             )
         )
@@ -241,9 +239,11 @@ def create_empty_entries_search(
 
 
 def all_missing_properties(
-    properties: PROPERTY_TYPE, replication_source: str
+    properties: PROPERTY_TYPE, replication_source: str, match_keyword: str
 ) -> Response:
-    return create_empty_entries_search(properties, replication_source).execute()
+    return create_empty_entries_search(
+        properties, replication_source, match_keyword=match_keyword
+    ).execute()
 
 
 def join_data(data, key):
@@ -274,60 +274,50 @@ async def stored_in_timeline(data: QUALITY_MATRIX_RETURN_TYPE, database: Databas
     await database.disconnect()
 
 
-async def quality_matrix() -> QUALITY_MATRIX_RETURN_TYPE:
+async def quality_matrix(
+    match_keyword: str = f"{PROPERTIES}.{REPLICATION_SOURCE_ID}",
+) -> QUALITY_MATRIX_RETURN_TYPE:
     properties = get_properties()
+    columns = all_sources()
+
     output = {k: {} for k in properties}
-    for replication_source, total_count in all_sources().items():
-        response = all_missing_properties(properties, replication_source)
+    for column, total_count in columns.items():
+        response = all_missing_properties(properties, column, match_keyword)
         for key, value in response.aggregations.to_dict().items():
-            output[key] |= missing_fields(value, total_count, replication_source)
+            output[key] |= missing_fields(value, total_count, column)
 
     logger.debug(f"Quality matrix output:\n{output}")
     return api_ready_output(output)
 
 
 # TODO fuse with create_empty_entries_search
-def create_empty_entries_collection_search(
-    properties: PROPERTY_TYPE, node_id: str
-) -> Search:
-    s = add_base_match_filters(
-        Search()
-        .query(
-            qbool(
-                must=[
-                    qmatch(**{"path": node_id}),
-                ]
-            )
-        )
-        .source(includes=["aggregations"])
-    )
-    for keyword in properties:
-        s.aggs.bucket(keyword, "missing", field=f"{PROPERTIES}.{keyword}.keyword")
-    return s
 
 
-def node_count(data: list) -> list[UUID]:
+def node_ids(data: list) -> list[str]:
     output = []
     for collection in data:
         if collection.children:
-            output += node_count(collection.children)
+            output += node_ids(collection.children)
         else:
-            output = [collection.noderef_id]
+            output = [str(collection.noderef_id)]
     return output
 
 
-async def collection_quality_matrix(node_id: UUID) -> QUALITY_MATRIX_RETURN_TYPE:
+async def collection_quality_matrix(
+    node_id: UUID, match_keyword: str = "path"
+) -> QUALITY_MATRIX_RETURN_TYPE:
     properties = get_properties()
-    output = {k: {} for k in properties}
     collections = await collection_tree(node_id)
-    nodes = node_count(collections)
-    for collection in nodes:
-        total_count = 1000
-        response = create_empty_entries_collection_search(
-            properties, str(collection)
-        ).execute()
+    columns = node_ids(collections)
+    total_count = 1000
+
+    output = {k: {} for k in properties}
+    for column in columns:
+        response = all_missing_properties(
+            properties, column, match_keyword=match_keyword
+        )
         for key, value in response.aggregations.to_dict().items():
-            output[key] |= missing_fields(value, total_count, str(collection))
+            output[key] |= missing_fields(value, total_count, column)
 
     logger.debug(f"Quality matrix output:\n{output}")
     return api_ready_output(output)
