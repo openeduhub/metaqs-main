@@ -290,9 +290,6 @@ async def quality_matrix(
     return api_ready_output(output)
 
 
-# TODO fuse with create_empty_entries_search
-
-
 def node_ids(data: list) -> list[str]:
     output = []
     for collection in data:
@@ -303,9 +300,49 @@ def node_ids(data: list) -> list[str]:
     return output
 
 
+def all_collections() -> dict[str, int]:
+    s = add_base_match_filters(
+        Search().from_dict(
+            {
+                "query": {
+                    "bool": {
+                        "filter": [
+                            {"term": {"permissions.Read.keyword": "GROUP_EVERYONE"}},
+                            {
+                                "term": {
+                                    "properties.cm:edu_metadataset.keyword": "mds_oeh"
+                                }
+                            },
+                            {"term": {"nodeRef.storeRef.protocol": "workspace"}},
+                            {"term": {"type": "ccm:map"}},
+                            {"term": {"path": "5e40e372-735c-4b17-bbf7-e827a5702b57"}},
+                        ]
+                    }
+                },
+                "sort": ["fullpath"],
+                "from": 0,
+                "size": 500_000,
+                "_source": [
+                    "nodeRef.id",
+                    "properties.cm:title",
+                    "path",
+                    "parentRef.id",
+                ],
+            }
+        )
+    )
+    response: Response = s.execute()
+    print(response)
+    # TODO: Print number of occurences of noderef.id
+    #  Use title as return type -> different match term and name of column!
+    return {}
+
+
 async def collection_quality_matrix(
     node_id: UUID, match_keyword: str = "path"
 ) -> QUALITY_MATRIX_RETURN_TYPE:
+    print(all_collections())
+    return None
     properties = get_properties()
     collections = await collection_tree(node_id)
     columns = node_ids(collections)
