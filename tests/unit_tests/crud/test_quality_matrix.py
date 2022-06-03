@@ -28,7 +28,7 @@ from app.elastic.utils import connect_to_elastic
 async def test_get_properties():
     await connect_to_elastic()
     data = get_properties()
-    assert "cm:author" in data
+    assert "ccm:author_freetext" in data
 
 
 @pytest.mark.asyncio

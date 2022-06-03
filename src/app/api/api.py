@@ -1,4 +1,5 @@
 import json
+import uuid
 from typing import List, Mapping, Optional
 from uuid import UUID
 
@@ -63,10 +64,11 @@ TAG_STATISTICS = "Statistics"
 )
 async def get_collection_quality_matrix(
     database: Database = Depends(get_database),
-    node_id: Optional[UUID] = PORTAL_ROOT_ID,
+    node_id: Optional[str] = PORTAL_ROOT_ID,
+    # Using UUID here leads to https://github.com/OpenAPITools/openapi-generator/issues/3516
     store_to_db=False,
 ):
-    _quality_matrix = await collection_quality_matrix(node_id)
+    _quality_matrix = await collection_quality_matrix(uuid.UUID(node_id))
     if store_to_db and node_id == PORTAL_ROOT_ID:  # only store standard case
         await stored_in_timeline(_quality_matrix, database)
     return _quality_matrix
@@ -192,7 +194,7 @@ async def ping_api():
 
 
 @router.get(
-    "/collections/{noderef_id}/tree",
+    "/collections/{node_id}/tree",
     response_model=List[PortalTreeNode],
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},

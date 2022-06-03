@@ -319,17 +319,13 @@ def node_count(data: list) -> list[UUID]:
 async def collection_quality_matrix(node_id: UUID) -> QUALITY_MATRIX_RETURN_TYPE:
     properties = get_properties()
     output = {k: {} for k in properties}
-    print(node_id)
     collections = await collection_tree(node_id)
     nodes = node_count(collections)
-    print(collections)
-    print(nodes)
     for collection in nodes:
         total_count = 1000
         response = create_empty_entries_collection_search(
             properties, str(collection)
         ).execute()
-        print(response)
         for key, value in response.aggregations.to_dict().items():
             output[key] |= missing_fields(value, total_count, str(collection))
 
