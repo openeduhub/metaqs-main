@@ -303,31 +303,23 @@ async def quality_matrix(
 
 
 def all_collections(node_id: UUID = PORTAL_ROOT_ID) -> dict[str, int]:
+    aggregation_name = "uniquefields"
     s = add_base_match_filters(
-        Search().from_dict(
-            {
-                "query": {
-                    "bool": {
-                        "filter": [
-                            {"term": {"permissions.Read.keyword": "GROUP_EVERYONE"}},
-                            {
-                                "term": {
-                                    "properties.cm:edu_metadataset.keyword": "mds_oeh"
-                                }
-                            },
-                            {"term": {"nodeRef.storeRef.protocol": "workspace"}},
-                            {"term": {"path": node_id}},
-                        ]
-                    }
-                },
-                "aggs": {"uniquefields": {"terms": {"field": "path", "size": 999999}}},
-                "_source": ["aggregations"],
-            }
+        Search()
+        .query(
+            qbool(
+                must=[
+                    Q("term", **{"path": node_id}),
+                ]
+            )
         )
+        .source(includes=["aggregations"])
     )
+    s.aggs.bucket(aggregation_name, "terms", field="path", size=ELASTIC_TOTAL_SIZE)
+
     response: Response = s.execute()
     #  Use title as return type -> different match term and name of column!
-    return extract_sources_from_response(response, "uniquefields")
+    return extract_sources_from_response(response, aggregation_name)
 
 
 async def collection_quality_matrix(
