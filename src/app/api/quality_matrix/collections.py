@@ -15,6 +15,8 @@ from app.core.config import ELASTIC_TOTAL_SIZE
 from app.elastic.dsl import qbool
 from app.elastic.search import Search
 
+_TITLE_PROPERTY = "properties.cm:title"
+
 
 def all_collections(node_id: UUID = PORTAL_ROOT_ID) -> dict[str, int]:
     aggregation_name = "uniquefields"
@@ -61,6 +63,3 @@ async def collection_quality_matrix(
     columns = all_collections(node_id)
     properties = get_properties()
     return await _quality_matrix(columns, mapping, match_keyword, node_id, properties)
-
-
-_TITLE_PROPERTY = "properties.cm:title"

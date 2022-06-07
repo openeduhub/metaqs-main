@@ -58,18 +58,16 @@ class PortalTreeNode(BaseModel):
 
 
 def collection_to_model(data: list[dict]) -> list[PortalTreeNode]:
-    response: list[PortalTreeNode] = []
-    for collection in data:
-        response.append(
-            PortalTreeNode(
-                noderef_id=collection["id"].split("/")[-1],
-                title=collection["prefLabel"]["de"],
-                children=collection_to_model(collection["narrower"])
-                if "narrower" in collection
-                else [],
-            )
+    return [
+        PortalTreeNode(
+            noderef_id=collection["id"].split("/")[-1],
+            title=collection["prefLabel"]["de"],
+            children=collection_to_model(collection["narrower"])
+            if "narrower" in collection
+            else [],
         )
-    return response
+        for collection in data
+    ]
 
 
 async def parsed_tree(session: ClientSession, node_id: UUID):
@@ -78,11 +76,8 @@ async def parsed_tree(session: ClientSession, node_id: UUID):
     response = await session.get(url=url)
     if response.status == 200:
         data = await response.json()
-        if str(node_id) == PORTAL_ROOT_ID:
-            collections = data["hasTopConcept"]
-        else:
-            collections = data["narrower"]
-        return collection_to_model(collections)
+        keyword = "hasTopConcept" if str(node_id) == PORTAL_ROOT_ID else "narrower"
+        return collection_to_model(data[keyword])
 
 
 # TODO: Include parent/current node
