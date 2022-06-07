@@ -355,4 +355,4 @@ async def collection_quality_matrix(
             output[key] |= missing_fields(value, total_count, column)
 
     logger.debug(f"Quality matrix output:\n{output}")
-    return api_ready_output(output)
+    return transpose(api_ready_output(output))
