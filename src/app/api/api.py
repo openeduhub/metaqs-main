@@ -16,13 +16,11 @@ from app.api.collections.tree import (
     collection_tree,
     portal_id_with_root_param,
 )
+from app.api.quality_matrix.collections import collection_quality_matrix
 from app.api.quality_matrix.models import ColumnOutputModel, Timeline
-from app.api.quality_matrix.quality_matrix import (
-    collection_quality_matrix,
-    quality_matrix,
-    stored_in_timeline,
-)
+from app.api.quality_matrix.quality_matrix import quality_matrix, stored_in_timeline
 from app.api.quality_matrix.timeline import timestamps
+from app.api.quality_matrix.utils import transpose
 from app.api.score.models import ScoreOutput
 from app.api.score.score import (
     calc_scores,
@@ -67,8 +65,11 @@ async def get_collection_quality_matrix(
     node_id: Optional[str] = PORTAL_ROOT_ID,
     # Using UUID here leads to https://github.com/OpenAPITools/openapi-generator/issues/3516
     store_to_db=False,
+    transpose_output=True,
 ):
     _quality_matrix = await collection_quality_matrix(uuid.UUID(node_id))
+    if transpose_output:
+        _quality_matrix = transpose(_quality_matrix)
     if store_to_db and node_id == PORTAL_ROOT_ID:  # only store standard case
         await stored_in_timeline(_quality_matrix, database)
     return _quality_matrix

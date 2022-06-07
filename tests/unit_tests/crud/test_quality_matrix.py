@@ -16,8 +16,8 @@ from app.api.quality_matrix.quality_matrix import (
     missing_fields,
     missing_fields_ratio,
     quality_matrix,
-    transpose,
 )
+from app.api.quality_matrix.utils import transpose
 from app.core.config import ELASTICSEARCH_URL
 from app.elastic.search import Search
 from app.elastic.utils import connect_to_elastic
@@ -156,7 +156,7 @@ def test_create_sources_search():
             aggregation_name: {
                 "terms": {
                     "field": "properties.ccm:replicationsource.keyword",
-                    "size": 1_000_000,
+                    "size": 500_000,
                 }
             }
         },

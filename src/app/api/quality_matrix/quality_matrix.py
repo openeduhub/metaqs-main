@@ -40,6 +40,7 @@ def create_sources_search(aggregation_name: str):
 def extract_sources_from_response(
     response: Response, aggregation_name: str
 ) -> dict[str, int]:
+    print(response)
     return {
         entry["key"]: entry["doc_count"]
         for entry in response.aggregations.to_dict()[aggregation_name]["buckets"]
@@ -291,68 +292,18 @@ async def quality_matrix(
 ) -> QUALITY_MATRIX_RETURN_TYPE:
     properties = get_properties()
     columns = all_sources()
+    mapping = {key: key for key in columns.keys()}  # identity mapping
+    return await _quality_matrix(columns, mapping, match_keyword, node_id, properties)
 
+
+async def _quality_matrix(columns, mapping, match_keyword, node_id, properties):
     output = {k: {} for k in properties}
     for column, total_count in columns.items():
-        response = all_missing_properties(properties, column, node_id, match_keyword)
-        for key, value in await items_in_response(response):
-            output[key] |= missing_fields(value, total_count, column)
-
+        if column in mapping.keys():
+            response = all_missing_properties(
+                properties, column, node_id=node_id, match_keyword=match_keyword
+            )
+            for key, value in await items_in_response(response):
+                output[key] |= missing_fields(value, total_count, mapping[column])
     logger.debug(f"Quality matrix output:\n{output}")
     return api_ready_output(output)
-
-
-def all_collections(node_id: UUID = PORTAL_ROOT_ID) -> dict[str, int]:
-    aggregation_name = "uniquefields"
-    s = add_base_match_filters(
-        Search()
-        .query(
-            qbool(
-                must=[
-                    Q("term", **{"path": node_id}),
-                ]
-            )
-        )
-        .source(includes=["aggregations"])
-    )
-    s.aggs.bucket(aggregation_name, "terms", field="path", size=ELASTIC_TOTAL_SIZE)
-
-    response: Response = s.execute()
-    #  Use title as return type -> different match term and name of column!
-    return extract_sources_from_response(response, aggregation_name)
-
-
-def transpose(data: list) -> list:
-    rows = [entry["metadatum"] for entry in data]
-    columns = list(data[0]["columns"].keys())
-    output = []
-    for column in columns:
-        new_row = {"metadatum": column}
-        new_row.update({"columns": {}})
-        for row in rows:
-            entry = {}
-            for line in data:
-                if line["metadatum"] == row:
-                    entry = line
-                    break
-            new_row["columns"].update({row: entry["columns"][column]})
-        output.append(new_row)
-    return output
-
-
-async def collection_quality_matrix(
-    node_id: UUID, match_keyword: str = "path"
-) -> QUALITY_MATRIX_RETURN_TYPE:
-    columns = all_collections(node_id)
-    properties = get_properties()
-
-    output = {k: {} for k in properties}
-    for column, total_count in columns.items():
-        response = all_missing_properties(
-            properties, column, node_id=node_id, match_keyword=match_keyword
-        )
-        for key, value in await items_in_response(response):
-            output[key] |= missing_fields(value, total_count, column)
-
-    logger.debug(f"Quality matrix output:\n{output}")
-    return transpose(api_ready_output(output))
