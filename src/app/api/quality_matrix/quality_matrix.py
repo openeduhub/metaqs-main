@@ -7,11 +7,10 @@ from databases import Database
 from elasticsearch_dsl import AttrDict, Q
 from elasticsearch_dsl.response import Response
 
-from app.api.collections.tree import PORTAL_ROOT_ID
 from app.api.quality_matrix.models import Timeline
 from app.api.quality_matrix.utils import default_properties
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.constants import PROPERTIES, REPLICATION_SOURCE_ID
+from app.core.constants import PORTAL_ROOT_ID, PROPERTIES, REPLICATION_SOURCE_ID
 from app.core.logging import logger
 from app.elastic.dsl import qbool, qmatch
 from app.elastic.elastic import base_match_filter

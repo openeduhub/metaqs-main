@@ -3,7 +3,6 @@ from uuid import UUID
 from elasticsearch_dsl import Q
 from elasticsearch_dsl.response import Response
 
-from app.api.collections.tree import PORTAL_ROOT_ID
 from app.api.quality_matrix.quality_matrix import (
     QUALITY_MATRIX_RETURN_TYPE,
     _quality_matrix,
@@ -12,6 +11,7 @@ from app.api.quality_matrix.quality_matrix import (
     get_properties,
 )
 from app.core.config import ELASTIC_TOTAL_SIZE
+from app.core.constants import PORTAL_ROOT_ID
 from app.elastic.dsl import qbool
 from app.elastic.search import Search
 

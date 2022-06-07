@@ -11,7 +11,6 @@ from starlette.requests import Request
 from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 
 from app.api.collections.tree import (
-    PORTAL_ROOT_ID,
     PortalTreeNode,
     collection_tree,
     portal_id_with_root_param,
@@ -28,6 +27,7 @@ from app.api.score.score import (
     collection_id_param,
     query_score,
 )
+from app.core.constants import PORTAL_ROOT_ID
 from app.elastic.elastic import (
     ResourceType,
     aggs_collection_validation,
