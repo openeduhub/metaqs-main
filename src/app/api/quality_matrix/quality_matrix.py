@@ -322,6 +322,24 @@ def all_collections(node_id: UUID = PORTAL_ROOT_ID) -> dict[str, int]:
     return extract_sources_from_response(response, aggregation_name)
 
 
+def transpose(data: list) -> list:
+    rows = [entry["metadatum"] for entry in data]
+    columns = list(data[0]["columns"].keys())
+    output = []
+    for column in columns:
+        new_row = {"metadatum": column}
+        new_row.update({"columns": {}})
+        for row in rows:
+            entry = {}
+            for line in data:
+                if line["metadatum"] == row:
+                    entry = line
+                    break
+            new_row["columns"].update({row: entry["columns"][column]})
+        output.append(new_row)
+    return output
+
+
 async def collection_quality_matrix(
     node_id: UUID, match_keyword: str = "path"
 ) -> QUALITY_MATRIX_RETURN_TYPE:
