@@ -4,10 +4,10 @@ from uuid import UUID
 
 import sqlalchemy
 from databases import Database
-from elasticsearch_dsl import AttrDict
+from elasticsearch_dsl import AttrDict, Q
 from elasticsearch_dsl.response import Response
 
-from app.api.collections.tree import PORTAL_ROOT_ID, collection_tree
+from app.api.collections.tree import PORTAL_ROOT_ID
 from app.api.quality_matrix.models import Timeline
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import PROPERTIES, REPLICATION_SOURCE_ID
@@ -220,7 +220,10 @@ def get_properties() -> PROPERTY_TYPE:
 
 
 def create_empty_entries_search(
-    properties: PROPERTY_TYPE, replication_source: str, match_keyword: str
+    properties: PROPERTY_TYPE,
+    replication_source: str,
+    node_id: UUID,
+    match_keyword: str,
 ) -> Search:
     s = add_base_match_filters(
         Search()
@@ -228,6 +231,7 @@ def create_empty_entries_search(
             qbool(
                 must=[
                     qmatch(**{match_keyword: replication_source}),
+                    Q("term", **{"path": node_id}),
                 ]
             )
         )
@@ -239,10 +243,13 @@ def create_empty_entries_search(
 
 
 def all_missing_properties(
-    properties: PROPERTY_TYPE, replication_source: str, match_keyword: str
+    properties: PROPERTY_TYPE,
+    replication_source: str,
+    node_id: UUID,
+    match_keyword: str,
 ) -> Response:
     return create_empty_entries_search(
-        properties, replication_source, match_keyword=match_keyword
+        properties, replication_source, node_id=node_id, match_keyword=match_keyword
     ).execute()
 
 
@@ -279,6 +286,7 @@ async def items_in_response(response: Response) -> dict:
 
 
 async def quality_matrix(
+    node_id: UUID = PORTAL_ROOT_ID,
     match_keyword: str = f"{PROPERTIES}.{REPLICATION_SOURCE_ID}",
 ) -> QUALITY_MATRIX_RETURN_TYPE:
     properties = get_properties()
@@ -286,22 +294,12 @@ async def quality_matrix(
 
     output = {k: {} for k in properties}
     for column, total_count in columns.items():
-        response = all_missing_properties(properties, column, match_keyword)
+        response = all_missing_properties(properties, column, node_id, match_keyword)
         for key, value in await items_in_response(response):
             output[key] |= missing_fields(value, total_count, column)
 
     logger.debug(f"Quality matrix output:\n{output}")
     return api_ready_output(output)
-
-
-def node_ids(data: list) -> list[str]:
-    output = []
-    for collection in data:
-        if collection.children:
-            output += node_ids(collection.children)
-        else:
-            output = [str(collection.noderef_id)]
-    return output
 
 
 def all_collections(node_id: UUID = PORTAL_ROOT_ID) -> dict[str, int]:
@@ -328,21 +326,8 @@ def all_collections(node_id: UUID = PORTAL_ROOT_ID) -> dict[str, int]:
         )
     )
     response: Response = s.execute()
-    return extract_sources_from_response(response, "uniquefields")
-    # TODO: Print number of occurences of noderef.id
     #  Use title as return type -> different match term and name of column!
-    total_count = {}
-    for hit in response.hits:
-        node_id = hit.nodeRef.id
-        if node_id not in total_count.keys():
-            total_count.update({node_id: 1})
-        else:
-            total_count[node_id] += 1
-        print(hit)
-        print(hit.properties["cm:title"])
-        print(hit.nodeRef.id)
-        print(hit.parentRef.id)
-    return {}
+    return extract_sources_from_response(response, "uniquefields")
 
 
 async def collection_quality_matrix(
@@ -354,11 +339,10 @@ async def collection_quality_matrix(
     output = {k: {} for k in properties}
     for column, total_count in columns.items():
         response = all_missing_properties(
-            properties, column, match_keyword=match_keyword
+            properties, column, node_id=node_id, match_keyword=match_keyword
         )
-        for key, value in response.aggregations.to_dict().items():
+        for key, value in await items_in_response(response):
             output[key] |= missing_fields(value, total_count, column)
-        break
 
     logger.debug(f"Quality matrix output:\n{output}")
     return api_ready_output(output)
