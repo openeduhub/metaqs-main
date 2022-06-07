@@ -1,3 +1,4 @@
+import uuid
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -19,6 +20,8 @@ from app.api.quality_matrix.quality_matrix import (
 from app.core.config import ELASTICSEARCH_URL
 from app.elastic.search import Search
 from app.elastic.utils import connect_to_elastic
+
+DUMMY_UUID = uuid.UUID("3bbfbe37-2351-405f-b142-f62bf187b10f")
 
 
 @pytest.mark.asyncio
@@ -96,7 +99,10 @@ def test_get_empty_entries_dummy_entries():
         mocked_execute.return_value = dummy_response
         assert (
             all_missing_properties(
-                ["dummy_property"], replication_source="dummy_source"
+                ["dummy_property"],
+                replication_source="dummy_source",
+                node_id=DUMMY_UUID,
+                match_keyword="",
             )
             == dummy_response
         )
@@ -114,6 +120,7 @@ def test_create_empty_entries_search():
             "bool": {
                 "must": [
                     {"match": {"properties.ccm:replicationsource": "dummy_source"}},
+                    {"term": {"path": DUMMY_UUID}},
                     {"match": {"permissions.Read": "GROUP_EVERYONE"}},
                     {"match": {"properties.cm:edu_metadataset": "mds_oeh"}},
                     {"match": {"nodeRef.storeRef.protocol": "workspace"}},
@@ -122,7 +129,12 @@ def test_create_empty_entries_search():
         },
     }
     assert (
-        create_empty_entries_search(["dummy_property"], "dummy_source").to_dict()
+        create_empty_entries_search(
+            ["dummy_property"],
+            "dummy_source",
+            DUMMY_UUID,
+            "properties.ccm:replicationsource",
+        ).to_dict()
         == expected_query
     )
 
