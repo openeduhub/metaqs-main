@@ -7,7 +7,7 @@ from databases import Database
 from elasticsearch_dsl import AttrDict
 from elasticsearch_dsl.response import Response
 
-from app.api.collections.tree import collection_tree
+from app.api.collections.tree import PORTAL_ROOT_ID, collection_tree
 from app.api.quality_matrix.models import Timeline
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import PROPERTIES, REPLICATION_SOURCE_ID
@@ -274,6 +274,10 @@ async def stored_in_timeline(data: QUALITY_MATRIX_RETURN_TYPE, database: Databas
     await database.disconnect()
 
 
+async def items_in_response(response: Response) -> dict:
+    return response.aggregations.to_dict().items()
+
+
 async def quality_matrix(
     match_keyword: str = f"{PROPERTIES}.{REPLICATION_SOURCE_ID}",
 ) -> QUALITY_MATRIX_RETURN_TYPE:
@@ -283,7 +287,7 @@ async def quality_matrix(
     output = {k: {} for k in properties}
     for column, total_count in columns.items():
         response = all_missing_properties(properties, column, match_keyword)
-        for key, value in response.aggregations.to_dict().items():
+        for key, value in await items_in_response(response):
             output[key] |= missing_fields(value, total_count, column)
 
     logger.debug(f"Quality matrix output:\n{output}")
@@ -300,7 +304,7 @@ def node_ids(data: list) -> list[str]:
     return output
 
 
-def all_collections() -> dict[str, int]:
+def all_collections(node_id: UUID = PORTAL_ROOT_ID) -> dict[str, int]:
     s = add_base_match_filters(
         Search().from_dict(
             {
@@ -314,47 +318,47 @@ def all_collections() -> dict[str, int]:
                                 }
                             },
                             {"term": {"nodeRef.storeRef.protocol": "workspace"}},
-                            {"term": {"type": "ccm:map"}},
-                            {"term": {"path": "5e40e372-735c-4b17-bbf7-e827a5702b57"}},
+                            {"term": {"path": node_id}},
                         ]
                     }
                 },
-                "sort": ["fullpath"],
-                "from": 0,
-                "size": 500_000,
-                "_source": [
-                    "nodeRef.id",
-                    "properties.cm:title",
-                    "path",
-                    "parentRef.id",
-                ],
+                "aggs": {"uniquefields": {"terms": {"field": "path", "size": 999999}}},
+                "_source": ["aggregations"],
             }
         )
     )
     response: Response = s.execute()
-    print(response)
+    return extract_sources_from_response(response, "uniquefields")
     # TODO: Print number of occurences of noderef.id
     #  Use title as return type -> different match term and name of column!
+    total_count = {}
+    for hit in response.hits:
+        node_id = hit.nodeRef.id
+        if node_id not in total_count.keys():
+            total_count.update({node_id: 1})
+        else:
+            total_count[node_id] += 1
+        print(hit)
+        print(hit.properties["cm:title"])
+        print(hit.nodeRef.id)
+        print(hit.parentRef.id)
     return {}
 
 
 async def collection_quality_matrix(
     node_id: UUID, match_keyword: str = "path"
 ) -> QUALITY_MATRIX_RETURN_TYPE:
-    print(all_collections())
-    return None
+    columns = all_collections(node_id)
     properties = get_properties()
-    collections = await collection_tree(node_id)
-    columns = node_ids(collections)
-    total_count = 1000
 
     output = {k: {} for k in properties}
-    for column in columns:
+    for column, total_count in columns.items():
         response = all_missing_properties(
             properties, column, match_keyword=match_keyword
         )
         for key, value in response.aggregations.to_dict().items():
             output[key] |= missing_fields(value, total_count, column)
+        break
 
     logger.debug(f"Quality matrix output:\n{output}")
     return api_ready_output(output)
