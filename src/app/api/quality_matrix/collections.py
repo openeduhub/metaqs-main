@@ -11,14 +11,14 @@ from app.api.quality_matrix.quality_matrix import (
     get_properties,
 )
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.constants import PORTAL_ROOT_ID
+from app.core.constants import COLLECTION_ROOT_ID
 from app.elastic.dsl import qbool
 from app.elastic.search import Search
 
 _TITLE_PROPERTY = "properties.cm:title"
 
 
-def all_collections(node_id: UUID = PORTAL_ROOT_ID) -> dict[str, int]:
+def all_collections(node_id: UUID = COLLECTION_ROOT_ID) -> dict[str, int]:
     aggregation_name = "uniquefields"
     s = add_base_match_filters(
         Search()

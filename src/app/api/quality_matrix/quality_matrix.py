@@ -10,7 +10,7 @@ from elasticsearch_dsl.response import Response
 from app.api.quality_matrix.models import Timeline
 from app.api.quality_matrix.utils import default_properties
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.constants import PORTAL_ROOT_ID, PROPERTIES, REPLICATION_SOURCE_ID
+from app.core.constants import COLLECTION_ROOT_ID, PROPERTIES, REPLICATION_SOURCE_ID
 from app.core.logging import logger
 from app.elastic.dsl import qbool, qmatch
 from app.elastic.elastic import base_match_filter
@@ -136,7 +136,7 @@ async def items_in_response(response: Response) -> dict:
 
 
 async def quality_matrix(
-    node_id: UUID = PORTAL_ROOT_ID,
+    node_id: UUID = COLLECTION_ROOT_ID,
     match_keyword: str = f"{PROPERTIES}.{REPLICATION_SOURCE_ID}",
 ) -> QUALITY_MATRIX_RETURN_TYPE:
     properties = get_properties()

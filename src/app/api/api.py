@@ -1,20 +1,18 @@
+from __future__ import annotations
+
 import json
 import uuid
 from typing import List, Mapping, Optional
 from uuid import UUID
 
 from databases import Database
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Path
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from starlette.requests import Request
 from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 
-from app.api.collections.tree import (
-    PortalTreeNode,
-    collection_tree,
-    portal_id_with_root_param,
-)
+from app.api.collections.tree import CollectionTreeNode, collection_tree
 from app.api.quality_matrix.collections import collection_quality_matrix
 from app.api.quality_matrix.models import ColumnOutputModel, Timeline
 from app.api.quality_matrix.quality_matrix import quality_matrix, stored_in_timeline
@@ -27,7 +25,7 @@ from app.api.score.score import (
     collection_id_param,
     query_score,
 )
-from app.core.constants import PORTAL_ROOT_ID
+from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.elastic.elastic import (
     ResourceType,
     aggs_collection_validation,
@@ -64,13 +62,13 @@ TAG_STATISTICS = "Statistics"
 )
 async def get_collection_quality_matrix(
     database: Database = Depends(get_database),
-    node_id: Optional[str] = PORTAL_ROOT_ID,
+    node_id: Optional[str] = COLLECTION_ROOT_ID,
     # Using UUID here leads to https://github.com/OpenAPITools/openapi-generator/issues/3516
     store_to_db=False,
     transpose_output=True,
 ):
     _quality_matrix = await collection_quality_matrix(uuid.UUID(node_id))
-    if store_to_db and node_id == PORTAL_ROOT_ID:  # only store standard case
+    if store_to_db and node_id == COLLECTION_ROOT_ID:  # only store standard case
         await stored_in_timeline(_quality_matrix, database)
     if transpose_output:
         _quality_matrix = transpose(_quality_matrix)
@@ -196,12 +194,27 @@ async def ping_api():
     return {"status": "ok"}
 
 
+def node_ids_for_major_collections(
+    *,
+    node_id: UUID = Path(
+        ...,
+        examples={
+            "Alle Fachportale": {"value": COLLECTION_ROOT_ID},
+            **COLLECTION_NAME_TO_ID,
+        },
+    ),
+) -> UUID:
+    return node_id
+
+
 @router.get(
     "/collections/{node_id}/tree",
-    response_model=List[PortalTreeNode],
+    response_model=List[CollectionTreeNode],
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=["Collections"],
 )
-async def get_portal_tree(*, node_id: UUID = Depends(portal_id_with_root_param)):
+async def get_collection_tree(
+    *, node_id: UUID = Depends(node_ids_for_major_collections)
+):
     return await collection_tree(node_id)

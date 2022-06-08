@@ -1,36 +1,24 @@
-from __future__ import annotations
+from __future__ import (  # Needed for recursive type annotation, can be dropped with Python>3.10
+    annotations,
+)
 
 from uuid import UUID
 
 from aiohttp import ClientSession
-from fastapi import Path
 from pydantic import BaseModel
 
-from app.core.constants import PORTAL_ROOT_ID, PORTALS
+from app.core.constants import COLLECTION_ROOT_ID
 
 
-def portal_id_with_root_param(
-    *,
-    node_id: UUID = Path(
-        ...,
-        examples={
-            "Alle Fachportale": {"value": PORTAL_ROOT_ID},
-            **PORTALS,
-        },
-    ),
-) -> UUID:
-    return node_id
-
-
-class PortalTreeNode(BaseModel):
+class CollectionTreeNode(BaseModel):
     noderef_id: UUID
     title: str
-    children: list[PortalTreeNode]
+    children: list[CollectionTreeNode]
 
 
-def collection_to_model(data: list[dict]) -> list[PortalTreeNode]:
+def collection_to_model(data: list[dict]) -> list[CollectionTreeNode]:
     return [
-        PortalTreeNode(
+        CollectionTreeNode(
             noderef_id=collection["id"].split("/")[-1],
             title=collection["prefLabel"]["de"],
             children=collection_to_model(collection["narrower"])
@@ -42,12 +30,14 @@ def collection_to_model(data: list[dict]) -> list[PortalTreeNode]:
 
 
 async def parsed_tree(session: ClientSession, node_id: UUID):
-    oeh_topic_route = "oeh-topics" if str(node_id) == PORTAL_ROOT_ID else "oehTopics"
+    oeh_topic_route = (
+        "oeh-topics" if str(node_id) == COLLECTION_ROOT_ID else "oehTopics"
+    )
     url = f"https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/{oeh_topic_route}/{node_id}.json"
     response = await session.get(url=url)
     if response.status == 200:
         data = await response.json()
-        keyword = "hasTopConcept" if str(node_id) == PORTAL_ROOT_ID else "narrower"
+        keyword = "hasTopConcept" if str(node_id) == COLLECTION_ROOT_ID else "narrower"
         return collection_to_model(data[keyword])
 
 
