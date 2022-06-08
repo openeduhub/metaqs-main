@@ -68,8 +68,8 @@ async def get_collection_quality_matrix(
     transpose_output=True,
 ):
     _quality_matrix = await collection_quality_matrix(uuid.UUID(node_id))
-    if store_to_db and node_id == COLLECTION_ROOT_ID:  # only store standard case
-        await stored_in_timeline(_quality_matrix, database)
+    # if store_to_db and node_id == COLLECTION_ROOT_ID:  # only store standard case
+    # await stored_in_timeline(_quality_matrix, database)
     if transpose_output:
         _quality_matrix = transpose(_quality_matrix)
     return _quality_matrix
