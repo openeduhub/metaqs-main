@@ -111,7 +111,6 @@ async def get_past_quality_matrix(
     s = select([Timeline]).where(Timeline.timestamp == timestamp)
     await database.connect()
     result: list[Mapping[Timeline]] = await database.fetch_all(s)
-    await database.disconnect()
 
     if len(result) == 0:
         raise HTTPException(status_code=404, detail="Item not found")
