@@ -185,3 +185,5 @@ enter your desired domain. You need write permissions on that domain.
 ```bash
 docker-compose -f docker-compose.dev.yml up
 ```
+
+and open http://localhost:8080/metaqs-api/v1/docs
