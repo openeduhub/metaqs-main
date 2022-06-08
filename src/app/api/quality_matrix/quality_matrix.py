@@ -92,7 +92,7 @@ def create_empty_entries_search(
     return s
 
 
-def all_missing_properties(
+def queried_missing_properties(
     properties: PROPERTY_TYPE,
     replication_source: str,
     node_id: UUID,
@@ -145,15 +145,19 @@ async def quality_matrix(
     return await _quality_matrix(columns, mapping, match_keyword, node_id, properties)
 
 
-async def _quality_matrix(columns, mapping, match_keyword, node_id, properties):
+async def _quality_matrix(
+    columns, id_to_name_mapping, match_keyword, node_id, properties
+):
     output = {k: {} for k in properties}
-    for column, total_count in columns.items():
-        if column in mapping.keys():
-            response = all_missing_properties(
-                properties, column, node_id=node_id, match_keyword=match_keyword
+    for column_id, total_count in columns.items():
+        if column_id in id_to_name_mapping.keys():
+            response = queried_missing_properties(
+                properties, column_id, node_id=node_id, match_keyword=match_keyword
             )
             for key, value in await items_in_response(response):
-                output[key] |= missing_fields(value, total_count, mapping[column])
+                output[key] |= missing_fields(
+                    value, total_count, id_to_name_mapping[column_id]
+                )
             break
     logger.debug(f"Quality matrix output:\n{output}")
     return api_ready_output(output)

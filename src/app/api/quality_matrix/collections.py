@@ -18,8 +18,14 @@ from app.elastic.search import Search
 _TITLE_PROPERTY = "properties.cm:title"
 
 
-def all_collections(node_id: UUID = COLLECTION_ROOT_ID) -> dict[str, int]:
-    aggregation_name = "uniquefields"
+def queried_collections(node_id: UUID = COLLECTION_ROOT_ID) -> dict[str, int]:
+    """
+    Query collection ID's and number of entries connected to this node id from Elasticsearch.
+
+    :param node_id: Parent node ID, from which to search childrens.
+    :return: Dictionary of node_id: total count of entries connected to this node id
+    """
+    aggregation_name = "unique_collections"
     s = add_base_match_filters(
         Search()
         .query(
@@ -60,6 +66,6 @@ async def collection_quality_matrix(
     node_id: UUID, match_keyword: str = "path"
 ) -> QUALITY_MATRIX_RETURN_TYPE:
     mapping = await id_to_title_mapping(node_id)
-    columns = all_collections(node_id)
+    columns = queried_collections(node_id)
     properties = get_properties()
     return await _quality_matrix(columns, mapping, match_keyword, node_id, properties)

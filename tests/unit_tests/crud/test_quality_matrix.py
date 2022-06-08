@@ -7,7 +7,6 @@ from elasticsearch_dsl.response import Hit, Response
 
 from app.api.quality_matrix.quality_matrix import (
     add_base_match_filters,
-    all_missing_properties,
     all_sources,
     create_empty_entries_search,
     create_properties_search,
@@ -16,6 +15,7 @@ from app.api.quality_matrix.quality_matrix import (
     missing_fields,
     missing_fields_ratio,
     quality_matrix,
+    queried_missing_properties,
 )
 from app.api.quality_matrix.utils import transpose
 from app.core.config import ELASTICSEARCH_URL
@@ -72,7 +72,7 @@ async def test_get_quality_matrix():
             "app.api.quality_matrix.quality_matrix.get_properties"
         ) as mocked_get_properties:
             with mock.patch(
-                "app.api.quality_matrix.quality_matrix.all_missing_properties"
+                "app.api.quality_matrix.quality_matrix.queried_missing_properties"
             ) as mocked_all_missing_properties:
                 mocked_get_properties.return_value = ["dummy_properties"]
                 mocked_get_sourced.return_value = {"dummy_source": 10}
@@ -99,7 +99,7 @@ def test_get_empty_entries_dummy_entries():
         dummy_response = 3
         mocked_execute.return_value = dummy_response
         assert (
-            all_missing_properties(
+            queried_missing_properties(
                 ["dummy_property"],
                 replication_source="dummy_source",
                 node_id=DUMMY_UUID,
