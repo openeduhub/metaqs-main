@@ -157,6 +157,5 @@ async def _quality_matrix(
                 output[key] |= missing_fields(
                     value, total_count, id_to_name_mapping[column_id]
                 )
-            break
     logger.debug(f"Quality matrix output:\n{output}")
     return api_ready_output(output)
