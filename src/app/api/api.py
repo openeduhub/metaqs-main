@@ -58,7 +58,9 @@ TAG_STATISTICS = "Statistics"
     response_model=List[ColumnOutputModel],
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[TAG_STATISTICS],
-    description=QUALITY_MATRIX_DESCRIPTION,
+    description=QUALITY_MATRIX_DESCRIPTION
+    + """ The Node ID is what the user chooses in the editorial environment
+    (Redaktionsumgebung) in the "Fach" selection.""",
 )
 async def get_collection_quality_matrix(
     database: Database = Depends(get_database),

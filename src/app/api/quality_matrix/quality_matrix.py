@@ -40,7 +40,6 @@ def create_sources_search(aggregation_name: str):
 def extract_sources_from_response(
     response: Response, aggregation_name: str
 ) -> dict[str, int]:
-    print(response)
     return {
         entry["key"]: entry["doc_count"]
         for entry in response.aggregations.to_dict()[aggregation_name]["buckets"]
@@ -155,5 +154,6 @@ async def _quality_matrix(columns, mapping, match_keyword, node_id, properties):
             )
             for key, value in await items_in_response(response):
                 output[key] |= missing_fields(value, total_count, mapping[column])
+            break
     logger.debug(f"Quality matrix output:\n{output}")
     return api_ready_output(output)
