@@ -102,5 +102,9 @@ class PortalTreeNode(BaseModel):
     title: str
     children: List[PortalTreeNode]
 
-
 PortalTreeNode.update_forward_refs()
+
+class PortalTreeCount(BaseModel):
+    noderef_id: UUID
+    counts: Dict[str, int]
+

@@ -23,6 +23,7 @@ from app.models.collection import (
     CollectionAttribute,
     CollectionMaterialsCount,
     PortalTreeNode,
+    PortalTreeCount,
 )
 from app.score import ScoreModulator, ScoreWeights, calc_scores, calc_weighted_score
 
@@ -74,6 +75,25 @@ async def get_portal_tree(
     response.headers["X-Total-Count"] = str(len(collections))
     response.headers["X-Query-Count"] = str(len(context.get("elastic_queries")))
     return tree
+
+
+@router.get(
+    "/collections/{noderef_id}/counts",
+    summary="Return the material counts for each collection id which this portal tree includes",
+    response_model=List[PortalTreeCount],
+    status_code=HTTP_200_OK,
+    responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
+    tags=["Collections"],
+)
+async def get_portal_counts(
+        *,
+        noderef_id: UUID = Depends(portal_id_with_root_param),
+        response: Response,
+):
+    counts = await crud_collection.get_portal_counts(noderef_id=noderef_id)
+    response.headers["X-Total-Count"] = str(len(counts))
+    response.headers["X-Query-Count"] = str(len(context.get("elastic_queries")))
+    return counts
 
 
 @router.get(

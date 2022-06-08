@@ -2,11 +2,12 @@ from typing import Dict, List, Optional, Set
 from uuid import UUID
 
 from elasticsearch_dsl.response import Response
+from elasticsearch_dsl import A
 from pydantic import BaseModel
 
 from app.core.config import ELASTIC_MAX_SIZE, PORTAL_ROOT_ID
 from app.elastic import Field, Search, abucketsort, qbool, qwildcard
-from app.models.collection import Collection, CollectionAttribute
+from app.models.collection import Collection, CollectionAttribute, PortalTreeCount
 from app.models.elastic import (
     DescendantCollectionsMaterialsCounts,
     ElasticResourceAttribute,
@@ -73,6 +74,34 @@ class MissingAttributeFilter(BaseModel):
         query_dict["must_not"] = qwildcard(qfield=self.attr, value="*")
         return query_dict
 
+async def get_portal_counts(noderef_id: UUID):
+    s = Search().query(query_materials(ancestor_id=noderef_id))
+    material_agg = A("terms", field="collections.nodeRef.id.keyword", size=9999999)
+    material_agg.bucket("lrt", A("terms", field="properties.ccm:oeh_lrt_aggregated.keyword", size=9999999))
+    s.aggs.bucket("collection_id", material_agg)
+    response: Response = s.source(
+        [
+            ElasticResourceAttribute.NODEREF_ID,
+            CollectionAttribute.TITLE,
+            CollectionAttribute.PATH,
+            CollectionAttribute.PARENT_ID,
+        ]
+    )[:ELASTIC_MAX_SIZE].execute()
+    result: PortalTreeCount = []
+    if response.success():
+        for data in response.aggregations["collection_id"].buckets:
+            print(data)
+            counts = {
+                "total": data["doc_count"]
+            }
+            for sub in data.lrt.buckets:
+                counts[sub["key"]] = sub["doc_count"]
+            result.append({
+                "noderef_id": data["key"],
+                "counts": counts
+            })
+    print(result)
+    return result
 
 async def get_portals():
     s = Search().query(query_collections(ancestor_id=PORTAL_ROOT_ID))
