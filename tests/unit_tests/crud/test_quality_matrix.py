@@ -1,3 +1,4 @@
+import uuid
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -6,7 +7,6 @@ from elasticsearch_dsl.response import Hit, Response
 
 from app.api.quality_matrix.quality_matrix import (
     add_base_match_filters,
-    all_missing_properties,
     all_sources,
     create_empty_entries_search,
     create_properties_search,
@@ -15,10 +15,14 @@ from app.api.quality_matrix.quality_matrix import (
     missing_fields,
     missing_fields_ratio,
     quality_matrix,
+    queried_missing_properties,
 )
+from app.api.quality_matrix.utils import transpose
 from app.core.config import ELASTICSEARCH_URL
 from app.elastic.search import Search
 from app.elastic.utils import connect_to_elastic
+
+DUMMY_UUID = uuid.UUID("3bbfbe37-2351-405f-b142-f62bf187b10f")
 
 
 @pytest.mark.asyncio
@@ -28,7 +32,7 @@ from app.elastic.utils import connect_to_elastic
 async def test_get_properties():
     await connect_to_elastic()
     data = get_properties()
-    assert "cm:author" in data
+    assert "ccm:author_freetext" in data
 
 
 @pytest.mark.asyncio
@@ -68,7 +72,7 @@ async def test_get_quality_matrix():
             "app.api.quality_matrix.quality_matrix.get_properties"
         ) as mocked_get_properties:
             with mock.patch(
-                "app.api.quality_matrix.quality_matrix.all_missing_properties"
+                "app.api.quality_matrix.quality_matrix.queried_missing_properties"
             ) as mocked_all_missing_properties:
                 mocked_get_properties.return_value = ["dummy_properties"]
                 mocked_get_sourced.return_value = {"dummy_source": 10}
@@ -95,8 +99,11 @@ def test_get_empty_entries_dummy_entries():
         dummy_response = 3
         mocked_execute.return_value = dummy_response
         assert (
-            all_missing_properties(
-                ["dummy_property"], replication_source="dummy_source"
+            queried_missing_properties(
+                ["dummy_property"],
+                replication_source="dummy_source",
+                node_id=DUMMY_UUID,
+                match_keyword="",
             )
             == dummy_response
         )
@@ -114,6 +121,7 @@ def test_create_empty_entries_search():
             "bool": {
                 "must": [
                     {"match": {"properties.ccm:replicationsource": "dummy_source"}},
+                    {"term": {"path": DUMMY_UUID}},
                     {"match": {"permissions.Read": "GROUP_EVERYONE"}},
                     {"match": {"properties.cm:edu_metadataset": "mds_oeh"}},
                     {"match": {"nodeRef.storeRef.protocol": "workspace"}},
@@ -122,7 +130,12 @@ def test_create_empty_entries_search():
         },
     }
     assert (
-        create_empty_entries_search(["dummy_property"], "dummy_source").to_dict()
+        create_empty_entries_search(
+            ["dummy_property"],
+            "dummy_source",
+            DUMMY_UUID,
+            "properties.ccm:replicationsource",
+        ).to_dict()
         == expected_query
     )
 
@@ -143,7 +156,7 @@ def test_create_sources_search():
             aggregation_name: {
                 "terms": {
                     "field": "properties.ccm:replicationsource.keyword",
-                    "size": 1_000_000,
+                    "size": 500_000,
                 }
             }
         },
@@ -214,3 +227,78 @@ def test_missing_fields_ratio():
     assert response == 100
     response = missing_fields_ratio({"doc_count": 5}, 10)
     assert response == 50
+
+
+def compare_lists_of_dict(expected, actually) -> bool:
+    difference = [
+        i for i in expected + actually if i not in expected or i not in actually
+    ]
+    return False if len(difference) > 0 else True
+
+
+def test_transpose():
+    data = [
+        {
+            "metadatum": "virtual",
+            "columns": {
+                "00abdb05-6c96-4604-831c-b9846eae7d2d": 13.0,
+                "3305f552-c931-4bcc-842b-939c99752bd5": 20.0,
+                "35054614-72c8-49b2-9924-7b04c7f3bf71": -10.0,
+            },
+        }
+    ]
+
+    assert compare_lists_of_dict(
+        transpose(data),
+        [
+            {
+                "metadatum": "00abdb05-6c96-4604-831c-b9846eae7d2d",
+                "columns": {"virtual": 13.0},
+            },
+            {
+                "metadatum": "3305f552-c931-4bcc-842b-939c99752bd5",
+                "columns": {"virtual": 20.0},
+            },
+            {
+                "metadatum": "35054614-72c8-49b2-9924-7b04c7f3bf71",
+                "columns": {"virtual": -10.0},
+            },
+        ],
+    )
+
+    data = [
+        {
+            "metadatum": "virtual",
+            "columns": {
+                "00abdb05-6c96-4604-831c-b9846eae7d2d": 13.0,
+                "3305f552-c931-4bcc-842b-939c99752bd5": 20.0,
+                "35054614-72c8-49b2-9924-7b04c7f3bf71": -10.0,
+            },
+        },
+        {
+            "metadatum": "actually",
+            "columns": {
+                "00abdb05-6c96-4604-831c-b9846eae7d2d": 20.0,
+                "3305f552-c931-4bcc-842b-939c99752bd5": 21.0,
+                "35054614-72c8-49b2-9924-7b04c7f3bf71": -1.0,
+            },
+        },
+    ]
+
+    assert compare_lists_of_dict(
+        transpose(data),
+        [
+            {
+                "metadatum": "00abdb05-6c96-4604-831c-b9846eae7d2d",
+                "columns": {"virtual": 13.0, "actually": 20},
+            },
+            {
+                "metadatum": "3305f552-c931-4bcc-842b-939c99752bd5",
+                "columns": {"virtual": 20.0, "actually": 21},
+            },
+            {
+                "metadatum": "35054614-72c8-49b2-9924-7b04c7f3bf71",
+                "columns": {"virtual": -10.0, "actually": -1},
+            },
+        ],
+    )

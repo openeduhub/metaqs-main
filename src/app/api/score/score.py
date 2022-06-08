@@ -79,6 +79,6 @@ async def query_score(noderef_id: UUID, resource_type: ResourceType) -> dict:
 
 def collection_id_param(
     *,
-    collection_id: UUID = Path(..., examples=app.core.constants.COLLECTIONS),
+    collection_id: UUID = Path(..., examples=app.core.constants.COLLECTION_NAME_TO_ID),
 ) -> UUID:
     return collection_id

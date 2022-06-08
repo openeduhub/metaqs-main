@@ -1,17 +1,23 @@
+from __future__ import annotations
+
 import json
-from typing import List, Mapping
+import uuid
+from typing import List, Mapping, Optional
 from uuid import UUID
 
 from databases import Database
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Path
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from starlette.requests import Request
 from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 
+from app.api.collections.tree import CollectionTreeNode, collection_tree
+from app.api.quality_matrix.collections import collection_quality_matrix
 from app.api.quality_matrix.models import ColumnOutputModel, Timeline
 from app.api.quality_matrix.quality_matrix import quality_matrix, stored_in_timeline
 from app.api.quality_matrix.timeline import timestamps
+from app.api.quality_matrix.utils import transpose
 from app.api.score.models import ScoreOutput
 from app.api.score.score import (
     calc_scores,
@@ -19,6 +25,7 @@ from app.api.score.score import (
     collection_id_param,
     query_score,
 )
+from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.elastic.elastic import (
     ResourceType,
     aggs_collection_validation,
@@ -39,7 +46,33 @@ QUALITY_MATRIX_DESCRIPTION = """Calculation of the quality matrix.
     A missing entry may be `cm:creator = null`.
     Additional parameters:
         store_to_db: Default False. Causes returned quality matrix to also be stored in the backend database."""
+
 TAG_STATISTICS = "Statistics"
+
+
+@router.get(
+    "/collection_quality_matrix",
+    status_code=HTTP_200_OK,
+    response_model=List[ColumnOutputModel],
+    responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
+    tags=[TAG_STATISTICS],
+    description=QUALITY_MATRIX_DESCRIPTION
+    + """ The Node ID is what the user chooses in the editorial environment
+    (Redaktionsumgebung) in the "Fach" selection.""",
+)
+async def get_collection_quality_matrix(
+    database: Database = Depends(get_database),
+    node_id: Optional[str] = COLLECTION_ROOT_ID,
+    # Using UUID here leads to https://github.com/OpenAPITools/openapi-generator/issues/3516
+    store_to_db=False,
+    transpose_output=True,
+):
+    _quality_matrix = await collection_quality_matrix(uuid.UUID(node_id))
+    # if store_to_db and node_id == COLLECTION_ROOT_ID:  # only store standard case
+    # await stored_in_timeline(_quality_matrix, database)
+    if transpose_output:
+        _quality_matrix = transpose(_quality_matrix)
+    return _quality_matrix
 
 
 @router.get(
@@ -51,7 +84,8 @@ TAG_STATISTICS = "Statistics"
     description=QUALITY_MATRIX_DESCRIPTION,
 )
 async def get_quality_matrix(
-    database: Database = Depends(get_database), store_to_db=False
+    database: Database = Depends(get_database),
+    store_to_db=False,
 ):
     _quality_matrix = await quality_matrix()
     if store_to_db:
@@ -77,7 +111,6 @@ async def get_past_quality_matrix(
     s = select([Timeline]).where(Timeline.timestamp == timestamp)
     await database.connect()
     result: list[Mapping[Timeline]] = await database.fetch_all(s)
-    await database.disconnect()
 
     if len(result) == 0:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -158,3 +191,29 @@ class Ping(BaseModel):
 )
 async def ping_api():
     return {"status": "ok"}
+
+
+def node_ids_for_major_collections(
+    *,
+    node_id: UUID = Path(
+        ...,
+        examples={
+            "Alle Fachportale": {"value": COLLECTION_ROOT_ID},
+            **COLLECTION_NAME_TO_ID,
+        },
+    ),
+) -> UUID:
+    return node_id
+
+
+@router.get(
+    "/collections/{node_id}/tree",
+    response_model=List[CollectionTreeNode],
+    status_code=HTTP_200_OK,
+    responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
+    tags=["Collections"],
+)
+async def get_collection_tree(
+    *, node_id: UUID = Depends(node_ids_for_major_collections)
+):
+    return await collection_tree(node_id)

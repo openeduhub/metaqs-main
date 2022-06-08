@@ -1,14 +1,16 @@
 from datetime import datetime
 from typing import Union
+from uuid import UUID
 
 import sqlalchemy
 from databases import Database
-from elasticsearch_dsl import AttrDict
+from elasticsearch_dsl import AttrDict, Q
 from elasticsearch_dsl.response import Response
 
 from app.api.quality_matrix.models import Timeline
+from app.api.quality_matrix.utils import default_properties
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.constants import PROPERTIES, REPLICATION_SOURCE_ID
+from app.core.constants import COLLECTION_ROOT_ID, PROPERTIES, REPLICATION_SOURCE_ID
 from app.core.logging import logger
 from app.elastic.dsl import qbool, qmatch
 from app.elastic.elastic import base_match_filter
@@ -53,156 +55,6 @@ def all_sources() -> dict[str, int]:
     )
 
 
-def default_properties() -> list[str]:
-    return [
-        "add_to_stream_description",
-        "add_to_stream_priority",
-        "add_to_stream_title",
-        "cclom:aggregationlevel",
-        "cclom:classification_keyword",
-        "cclom:duration",
-        "cclom:format",
-        "cclom:general_description",
-        "cclom:general_keyword",
-        "cclom:general_language",
-        "cclom:location",
-        "cclom:size",
-        "cclom:status",
-        "cclom:title",
-        "cclom:typicallearningtime",
-        "ccm:accessibilitySummary",
-        "ccm:author_freetext",
-        "ccm:classification_purpose",
-        "ccm:collection_ordered_position",
-        "ccm:collection_proposal_status",
-        "ccm:collectionshorttitle",
-        "ccm:commonlicense_key",
-        "ccm:competence",
-        "ccm:conditionsOfAccess",
-        "ccm:containsAdvertisement",
-        "ccm:curriculum",
-        "ccm:custom_license",
-        "ccm:dataProtectionConformity",
-        "ccm:editorial_checklist",
-        "ccm:editorial_state",
-        "ccm:educationalcontext",
-        "ccm:educationaldifficulty",
-        "ccm:educationalintendedenduserrole",
-        "ccm:educationalinteractivitytype",
-        "ccm:educationallearningresourcetype",
-        "ccm:educationaltypicalagerange",
-        "ccm:fskRating",
-        "ccm:general_identifier",
-        "ccm:imported_object_appname",
-        "ccm:license_oer",
-        "ccm:license_to",
-        "ccm:lifecyclecontributer_author",
-        "ccm:lifecyclecontributer_content_provider",
-        "ccm:lifecyclecontributer_editor",
-        "ccm:lifecyclecontributer_educational_validator",
-        "ccm:lifecyclecontributer_graphical_designer",
-        "ccm:lifecyclecontributer_initiator",
-        "ccm:lifecyclecontributer_instructional_designer",
-        "ccm:lifecyclecontributer_publisher",
-        "ccm:lifecyclecontributer_script_writer",
-        "ccm:lifecyclecontributer_subject_matter_expert",
-        "ccm:lifecyclecontributer_technical_implementer",
-        "ccm:lifecyclecontributer_terminator",
-        "ccm:lifecyclecontributer_unknown",
-        "ccm:lifecyclecontributer_validator",
-        "ccm:metadatacontributer_creator",
-        "ccm:metadatacontributer_provider",
-        "ccm:metadatacontributer_validator",
-        "ccm:notes",
-        "ccm:objecttype",
-        "ccm:oeh_accessibility_find",
-        "ccm:oeh_accessibility_open",
-        "ccm:oeh_accessibility_security",
-        "ccm:oeh_buffet_criteria",
-        "ccm:oeh_competence_check",
-        "ccm:oeh_competence_requirements",
-        "ccm:oeh_digitalCompetencies",
-        "ccm:oeh_internalDocument",
-        "ccm:oeh_interoperability",
-        "ccm:oeh_languageLevel",
-        "ccm:oeh_languageTarget",
-        "ccm:oeh_lrt",
-        "ccm:oeh_lrt_aggregated",
-        "ccm:oeh_quality_copyright_law",
-        "ccm:oeh_quality_correctness",
-        "ccm:oeh_quality_criminal_law",
-        "ccm:oeh_quality_currentness",
-        "ccm:oeh_quality_data_privacy",
-        "ccm:oeh_quality_didactics",
-        "ccm:oeh_quality_language",
-        "ccm:oeh_quality_login",
-        "ccm:oeh_quality_medial",
-        "ccm:oeh_quality_neutralness",
-        "ccm:oeh_quality_personal_law",
-        "ccm:oeh_quality_protection_of_minors",
-        "ccm:oeh_quality_relevancy_for_education",
-        "ccm:oeh_quality_transparentness",
-        "ccm:oeh_signatures",
-        "ccm:oeh_usability",
-        "ccm:oeh_widgets",
-        "ccm:pointsdefault",
-        "ccm:price",
-        "ccm:published_date",
-        "ccm:published_handle_id",
-        "ccm:replicationsource",
-        "ccm:restricted_access",
-        "ccm:sourceContentType",
-        "ccm:taxonid",
-        "ccm:toolCategory",
-        "ccm:tool_category",
-        "ccm:tool_instance_access",
-        "ccm:tool_instance_key",
-        "ccm:tool_instance_license",
-        "ccm:tool_instance_params",
-        "ccm:tool_instance_provider",
-        "ccm:tool_instance_provider_url",
-        "ccm:tool_instance_secret",
-        "ccm:tool_instance_support_contact",
-        "ccm:tool_instance_support_mail",
-        "ccm:tool_producer",
-        "ccm:unmetLegalCriteria",
-        "ccm:wwwurl",
-        "cm:created",
-        "cm:description",
-        "cm:modified",
-        "cm:name",
-        "cm:title",
-        "cm:versionLabel",
-        "collection_feedback",
-        "feedback_comment",
-        "feedback_rating",
-        "license",
-        "sys:node-uuid",
-        "virtual:author",
-        "virtual:collection_id",
-        "virtual:collection_id_primary",
-        "virtual:data_privacy",
-        "virtual:editorial_edit_type",
-        "virtual:editorial_exclusion",
-        "virtual:editorial_file_type",
-        "virtual:editorial_filter",
-        "virtual:editorial_publisher",
-        "virtual:editorial_replicationsource",
-        "virtual:editorial_status",
-        "virtual:editorial_taxonid",
-        "virtual:editorial_title",
-        "virtual:email",
-        "virtual:mediatype",
-        "virtual:newsletter",
-        "virtual:portal_type",
-        "virtual:publish_location",
-        "virtual:search_tasks",
-        "virtual:time_after_created",
-        "virtual:time_after_modified",
-        "virtual:type",
-    ]
-
-
 def extract_properties(hits: list[AttrDict]) -> PROPERTY_TYPE:
     return list(set(list(hits[0].to_dict()[PROPERTIES].keys()) + default_properties()))
 
@@ -218,16 +70,18 @@ def get_properties() -> PROPERTY_TYPE:
 
 
 def create_empty_entries_search(
-    properties: PROPERTY_TYPE, replication_source: str
+    properties: PROPERTY_TYPE,
+    replication_source: str,
+    node_id: UUID,
+    match_keyword: str,
 ) -> Search:
     s = add_base_match_filters(
         Search()
         .query(
             qbool(
                 must=[
-                    qmatch(
-                        **{f"{PROPERTIES}.{REPLICATION_SOURCE_ID}": replication_source}
-                    ),
+                    qmatch(**{match_keyword: replication_source}),
+                    Q("term", **{"path": node_id}),
                 ]
             )
         )
@@ -238,10 +92,15 @@ def create_empty_entries_search(
     return s
 
 
-def all_missing_properties(
-    properties: PROPERTY_TYPE, replication_source: str
+def queried_missing_properties(
+    properties: PROPERTY_TYPE,
+    replication_source: str,
+    node_id: UUID,
+    match_keyword: str,
 ) -> Response:
-    return create_empty_entries_search(properties, replication_source).execute()
+    return create_empty_entries_search(
+        properties, replication_source, node_id=node_id, match_keyword=match_keyword
+    ).execute()
 
 
 def join_data(data, key):
@@ -269,16 +128,34 @@ async def stored_in_timeline(data: QUALITY_MATRIX_RETURN_TYPE, database: Databas
             {"timestamp": datetime.now().timestamp(), "quality_matrix": data}
         )
     )
-    await database.disconnect()
 
 
-async def quality_matrix() -> QUALITY_MATRIX_RETURN_TYPE:
+async def items_in_response(response: Response) -> dict:
+    return response.aggregations.to_dict().items()
+
+
+async def quality_matrix(
+    node_id: UUID = COLLECTION_ROOT_ID,
+    match_keyword: str = f"{PROPERTIES}.{REPLICATION_SOURCE_ID}",
+) -> QUALITY_MATRIX_RETURN_TYPE:
     properties = get_properties()
-    output = {k: {} for k in properties}
-    for replication_source, total_count in all_sources().items():
-        response = all_missing_properties(properties, replication_source)
-        for key, value in response.aggregations.to_dict().items():
-            output[key] |= missing_fields(value, total_count, replication_source)
+    columns = all_sources()
+    mapping = {key: key for key in columns.keys()}  # identity mapping
+    return await _quality_matrix(columns, mapping, match_keyword, node_id, properties)
 
+
+async def _quality_matrix(
+    columns, id_to_name_mapping, match_keyword, node_id, properties
+):
+    output = {k: {} for k in properties}
+    for column_id, total_count in columns.items():
+        if column_id in id_to_name_mapping.keys():
+            response = queried_missing_properties(
+                properties, column_id, node_id=node_id, match_keyword=match_keyword
+            )
+            for key, value in await items_in_response(response):
+                output[key] |= missing_fields(
+                    value, total_count, id_to_name_mapping[column_id]
+                )
     logger.debug(f"Quality matrix output:\n{output}")
     return api_ready_output(output)

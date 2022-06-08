@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 REPLICATION_SOURCE_ID = "ccm:replicationsource"
 PROPERTIES = "properties"
 
-COLLECTIONS = {
-    # "Physik": {"value": "unknown"},
+COLLECTION_NAME_TO_ID = {
+    "Physik": {"value": "94f22c9b-0d3a-4c1c-8987-4c8e83f3a92e"},
     "Mathematik": {"value": "bd8be6d5-0fbe-4534-a4b3-773154ba6abc"},
     "Biologie": {"value": "15fce411-54d9-467f-8f35-61ea374a298d"},
     "Chemie": {"value": "4940d5da-9b21-4ec0-8824-d16e0409e629"},
@@ -30,3 +32,4 @@ COLLECTIONS = {
     "Philosophie": {"value": "9d364fd0-4374-40b4-a153-3c722b9cda35"},
 }
 OPEN_API_VERSION = "2.1.0"
+COLLECTION_ROOT_ID = "5e40e372-735c-4b17-bbf7-e827a5702b57"
