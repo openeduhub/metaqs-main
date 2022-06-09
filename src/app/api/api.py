@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import uuid
-from enum import Enum
 from typing import List, Mapping
 from uuid import UUID
 
@@ -15,7 +14,7 @@ from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 
 from app.api.collections.tree import CollectionTreeNode, collection_tree
 from app.api.quality_matrix.collections import collection_quality
-from app.api.quality_matrix.models import ColumnOutputModel, Timeline
+from app.api.quality_matrix.models import ColumnOutputModel, Forms, Timeline
 from app.api.quality_matrix.quality_matrix import source_quality, stored_in_timeline
 from app.api.quality_matrix.timeline import timestamps
 from app.api.quality_matrix.utils import transpose
@@ -62,11 +61,6 @@ def node_ids_for_major_collections(
     ),
 ) -> UUID:
     return node_id
-
-
-class Forms(str, Enum):
-    REPLICATION_SOURCE = "Bezugsquelle"
-    COLLECTIONS = "Sammlungen"
 
 
 @router.get(
@@ -144,10 +138,18 @@ async def get_past_quality_matrix(
         }
     },
     tags=[TAG_STATISTICS],
-    description="""Return timestamps of the format XYZ of past calculations of the quality matrix.""",
+    description="""Return timestamps in seconds since epoch of past calculations of the quality matrix.
+    Additional parameters:
+        form: The desired form of quality. This is used to query only the relevant type of data.""",
 )
-async def get_timestamps(database: Database = Depends(get_database)):
-    return await timestamps(database)
+async def get_timestamps(
+    database: Database = Depends(get_database),
+    form: Forms = Query(
+        default=Forms.REPLICATION_SOURCE,
+        examples={form: {"value": form} for form in Forms},
+    ),
+):
+    return await timestamps(database, form)
 
 
 @router.get(

@@ -1,5 +1,9 @@
+from __future__ import annotations
+
+from enum import Enum
+
 from pydantic import BaseModel, Field
-from sqlalchemy import JSON, Column, Integer
+from sqlalchemy import JSON, Column, Integer, Text
 from sqlalchemy.orm import declarative_base
 
 
@@ -18,3 +22,9 @@ class Timeline(Base):
     id = Column(Integer, primary_key=True, index=True)
     timestamp = Column(Integer, nullable=False)
     quality_matrix = Column(JSON, nullable=False)
+    form = Column(Text, nullable=False)
+
+
+class Forms(str, Enum):
+    REPLICATION_SOURCE = "Bezugsquelle"
+    COLLECTIONS = "Sammlungen"
