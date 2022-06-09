@@ -62,7 +62,7 @@ async def id_to_title_mapping(node_id: UUID):
     return mapping
 
 
-async def collection_quality_matrix(
+async def collection_quality(
     node_id: UUID, match_keyword: str = "path"
 ) -> QUALITY_MATRIX_RETURN_TYPE:
     mapping = await id_to_title_mapping(node_id)

@@ -14,8 +14,8 @@ from app.api.quality_matrix.quality_matrix import (
     get_properties,
     missing_fields,
     missing_fields_ratio,
-    quality_matrix,
     queried_missing_properties,
+    source_quality,
 )
 from app.api.quality_matrix.utils import transpose
 from app.core.config import ELASTICSEARCH_URL
@@ -45,7 +45,7 @@ async def test_get_quality_matrix_no_sources_no_properties():
         ) as mocked_get_properties:
             mocked_get_properties.return_value = []
             mocked_get_sourced.return_value = {}
-            assert await quality_matrix() == []
+            assert await source_quality() == []
 
 
 @pytest.mark.asyncio
@@ -58,7 +58,7 @@ async def test_get_quality_matrix_no_sources():
         ) as mocked_get_properties:
             mocked_get_properties.return_value = ["dummy_properties"]
             mocked_get_sourced.return_value = {}
-            assert await quality_matrix() == [
+            assert await source_quality() == [
                 {"metadatum": "dummy_properties", "columns": {}}
             ]
 
@@ -79,7 +79,7 @@ async def test_get_quality_matrix():
                 mocked_response = MagicMock()
                 mocked_response.aggregations.to_dict.return_value = {}
                 mocked_all_missing_properties.return_value = mocked_response
-                assert await quality_matrix() == [
+                assert await source_quality() == [
                     {"metadatum": "dummy_properties", "columns": {}}
                 ]
 
@@ -87,7 +87,7 @@ async def test_get_quality_matrix():
                     "dummy_properties": {"doc_count": 5}
                 }
                 mocked_all_missing_properties.return_value = mocked_response
-                assert await quality_matrix() == [
+                assert await source_quality() == [
                     {"metadatum": "dummy_properties", "columns": {"dummy_source": 50.0}}
                 ]
 
@@ -101,7 +101,7 @@ def test_get_empty_entries_dummy_entries():
         assert (
             queried_missing_properties(
                 ["dummy_property"],
-                replication_source="dummy_source",
+                search_keyword="dummy_source",
                 node_id=DUMMY_UUID,
                 match_keyword="",
             )
