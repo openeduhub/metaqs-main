@@ -7,7 +7,7 @@ from databases import Database
 from elasticsearch_dsl import AttrDict, Q
 from elasticsearch_dsl.response import Response
 
-from app.api.quality_matrix.models import Timeline
+from app.api.quality_matrix.models import Forms, Timeline
 from app.api.quality_matrix.utils import default_properties
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import COLLECTION_ROOT_ID, PROPERTIES, REPLICATION_SOURCE_ID
@@ -121,11 +121,17 @@ def missing_fields(
     return {search_keyword: missing_fields_ratio(value, total_count)}
 
 
-async def stored_in_timeline(data: QUALITY_MATRIX_RETURN_TYPE, database: Database):
+async def stored_in_timeline(
+    data: QUALITY_MATRIX_RETURN_TYPE, database: Database, form: Forms
+):
     await database.connect()
     await database.execute(
         sqlalchemy.insert(Timeline).values(
-            {"timestamp": datetime.now().timestamp(), "quality_matrix": data}
+            {
+                "timestamp": datetime.now().timestamp(),
+                "quality_matrix": data,
+                "form": form,
+            }
         )
     )
 

@@ -96,14 +96,15 @@ async def get_quality(
         _quality_matrix = transpose(_quality_matrix)
     else:
         return HTTP_404_NOT_FOUND
-    print(form, transpose_output, node_id)
+    if transpose_output:
+        _quality_matrix = transpose(_quality_matrix)
     if store_to_db:
-        await stored_in_timeline(_quality_matrix, database)
+        await stored_in_timeline(_quality_matrix, database, form)
     return _quality_matrix
 
 
 @router.get(
-    "/quality_matrix/{timestamp}",
+    "/quality/{timestamp}",
     status_code=HTTP_200_OK,
     response_model=List[ColumnOutputModel],
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
@@ -129,7 +130,7 @@ async def get_past_quality_matrix(
 
 
 @router.get(
-    "/quality_matrix_timestamps",
+    "/quality_timestamps",
     status_code=HTTP_200_OK,
     response_model=List[int],
     responses={
