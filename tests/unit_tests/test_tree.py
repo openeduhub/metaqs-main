@@ -114,6 +114,16 @@ def test_parse_tree():
 
     assert top_nodes(json_tree) == top_nodes(expected_tree)
 
+    def flatten_list(list_of_lists):
+        flat_list = []
+        for item in list_of_lists:
+            if type(item) == list:
+                flat_list += flatten_list(item)
+            else:
+                flat_list.append(str(item))
+
+        return flat_list
+
     def nodes(data: list) -> list:
         return [
             nodes(collection["children"])
@@ -122,7 +132,17 @@ def test_parse_tree():
             for collection in data
         ]
 
-    assert nodes(json_tree) == nodes(expected_tree)
+    assert (
+        flatten_list(nodes(json_tree)).sort()
+        == flatten_list(nodes(expected_tree)).sort()
+    )
+    flat_tree = flatten_list(nodes(json_tree))
+    flat_expectation = flatten_list(nodes(expected_tree))
+    flat_tree.sort()
+    flat_expectation.sort()
+    # TODO: Expectation has less elements, expectation comes from current prod
+    assert len(flat_tree) == len(flat_expectation)
+    assert flat_tree == flat_expectation
 
     def node_count_from_dict(data: list) -> int:
         return sum(
