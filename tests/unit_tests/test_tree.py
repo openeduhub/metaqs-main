@@ -113,4 +113,24 @@ def test_parse_tree():
         return {str(entry["noderef_id"]) for entry in data}
 
     assert top_nodes(json_tree) == top_nodes(expected_tree)
+
+    def nodes(data: list) -> list:
+        return [
+            nodes(collection["children"])
+            if collection["children"]
+            else collection["noderef_id"]
+            for collection in data
+        ]
+
+    assert nodes(json_tree) == nodes(expected_tree)
+
+    def node_count_from_dict(data: list) -> int:
+        return sum(
+            node_count_from_dict(collection["children"])
+            if collection["children"]
+            else 1
+            for collection in data
+        )
+
+    assert node_count_from_dict(json_tree) == node_count_from_dict(expected_tree)
     assert json_tree == expected_tree
