@@ -6,7 +6,6 @@ import pytest
 from elasticsearch_dsl.response import Hit, Response
 
 from app.api.quality_matrix.quality_matrix import (
-    add_base_match_filters,
     all_sources,
     create_empty_entries_search,
     create_properties_search,
@@ -19,6 +18,7 @@ from app.api.quality_matrix.quality_matrix import (
 )
 from app.api.quality_matrix.utils import transpose
 from app.core.config import ELASTICSEARCH_URL
+from app.elastic.elastic import add_base_match_filters
 from app.elastic.search import Search
 from app.elastic.utils import connect_to_elastic
 

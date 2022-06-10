@@ -7,12 +7,8 @@ from unittest.mock import MagicMock
 import pytest
 from elasticsearch_dsl.response import Response
 
-from app.api.collections.tree import (
-    collection_tree,
-    parse_tree,
-    parsed_tree,
-    tree_query,
-)
+from app.api.collections.tree import collection_tree, tree_from_elastic, tree_query
+from app.api.collections.vocabs import tree_from_vocabs
 
 
 def node_count(data: list):
@@ -46,7 +42,7 @@ async def test_parsed_tree_empty_json():
         future.set_result(mocked_response)
         mocked_client.get.return_value = future
 
-        data = await parsed_tree(mocked_client, root_node_id)
+        data = await tree_from_vocabs(mocked_client, root_node_id)
         assert len(data) == 0
 
 
@@ -95,7 +91,7 @@ def test_parse_tree():
         mocked_response.success = MagicMock()
         mocked_response.success.return_value = True
         mocked_execute.return_value = mocked_response
-        tree = parse_tree(node_id_biology)
+        tree = tree_from_elastic(node_id_biology)
 
     def tree_to_json(_tree: dict) -> list:
         return [

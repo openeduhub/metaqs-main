@@ -6,13 +6,13 @@ from elasticsearch_dsl.response import Response
 from app.api.quality_matrix.quality_matrix import (
     QUALITY_MATRIX_RETURN_TYPE,
     _quality_matrix,
-    add_base_match_filters,
     extract_sources_from_response,
     get_properties,
 )
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import COLLECTION_ROOT_ID
 from app.elastic.dsl import qbool
+from app.elastic.elastic import add_base_match_filters
 from app.elastic.search import Search
 
 _TITLE_PROPERTY = "properties.cm:title"

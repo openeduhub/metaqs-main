@@ -12,7 +12,8 @@ from sqlalchemy import select
 from starlette.requests import Request
 from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 
-from app.api.collections.tree import CollectionTreeNode, collection_tree
+from app.api.collections.models import CollectionTreeNode
+from app.api.collections.tree import collection_tree
 from app.api.quality_matrix.collections import collection_quality
 from app.api.quality_matrix.models import ColumnOutputModel, Forms, Timeline
 from app.api.quality_matrix.quality_matrix import source_quality, stored_in_timeline

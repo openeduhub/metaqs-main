@@ -13,17 +13,11 @@ from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import COLLECTION_ROOT_ID, PROPERTIES, REPLICATION_SOURCE_ID
 from app.core.logging import logger
 from app.elastic.dsl import qbool, qmatch
-from app.elastic.elastic import base_match_filter
+from app.elastic.elastic import add_base_match_filters
 from app.elastic.search import Search
 
 PROPERTY_TYPE = list[str]
 QUALITY_MATRIX_RETURN_TYPE = list[dict[str, Union[str, float]]]
-
-
-def add_base_match_filters(search: Search) -> Search:
-    for entry in base_match_filter:
-        search = search.query(entry)
-    return search
 
 
 def create_sources_search(aggregation_name: str):
