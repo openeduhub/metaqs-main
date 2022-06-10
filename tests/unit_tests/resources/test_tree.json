@@ -1,0 +1,645 @@
+[
+  {
+    "noderef_id": "5780f825-0d8d-4473-903f-6fe4eec137f8",
+    "title": "Zellbiologie",
+    "children": [
+      {
+        "noderef_id": "9eff0a6c-0f5b-4f92-ac66-3a4f082ac705",
+        "title": "Zelltypen",
+        "children": [
+          {
+            "noderef_id": "f60bbeb0-649b-431b-9638-248a90900a8b",
+            "title": "Viren",
+            "children": []
+          },
+          {
+            "noderef_id": "20f042ef-8e54-4d4c-bf0a-f65c794de91b",
+            "title": "Prokaryotische Zelle (Archaea und Bacteria)",
+            "children": []
+          },
+          {
+            "noderef_id": "8d49837a-e33a-4aff-84b5-2f4f4432c6b3",
+            "title": "Eukaryotische Zelle",
+            "children": []
+          }
+        ]
+      },
+      {
+        "noderef_id": "1a37071f-b733-4f67-b6f6-4077c5942473",
+        "title": "Zellmembrane und Stofftransport",
+        "children": []
+      },
+      {
+        "noderef_id": "52c00d62-a285-457c-8c83-2828706cc0c7",
+        "title": "Zellorganellen",
+        "children": []
+      },
+      {
+        "noderef_id": "c1893399-8b3c-4e62-9de6-1dddf864c88c",
+        "title": "Vorgänge in der Zelle",
+        "children": [
+          {
+            "noderef_id": "a526a1f9-930f-4b9f-8ee6-b66944841832",
+            "title": "Zellzyklus (Mitose)",
+            "children": []
+          },
+          {
+            "noderef_id": "7fa64b5a-650b-4750-b4e7-140ed6e98b57",
+            "title": "Zelluläre Kommunikation",
+            "children": []
+          },
+          {
+            "noderef_id": "ac37db61-55c8-4df8-8f47-93776f8a8c63",
+            "title": "Zellatmung",
+            "children": []
+          },
+          {
+            "noderef_id": "d38101c1-9a43-414b-a51f-e2dcff0add44",
+            "title": "Photosynthese",
+            "children": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "noderef_id": "2e674483-0eae-4088-b51a-c4f4bbf86bcc",
+    "title": "Evolution",
+    "children": [
+      {
+        "noderef_id": "117b097c-b0c5-4373-a668-f911c6478636",
+        "title": "Entwicklung der Lebewesen",
+        "children": [
+          {
+            "noderef_id": "e18ffe7d-d185-4f0d-9438-6a809a9f90a8",
+            "title": "Pflanzen",
+            "children": []
+          },
+          {
+            "noderef_id": "c30f8d2a-f28f-47ad-9ba0-dc2041cfb17a",
+            "title": "Tiere",
+            "children": [
+              {
+                "noderef_id": "fcd7a2c2-2c6b-40c8-8d20-e8077e389ca6",
+                "title": "Der Mensch",
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "noderef_id": "dd23db5b-f04f-413f-80cb-9406907b7056",
+        "title": "Entwicklungsgeschichte der Erde",
+        "children": []
+      },
+      {
+        "noderef_id": "c217c827-4799-4d42-b060-8987c21ba2dd",
+        "title": "Stammbäume und Biosystematik",
+        "children": []
+      },
+      {
+        "noderef_id": "ce0b7b1e-e517-4fd2-a819-6b99b660ed85",
+        "title": "Arten und Populationen",
+        "children": [
+          {
+            "noderef_id": "4c89cbc6-9d28-4998-8dd4-3c6a7d6a40de",
+            "title": "Evolutionsfaktoren",
+            "children": []
+          },
+          {
+            "noderef_id": "199ce289-cfef-4279-b0d6-44b6157b2e13",
+            "title": "Auswirkungen von Evolution",
+            "children": []
+          }
+        ]
+      },
+      {
+        "noderef_id": "bb66ebea-8dcf-4887-8f09-6b6b6ae6204a",
+        "title": "Evolutionstheorien",
+        "children": []
+      }
+    ]
+  },
+  {
+    "noderef_id": "6a7e03c7-c71a-4e7d-a271-11a3831ee364",
+    "title": "Genetik und Vererbung",
+    "children": [
+      {
+        "noderef_id": "3dffbe33-ad32-481a-9fc2-b65c1b12854c",
+        "title": "Molekulargenetik",
+        "children": [
+          {
+            "noderef_id": "7e23142d-4d1b-4d2a-b0e4-7f704de4da8e",
+            "title": "Proteinbiosynthese",
+            "children": []
+          },
+          {
+            "noderef_id": "5a0741b8-d62b-4335-ab75-e8920ca7c501",
+            "title": "Chromosomen und DNA",
+            "children": []
+          },
+          {
+            "noderef_id": "d1fcd6f4-3c60-4d19-84b2-d5024bd1cef1",
+            "title": "Meiose",
+            "children": []
+          },
+          {
+            "noderef_id": "b5b0907d-92aa-43d8-bfec-d10d7bef786d",
+            "title": "Genregulation und -expression",
+            "children": []
+          }
+        ]
+      },
+      {
+        "noderef_id": "6a056296-51fa-4df8-b3e0-eabb64e261c1",
+        "title": "Viren",
+        "children": []
+      },
+      {
+        "noderef_id": "8a98e4d0-e143-401e-a44b-f7ddd1f66c50",
+        "title": "Klassische Genetik",
+        "children": []
+      },
+      {
+        "noderef_id": "6330e1c8-9df0-42b6-b9f1-cebb9ae02a40",
+        "title": "Biotechnologie und Gentechnik",
+        "children": []
+      }
+    ]
+  },
+  {
+    "noderef_id": "dd9f5080-c9b5-4698-9567-090c52b4126a",
+    "title": "Verhaltensbiologie",
+    "children": [
+      {
+        "noderef_id": "f1a70759-7451-4f85-bfaf-f612c3a61ddc",
+        "title": "Angeborenes Verhalten",
+        "children": []
+      },
+      {
+        "noderef_id": "f88d6f34-ed09-4867-9efe-9cdfd72d68dc",
+        "title": "Erworbenes und erlerntes Verhalten",
+        "children": []
+      },
+      {
+        "noderef_id": "a03cdd01-417f-480e-b5ea-eb2f75edb49d",
+        "title": "Soziobiologie & Verhaltensökologie",
+        "children": []
+      },
+      {
+        "noderef_id": "f9245f29-7b51-491f-9bbf-c913b0b4b62e",
+        "title": "Grundlagen und Begriffe in der  Verhaltensbiologie",
+        "children": []
+      }
+    ]
+  },
+  {
+    "noderef_id": "220f48a8-4b53-4179-919d-7cd238ed567e",
+    "title": "Chemische Grundlagen",
+    "children": [
+      {
+        "noderef_id": "c6e3cdd4-b184-4b3a-a279-3187fca6404c",
+        "title": "Chemische Begriffe in der Biologie",
+        "children": [
+          {
+            "noderef_id": "d00a66fa-36b6-4d7c-ab56-c3d894fbf6c1",
+            "title": "Aggregatzustände",
+            "children": []
+          },
+          {
+            "noderef_id": "b8ca5ddf-1132-4d24-a0ba-d88f89f1901f",
+            "title": "PSE - Periodensystem der Elemente",
+            "children": []
+          },
+          {
+            "noderef_id": "b21e9ff1-6df0-433a-b6c8-b1f75a3dd869",
+            "title": "Atombau und chemische Bindungen",
+            "children": [
+              {
+                "noderef_id": "884c7999-ce87-4fd9-8a8d-da5207f15ccf",
+                "title": "Bindungstypen und -kräfte",
+                "children": []
+              },
+              {
+                "noderef_id": "17c43ae5-8560-4b5b-8eb4-a649339fe4fd",
+                "title": "Grundlagen für chemische Bindungen",
+                "children": []
+              }
+            ]
+          },
+          {
+            "noderef_id": "4db39b69-c309-401f-b362-5bbdda3008fc",
+            "title": "Lösungen und Lösungsvorgänge",
+            "children": []
+          },
+          {
+            "noderef_id": "067e7cff-051e-4ddf-9461-39f883a7a146",
+            "title": "Energie und Reaktionen",
+            "children": []
+          },
+          {
+            "noderef_id": "5f98cdc7-d83e-41cd-96b9-8c888108528c",
+            "title": "Reinstoffe, Stoffgemische und Trennverfahren",
+            "children": []
+          }
+        ]
+      },
+      {
+        "noderef_id": "81445550-fcc4-4f9e-99af-652dda269175",
+        "title": "Luft und Atmosphäre",
+        "children": []
+      },
+      {
+        "noderef_id": "d510768c-cf8c-4ff8-a6c7-ae3ae1b7fc2e",
+        "title": "Kohlenstoff - Grundstein der molekularen Vielfalt",
+        "children": []
+      },
+      {
+        "noderef_id": "ea556fb2-30d5-41e1-90af-a1aef6d42694",
+        "title": "Makromoleküle (Kohlenhydrate, Proteine, Lipide)",
+        "children": [
+          {
+            "noderef_id": "8e5d54ab-f5b9-4736-aa40-3d9ebb28b7d1",
+            "title": "Kohlenhydrate",
+            "children": []
+          },
+          {
+            "noderef_id": "4fe8e77d-21d6-4fca-a4f8-b6b51ed5fb7f",
+            "title": "Fette / Lipide",
+            "children": []
+          },
+          {
+            "noderef_id": "60117d82-1bd8-4777-9c37-118cb438e886",
+            "title": "Eiweiße / Proteine",
+            "children": []
+          }
+        ]
+      },
+      {
+        "noderef_id": "a5ce08a9-1e78-4028-bf5e-9205f598f11a",
+        "title": "Wasser - Grundstoff des Lebens",
+        "children": []
+      }
+    ]
+  },
+  {
+    "noderef_id": "3545e0c4-f4f0-4810-9ad8-ea79511340ac",
+    "title": "Ökologie",
+    "children": [
+      {
+        "noderef_id": "51e18f8c-d5e3-4989-a2d3-969c48db26d1",
+        "title": "Populationsökologie",
+        "children": []
+      },
+      {
+        "noderef_id": "add72bd6-2d1b-435a-9ae4-27e5cee28a52",
+        "title": "Naturschutz und Nachhaltigkeit",
+        "children": [
+          {
+            "noderef_id": "7c529746-86df-4102-b3d2-233ca7010380",
+            "title": "Ressourcennutzung und nachwachsende Rohstoffe",
+            "children": [
+              {
+                "noderef_id": "68bacc00-e018-447c-8e98-968fab74ac67",
+                "title": "Mobilität",
+                "children": []
+              },
+              {
+                "noderef_id": "56de1d2a-d6bf-4c25-bcfa-d4e6dc916e54",
+                "title": "Müll und Recycling",
+                "children": []
+              },
+              {
+                "noderef_id": "68ec7877-373e-47df-b382-262c4edff606",
+                "title": "Nachwachsende Rohstoffe",
+                "children": []
+              },
+              {
+                "noderef_id": "81e8ff01-0709-4bf4-8ddd-796cd89013b8",
+                "title": "Energie und Energiewende",
+                "children": []
+              },
+              {
+                "noderef_id": "645c0223-9aef-4163-8a6f-5b63837b8eee",
+                "title": "Wasser und Wasserverbrauch",
+                "children": []
+              },
+              {
+                "noderef_id": "2948f4f4-2026-4ce2-b73f-b07b64e7eb06",
+                "title": "Konsum und Konsumverhalten",
+                "children": []
+              }
+            ]
+          },
+          {
+            "noderef_id": "b1a1b0e0-442a-416f-996a-ed5ac322e041",
+            "title": "Ökosysteme und Umweltschutz",
+            "children": [
+              {
+                "noderef_id": "67c3a2a1-1b46-495d-a667-ad812c2483f1",
+                "title": "Landwirtschaft",
+                "children": []
+              },
+              {
+                "noderef_id": "c147d9a7-6c47-429c-a5f3-3254b87f36b2",
+                "title": "Reisen und Tourismus",
+                "children": []
+              },
+              {
+                "noderef_id": "a762864e-ff3a-4bd6-97d0-1c3a1841cbb8",
+                "title": "Biodiversität und Artenschutz",
+                "children": []
+              },
+              {
+                "noderef_id": "9939fd11-703a-4b5f-90c0-5c876dc355d8",
+                "title": "Ökosysteme, Natur- und Umweltschutz",
+                "children": []
+              }
+            ]
+          },
+          {
+            "noderef_id": "d5008e3d-6cc9-426c-bd5d-619db0d4e231",
+            "title": "Klimawandel und Klimaschutz",
+            "children": [
+              {
+                "noderef_id": "3a6e5222-5a2e-4e2f-8413-55cc1a29f911",
+                "title": "Atmosphäre und Ozon",
+                "children": []
+              },
+              {
+                "noderef_id": "8388750d-b1e6-4ee3-8b93-0f520ff64590",
+                "title": "Klimaschutz",
+                "children": []
+              },
+              {
+                "noderef_id": "c46cd31c-4285-4f7a-a148-c0c28ccdd587",
+                "title": "Wetter, Klima, Globale Erwärmung",
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "noderef_id": "059c5a7a-3983-4a11-a9a2-89b7a5e18d98",
+        "title": "Grundbegriffe der Ökologie",
+        "children": []
+      },
+      {
+        "noderef_id": "e36f17b4-e7f6-4f4c-8e84-9c47c907494f",
+        "title": "Wechselwirkungen und Lebensgemeinschaften",
+        "children": []
+      },
+      {
+        "noderef_id": "5f2f8ebc-55a4-4f32-92b2-2b7f09df37f6",
+        "title": "Ökosysteme",
+        "children": []
+      }
+    ]
+  },
+  {
+    "noderef_id": "9602fca1-b02d-4f12-bfcc-0df8ef39a06d",
+    "title": "Fachportalseite Biologie",
+    "children": [
+      {
+        "noderef_id": "e00c7193-e07a-4fd9-b3c1-33fc3a608122",
+        "title": "Startseite Biologie - Wettbewerbe",
+        "children": []
+      },
+      {
+        "noderef_id": "592bf803-2c93-43c3-9969-c8797890dd42",
+        "title": "Startseite Biologie - Biologie und Biowissenschaften in Ausbildung, Studium und Beruf",
+        "children": []
+      },
+      {
+        "noderef_id": "24fd6793-8dad-407b-94c0-e797ef038e68",
+        "title": "Startseite Biologie - Portale",
+        "children": []
+      },
+      {
+        "noderef_id": "d61a6d53-56bf-423b-82ce-c6927efca3ed",
+        "title": "Startseite Biologie - Zeitgemäßer Biologie-Unterricht",
+        "children": []
+      },
+      {
+        "noderef_id": "cbbbd87a-8e45-4ca2-a66a-846acc216cdf",
+        "title": "Startseite Biologie - Apps & Tools",
+        "children": []
+      },
+      {
+        "noderef_id": "a7585d4b-a5ba-4dfe-81aa-bddc60598ecf",
+        "title": "Startseite Biologie - Videos & Simulationen",
+        "children": []
+      },
+      {
+        "noderef_id": "4e98c9e6-9765-4b48-88e9-e7b006f24567",
+        "title": "Startseite Biologie - Kreativ-Werkstatt für Unterrichtsmaterialien",
+        "children": []
+      },
+      {
+        "noderef_id": "6476f0cd-3843-4930-b9ec-f185caad731d",
+        "title": "Startseite Biologie - Außerschulische Lernorte",
+        "children": []
+      }
+    ]
+  },
+  {
+    "noderef_id": "4eef82bf-fb7b-437c-ba30-4e51003680f8",
+    "title": "Fachportale",
+    "children": []
+  },
+  {
+    "noderef_id": "71c2c2ca-ae71-433a-83e9-06de518f4ae1",
+    "title": "Pilze: Form & Funktion",
+    "children": []
+  },
+  {
+    "noderef_id": "873d62a5-362b-4b58-a618-28d4dec06324",
+    "title": "Pflanzen: Form & Funktion",
+    "children": [
+      {
+        "noderef_id": "f112de80-ae0f-4be5-b462-76935f732c9b",
+        "title": "Algen",
+        "children": []
+      },
+      {
+        "noderef_id": "501e0bc8-3996-4363-b431-e174e36c6f01",
+        "title": "Moose",
+        "children": []
+      },
+      {
+        "noderef_id": "9e81ab47-38a1-4bd1-bd08-6b7e83f64de8",
+        "title": "Farne und Schachtelhalme",
+        "children": []
+      },
+      {
+        "noderef_id": "85280c59-c34f-49e9-ba9f-2541653dd359",
+        "title": "Samenpflanzen",
+        "children": [
+          {
+            "noderef_id": "27f4ebf9-2908-4216-9152-4f89f7d35d30",
+            "title": "Nacktsamer",
+            "children": []
+          },
+          {
+            "noderef_id": "c02f35e4-8b98-4cb1-b7fc-dac0d80a1531",
+            "title": "Bedecktsamer",
+            "children": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "noderef_id": "8cf78f3b-92ba-47a5-b500-ad8b720fc513",
+    "title": "Tiere: Form & Funktion",
+    "children": [
+      {
+        "noderef_id": "f1e9fb1a-dc1d-4e6f-a023-5e9d8c3e9a84",
+        "title": "Wirbellose Tiere",
+        "children": [
+          {
+            "noderef_id": "32360528-6497-43ae-b945-db9fbc709b96",
+            "title": "Arachnida - Spinnen & Spinnentiere",
+            "children": []
+          },
+          {
+            "noderef_id": "74b95053-76b2-4295-8029-71c8eb4af283",
+            "title": "Annelida - Ringelwürmer",
+            "children": []
+          },
+          {
+            "noderef_id": "96d1845e-b00d-4481-ba78-3a1d88b28d13",
+            "title": "Mollusca - Weichtiere",
+            "children": []
+          },
+          {
+            "noderef_id": "bc0e3296-927e-46e9-bfe7-d0a12233726d",
+            "title": "Hohltiere: Schwämme und Nesseltiere",
+            "children": []
+          },
+          {
+            "noderef_id": "8bf39212-ccb7-4d9a-8c3f-8ffbcb4b49a7",
+            "title": "Insecta - Insekten",
+            "children": []
+          }
+        ]
+      },
+      {
+        "noderef_id": "e215aa7f-4ce3-4703-9b01-445bb4aedcad",
+        "title": "Wirbeltiere",
+        "children": [
+          {
+            "noderef_id": "de925988-3b68-487b-8b4f-c27a71824a38",
+            "title": "Reptilien",
+            "children": []
+          },
+          {
+            "noderef_id": "344bd054-af27-42de-a618-457c4f03cb2d",
+            "title": "Amphibien",
+            "children": []
+          },
+          {
+            "noderef_id": "27ee45be-7a0b-4173-9374-2c3a74ff520b",
+            "title": "Fische",
+            "children": []
+          },
+          {
+            "noderef_id": "0c97d4bf-1229-4fa4-b101-ae420a91edeb",
+            "title": "Säugetiere",
+            "children": [
+              {
+                "noderef_id": "dd41301d-4f93-4820-be90-280df6b01093",
+                "title": "Mensch",
+                "children": [
+                  {
+                    "noderef_id": "417b0cfa-ea48-4bb8-a0b2-f4ef7ad247f0",
+                    "title": "Ausscheidungsorgane",
+                    "children": []
+                  },
+                  {
+                    "noderef_id": "2037bc75-91e0-40aa-b5a5-6c78c1631b97",
+                    "title": "Geschlechtsorgane, Fortpflanzung und Entwicklung",
+                    "children": []
+                  },
+                  {
+                    "noderef_id": "2feeecd8-7daf-43fa-9046-023732e2d03e",
+                    "title": "Stütz- und Bewegungssystem",
+                    "children": []
+                  },
+                  {
+                    "noderef_id": "caf27971-c9af-484c-b558-ef243d7ffb45",
+                    "title": "Sinne und Sinnesorgane",
+                    "children": []
+                  },
+                  {
+                    "noderef_id": "fc7bad1b-9bd7-45cc-91e8-027b8b9f5246",
+                    "title": "Nervensystem",
+                    "children": []
+                  },
+                  {
+                    "noderef_id": "796babee-9eaf-4cac-9ac8-cc50d08bb1f8",
+                    "title": "Hormonsystem",
+                    "children": []
+                  },
+                  {
+                    "noderef_id": "572efa1f-e22a-40e8-af2e-a9dbff6963a1",
+                    "title": "Sucht",
+                    "children": []
+                  },
+                  {
+                    "noderef_id": "5053692f-3e7e-4632-9979-7748d7431c5b",
+                    "title": "Atmungssystem",
+                    "children": []
+                  },
+                  {
+                    "noderef_id": "59a239ec-ada8-4450-8733-d6499e4219f8",
+                    "title": "Blutkreislauf, Lymph- und Immunsystem",
+                    "children": []
+                  },
+                  {
+                    "noderef_id": "e0ec903c-765a-4a9b-a002-5525cdc51339",
+                    "title": "Verdauungssystem",
+                    "children": []
+                  },
+                  {
+                    "noderef_id": "9eed3b28-4aba-4316-a50a-56d5b594bb40",
+                    "title": "Ernährung",
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "noderef_id": "c5e0852e-3d3f-413b-993f-0fe40a3eedfb",
+            "title": "Vögel",
+            "children": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "noderef_id": "d55d6139-982a-472b-ad78-ded266ce8a25",
+    "title": "Fachdidaktik",
+    "children": [
+      {
+        "noderef_id": "dc0005ab-6026-48b2-9c86-68125165c72b",
+        "title": "Bewertungsstrategien",
+        "children": []
+      },
+      {
+        "noderef_id": "8402f24f-81ae-458a-a696-b809e6e1eb69",
+        "title": "Grundlagen",
+        "children": []
+      },
+      {
+        "noderef_id": "26d59a4b-d9fc-45fc-841f-a0cf86db2361",
+        "title": "Methoden",
+        "children": []
+      }
+    ]
+  }
+]
