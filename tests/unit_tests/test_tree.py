@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import uuid
 from unittest import mock
 from unittest.mock import MagicMock
@@ -74,9 +75,15 @@ def test_parse_tree():
 
     assert query.to_dict() == expected_query
 
-    with open("unit_tests/resources/test_tree.json") as file:
+    print(os.getcwd())
+    if os.getenv("CI", False):
+        directory = "../unit_tests/resources"
+    else:
+        directory = "unit_tests/resources"
+
+    with open(f"{directory}/test_tree.json") as file:
         expected_tree = json.loads("".join(file.readlines()))
-    with open("unit_tests/resources/test_tree_response.json") as file:
+    with open(f"{directory}/test_tree_response.json") as file:
         response = json.loads("".join(file.readlines()))
         response = [hit["_source"] for hit in response]
 
