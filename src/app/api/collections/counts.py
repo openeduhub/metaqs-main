@@ -15,6 +15,9 @@ class PortalTreeCount(BaseModel):
     counts: dict[str, int]
 
 
+_AGGREGATION_NAME = "collection_id"
+
+
 def query_portal_counts(node_id: UUID) -> Search:
     s = Search().query(query_materials(ancestor_id=node_id))
     material_agg = A(
@@ -28,7 +31,7 @@ def query_portal_counts(node_id: UUID) -> Search:
             size=ELASTIC_TOTAL_SIZE,
         ),
     )
-    s.aggs.bucket("collection_id", material_agg)
+    s.aggs.bucket(_AGGREGATION_NAME, material_agg)
     s = s.source(
         [
             ElasticResourceAttribute.NODEREF_ID.path,
@@ -47,11 +50,14 @@ async def portal_counts(node_id: UUID) -> list[PortalTreeCount]:
 
 
 def build_counts(response) -> list[PortalTreeCount]:
-    result: list[PortalTreeCount] = []
-    for data in response.aggregations["collection_id"].buckets:
-        counts = {"total": data["doc_count"]}
-        for sub in data.lrt.buckets:
-            counts[sub["key"]] = sub["doc_count"]
+    return [
+        PortalTreeCount(noderef_id=data["key"], counts=counts(data))
+        for data in response.aggregations[_AGGREGATION_NAME].buckets
+    ]
 
-        result.append(PortalTreeCount(noderef_id=data["key"], counts=counts))
-    return result
+
+def counts(data):
+    _counts = {"total": data["doc_count"]}
+    for sub in data.lrt.buckets:
+        _counts[sub["key"]] = sub["doc_count"]
+    return _counts
