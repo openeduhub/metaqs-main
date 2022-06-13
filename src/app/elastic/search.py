@@ -6,11 +6,15 @@ from starlette_context.errors import ContextDoesNotExistError
 
 from app.core.config import ELASTIC_INDEX
 from app.core.logging import logger
+from app.elastic.filters import base_filter
 
 
 class Search(elasticsearch_dsl.Search):
     def __init__(self, index=ELASTIC_INDEX, **kwargs):
         super(Search, self).__init__(index=index, **kwargs)
+
+    def base_filters(self):
+        return add_base_match_filters(self)
 
     def execute(self, ignore_cache=False):
         logger.debug(f"Sending query to elastic:\n{pformat(self.to_dict())}")
@@ -29,3 +33,9 @@ class Search(elasticsearch_dsl.Search):
             pass
 
         return response
+
+
+def add_base_match_filters(search: Search) -> Search:
+    for entry in base_filter:
+        search = search.filter(entry)
+    return search

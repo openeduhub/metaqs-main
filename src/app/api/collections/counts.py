@@ -19,7 +19,7 @@ _AGGREGATION_NAME = "collection_id"
 
 
 def query_portal_counts(node_id: UUID) -> Search:
-    s = Search().query(query_materials(ancestor_id=node_id))
+    s = Search().base_filters().query(query_materials(ancestor_id=node_id))
     material_agg = A(
         "terms", field="collections.nodeRef.id.keyword", size=ELASTIC_TOTAL_SIZE
     )

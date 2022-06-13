@@ -22,18 +22,16 @@ from app.api.quality_matrix.timeline import timestamps
 from app.api.quality_matrix.utils import transpose
 from app.api.score.models import ScoreOutput
 from app.api.score.score import (
+    aggs_collection_validation,
+    aggs_material_validation,
     calc_scores,
     calc_weighted_score,
     collection_id_param,
+    field_names_used_for_score_calculation,
     query_score,
 )
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
-from app.elastic.elastic import (
-    ResourceType,
-    aggs_collection_validation,
-    aggs_material_validation,
-    field_names_used_for_score_calculation,
-)
+from app.elastic.elastic import ResourceType
 
 
 def get_database(request: Request) -> Database:

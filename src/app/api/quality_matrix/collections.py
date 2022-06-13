@@ -12,7 +12,6 @@ from app.api.quality_matrix.quality_matrix import (
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import COLLECTION_ROOT_ID
 from app.elastic.dsl import qbool
-from app.elastic.elastic import add_base_match_filters
 from app.elastic.search import Search
 
 _TITLE_PROPERTY = "properties.cm:title"
@@ -26,8 +25,9 @@ def queried_collections(node_id: UUID = COLLECTION_ROOT_ID) -> dict[str, int]:
     :return: Dictionary of node_id: total count of entries connected to this node id
     """
     aggregation_name = "unique_collections"
-    s = add_base_match_filters(
+    s = (
         Search()
+        .base_filters()
         .query(
             qbool(
                 must=[
@@ -37,6 +37,7 @@ def queried_collections(node_id: UUID = COLLECTION_ROOT_ID) -> dict[str, int]:
         )
         .source(includes=["aggregations", _TITLE_PROPERTY])
     )
+
     s.aggs.bucket(aggregation_name, "terms", field="path", size=ELASTIC_TOTAL_SIZE)
 
     response: Response = s.execute()
@@ -44,8 +45,9 @@ def queried_collections(node_id: UUID = COLLECTION_ROOT_ID) -> dict[str, int]:
 
 
 async def id_to_title_mapping(node_id: UUID):
-    s = add_base_match_filters(
+    s = (
         Search()
+        .base_filters()
         .query(
             qbool(
                 must=[

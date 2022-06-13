@@ -61,11 +61,11 @@ def test_parse_tree():
         "from": 0,
         "query": {
             "bool": {
-                "filter": [{"term": {"path": node_id_biology}}],
-                "must": [
-                    {"match": {"permissions.Read": "GROUP_EVERYONE"}},
-                    {"match": {"properties.cm:edu_metadataset": "mds_oeh"}},
-                    {"match": {"nodeRef.storeRef.protocol": "workspace"}},
+                "filter": [
+                    {"term": {"permissions.Read.keyword": "GROUP_EVERYONE"}},
+                    {"term": {"properties.cm:edu_metadataset.keyword": "mds_oeh"}},
+                    {"term": {"nodeRef.storeRef.protocol": "workspace"}},
+                    {"term": {"path": node_id_biology}},
                 ],
             }
         },
