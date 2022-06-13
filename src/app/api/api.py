@@ -8,8 +8,11 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from starlette.requests import Request
+from starlette.responses import Response
 from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
+from starlette_context import context
 
+from app.api.collections.counts import PortalTreeCount, portal_counts
 from app.api.collections.models import CollectionTreeNode
 from app.api.collections.tree import collection_tree
 from app.api.quality_matrix.collections import collection_quality
@@ -215,7 +218,7 @@ async def ping_api():
 
 @router.get(
     "/collections/{node_id}/tree",
-    response_model=List[CollectionTreeNode],
+    response_model=list[CollectionTreeNode],
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=["Collections"],
@@ -224,3 +227,22 @@ async def get_collection_tree(
     *, node_id: UUID = Depends(node_ids_for_major_collections)
 ):
     return await collection_tree(node_id)
+
+
+@router.get(
+    "/collections/{node_id}/counts",
+    summary="Return the material counts for each collection id which this portal tree includes",
+    response_model=list[PortalTreeCount],
+    status_code=HTTP_200_OK,
+    responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
+    tags=["Collections"],
+)
+async def get_portal_counts(
+    *,
+    node_id: UUID = Depends(node_ids_for_major_collections),
+    response: Response,
+):
+    counts = await portal_counts(node_id=node_id)
+    response.headers["X-Total-Count"] = str(len(counts))
+    response.headers["X-Query-Count"] = str(len(context.get("elastic_queries")))
+    return counts
