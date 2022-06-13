@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import json
 import uuid
 from typing import List, Mapping
@@ -42,11 +40,17 @@ def get_database(request: Request) -> Database:
 router = APIRouter()
 
 QUALITY_MATRIX_DESCRIPTION = """Calculation of the quality matrix.
-    For each replication source and each property, e.g., `cm:creator`, the quality matrix returns the ratio of
-    elements which miss this entry compared to the total number of entries.
+    Depending on the chosen form the quality matrix returns the ratio of entries which miss this property compared to
+    the total number of entries.
     A missing entry may be `cm:creator = null`.
     Additional parameters:
-        store_to_db: Default False. Causes returned quality matrix to also be stored in the backend database."""
+        node_id: Default collection root id. Node id of the collection for which to evaluate the quality.
+        store_to_db: Default False. Causes returned quality matrix to also be stored in the backend database.
+        forms: Default replication source. Choose what type of quality determination you want.
+        transpose_output: Default false. Transpose the output matrix.
+
+    The user chooses the node id in the editorial environment (german: Redaktionsumgebung) in the "Fach" selection.
+    """
 
 TAG_STATISTICS = "Statistics"
 
@@ -70,9 +74,7 @@ def node_ids_for_major_collections(
     response_model=List[ColumnOutputModel],
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[TAG_STATISTICS],
-    description=QUALITY_MATRIX_DESCRIPTION
-    + """ The Node ID is what the user chooses in the editorial environment
-    (Redaktionsumgebung) in the "Fach" selection.""",
+    description=QUALITY_MATRIX_DESCRIPTION,
 )
 async def get_quality(
     database: Database = Depends(get_database),
@@ -110,8 +112,7 @@ async def get_quality(
     response_model=List[ColumnOutputModel],
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[TAG_STATISTICS],
-    description=QUALITY_MATRIX_DESCRIPTION
-    + """An unix timestamp in integer seconds since epoch yields the quality matrix at the respective date.""",
+    description="""An unix timestamp in integer seconds since epoch yields the quality matrix at the respective date.""",
 )
 async def get_past_quality_matrix(
     timestamp: int, database: Database = Depends(get_database)
