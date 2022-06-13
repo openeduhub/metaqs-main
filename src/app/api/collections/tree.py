@@ -49,7 +49,7 @@ def tree_query(node_id: UUID) -> Search:
     return s
 
 
-def hits_to_collection(hits: list) -> list[Collection]:
+def hits_to_collection(hits: Response) -> list[Collection]:
     collections = []
     for hit in hits:
         entry = hit.to_dict()
