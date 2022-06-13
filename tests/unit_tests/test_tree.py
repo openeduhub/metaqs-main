@@ -21,7 +21,7 @@ async def test_collection_tree():
     data = await collection_tree(root_node_id)
     assert len(data) == 26
     count = node_count(data)
-    assert count == 2219
+    assert count == 2216
 
 
 @pytest.mark.asyncio

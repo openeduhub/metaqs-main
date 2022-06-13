@@ -30,10 +30,7 @@ def collection_to_model(data: list[dict]) -> list[CollectionTreeNode]:
 
 
 async def parsed_tree(session: ClientSession, node_id: UUID):
-    oeh_topic_route = (
-        "oeh-topics" if str(node_id) == COLLECTION_ROOT_ID else "oehTopics"
-    )
-    url = f"https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/{oeh_topic_route}/{node_id}.json"
+    url = f"https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/oehTopics/{node_id}.json"
     response = await session.get(url=url)
     if response.status == 200:
         data = await response.json()
