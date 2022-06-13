@@ -75,7 +75,6 @@ def test_parse_tree():
 
     assert query.to_dict() == expected_query
 
-    print(os.getcwd(), os.getenv("CI", False))
     if os.getenv("CI", False):
         directory = "tests/unit_tests/resources"
     else:
