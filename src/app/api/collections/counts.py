@@ -58,6 +58,5 @@ def build_counts(response) -> list[PortalTreeCount]:
 
 def counts(data):
     _counts = {"total": data["doc_count"]}
-    for sub in data.lrt.buckets:
-        _counts[sub["key"]] = sub["doc_count"]
+    _counts.update({sub["key"]: sub["doc_count"] for sub in data.lrt.buckets})
     return _counts
