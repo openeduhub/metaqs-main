@@ -25,6 +25,15 @@ class Timeline(Base):
 
 
 class Forms(str, Enum):
+    """
+    The form of a quality matrix specifies what will be used as grouping.
+    It defines the columns and row labels of the table.
+    E.g. for REPLICATION_SOURCE, every row will correspond to a specific replication source, and the columns will
+    be metadata fields.
+    The values in the cells correspond to the percentages of fields that are missing given the replication source
+    of the row.
+    """
+
     REPLICATION_SOURCE = "Bezugsquelle"
     COLLECTIONS = "Sammlungen"
 
