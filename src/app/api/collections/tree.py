@@ -8,7 +8,6 @@ from app.api.collections.models import CollectionNode
 from app.api.collections.vocabs import tree_from_vocabs
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.elastic.dsl import qbool, qterm
-from app.elastic.elastic import add_base_match_filters
 from app.elastic.search import Search
 from app.models import CollectionAttribute
 
@@ -41,9 +40,7 @@ def build_hierarchy(
 
 
 def tree_search(node_id: UUID) -> Search:
-    s = add_base_match_filters(
-        Search().query(qbool(filter=qterm(qfield="path", value=node_id)))
-    )
+    s = Search().base_filters().query(qbool(filter=qterm(qfield="path", value=node_id)))
     s = s.source(
         ["nodeRef.id", "properties.cm:title", "collections.path", "parentRef.id"]
     ).sort("fullpath")[:ELASTIC_TOTAL_SIZE]

@@ -3,11 +3,10 @@ from uuid import UUID
 from elasticsearch_dsl import A
 from pydantic import BaseModel
 
-from app.api.collections.models import CollectionAttribute
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.elastic.elastic import query_materials
 from app.elastic.search import Search
-from app.models import ElasticResourceAttribute
+from app.models import CollectionAttribute, ElasticResourceAttribute
 
 
 class PortalTreeCount(BaseModel):

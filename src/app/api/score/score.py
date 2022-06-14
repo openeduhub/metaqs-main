@@ -5,7 +5,7 @@ from elasticsearch_dsl.response import Response
 from fastapi import Path
 
 import app.core.constants
-from app.api.score.models import CollectionAttribute, LearningMaterialAttribute
+from app.api.score.models import LearningMaterialAttribute
 from app.elastic.dsl import afilter, amissing
 from app.elastic.elastic import (
     ResourceType,
@@ -14,6 +14,7 @@ from app.elastic.elastic import (
     query_missing_material_license,
 )
 from app.elastic.search import Search
+from app.models import CollectionAttribute
 
 material_terms_relevant_for_score = [
     "missing_title",
