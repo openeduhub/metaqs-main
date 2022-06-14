@@ -4,12 +4,13 @@ from aiohttp import ClientSession
 from elasticsearch_dsl.response import Response
 from glom import Coalesce, Iter, glom
 
-from app.api.collections.models import CollectionAttribute, CollectionNode
+from app.api.collections.models import CollectionNode
 from app.api.collections.vocabs import tree_from_vocabs
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.elastic.dsl import qbool, qterm
 from app.elastic.elastic import add_base_match_filters
 from app.elastic.search import Search
+from app.models import CollectionAttribute
 
 
 def build_portal_tree(collections: list, root_noderef_id: UUID) -> list[CollectionNode]:

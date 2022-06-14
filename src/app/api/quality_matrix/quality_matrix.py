@@ -115,7 +115,7 @@ def missing_fields(
     return {search_keyword: missing_fields_ratio(value, total_count)}
 
 
-async def stored_in_timeline(
+async def store_in_timeline(
     data: QUALITY_MATRIX_RETURN_TYPE, database: Database, form: Forms
 ):
     await database.connect()

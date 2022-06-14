@@ -14,7 +14,7 @@ from app.api.collections.models import CollectionNode
 from app.api.collections.tree import collection_tree
 from app.api.quality_matrix.collections import collection_quality
 from app.api.quality_matrix.models import ColumnOutputModel, Forms, Timeline
-from app.api.quality_matrix.quality_matrix import source_quality, stored_in_timeline
+from app.api.quality_matrix.quality_matrix import source_quality, store_in_timeline
 from app.api.quality_matrix.timeline import timestamps
 from app.api.quality_matrix.utils import transpose
 from app.api.score.models import ScoreOutput
@@ -102,7 +102,7 @@ async def get_quality(
     if transpose_output:
         _quality_matrix = transpose(_quality_matrix)
     if store_to_db:
-        await stored_in_timeline(_quality_matrix, database, form)
+        await store_in_timeline(_quality_matrix, database, form)
     return _quality_matrix
 
 
