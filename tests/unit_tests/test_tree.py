@@ -156,10 +156,23 @@ def test_parse_tree():
 def test_build_portal_tree():
     dummy_uuid = uuid.uuid4()
 
+    # empty collections case
     empty_input = []
     result = build_portal_tree(empty_input, dummy_uuid)
     assert result == empty_input
 
+    # single collection case with missing title
+    dummy_child_uuid = uuid.uuid4()
+    dummy_node = CollectionNode(
+        title=None,
+        noderef_id=dummy_child_uuid,
+        children=[],
+        parent_id=dummy_uuid,
+    )
+    result = build_portal_tree([dummy_node], dummy_uuid)
+    assert result == []
+
+    # single collection case
     dummy_child_uuid = uuid.uuid4()
     dummy_node = CollectionNode(
         title="dummy_node",
@@ -172,6 +185,7 @@ def test_build_portal_tree():
     assert result == [dummy_node]
     dummy_node.parent_id = dummy_uuid
 
+    # single collection with single child collection case
     another_child_uuid = uuid.uuid4()
     another_node = CollectionNode(
         title="dummy_node",

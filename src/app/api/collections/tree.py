@@ -13,26 +13,30 @@ from app.elastic.search import Search
 
 
 def build_portal_tree(collections: list, root_noderef_id: UUID) -> list[CollectionNode]:
-    lut = {str(root_noderef_id): []}
+    tree_hierarchy = {str(root_noderef_id): []}
 
     for collection in collections:
         if collection.title:
-            print(collection.title)
-            portal_node = CollectionNode(
-                noderef_id=collection.noderef_id,
-                title=collection.title,
-                children=[],
-            )
+            tree_hierarchy.update(build_hierarchy(collection, tree_hierarchy))
 
-            try:
-                lut[str(collection.parent_id)].append(portal_node)
-            except KeyError:
-                lut[str(collection.parent_id)] = [portal_node]
+    return tree_hierarchy[str(root_noderef_id)]
 
-            lut[str(collection.noderef_id)] = portal_node.children
 
-    print(lut)
-    return lut.get(str(root_noderef_id), [])
+def build_hierarchy(
+    collection, tree_hierarchy: dict[str, list[CollectionNode]]
+) -> dict[str, list[CollectionNode]]:
+    portal_node = CollectionNode(
+        noderef_id=collection.noderef_id,
+        title=collection.title,
+        children=[],
+    )
+
+    if str(collection.parent_id) not in tree_hierarchy.keys():
+        tree_hierarchy.update({str(collection.parent_id): []})
+
+    tree_hierarchy[str(collection.parent_id)].append(portal_node)
+    tree_hierarchy[str(collection.noderef_id)] = portal_node.children
+    return tree_hierarchy
 
 
 def tree_query(node_id: UUID) -> Search:

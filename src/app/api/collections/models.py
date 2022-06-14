@@ -3,7 +3,7 @@ from __future__ import (  # Needed for recursive type annotation, can be dropped
 )
 
 from itertools import chain
-from typing import Optional
+from typing import Optional, Union
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -14,7 +14,7 @@ from app.models import ElasticResourceAttribute
 
 class CollectionNode(BaseModel):
     noderef_id: UUID
-    title: str
+    title: Union[str, None]  # might be none due to data model
     children: list[CollectionNode]
     parent_id: Optional[UUID]
 
