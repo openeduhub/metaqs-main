@@ -1,21 +1,20 @@
-from __future__ import annotations
-
 import json
 import uuid
-from typing import List, Mapping, Optional
+from typing import Mapping
 from uuid import UUID
 
 from databases import Database
-from fastapi import APIRouter, Depends, HTTPException, Path
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from starlette.requests import Request
-from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
+from starlette.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
-from app.api.collections.tree import CollectionTreeNode, collection_tree
-from app.api.quality_matrix.collections import collection_quality_matrix
-from app.api.quality_matrix.models import ColumnOutputModel, Timeline
-from app.api.quality_matrix.quality_matrix import quality_matrix, stored_in_timeline
+from app.api.collections.models import CollectionNode
+from app.api.collections.tree import collection_tree
+from app.api.quality_matrix.collections import collection_quality
+from app.api.quality_matrix.models import ColumnOutputModel, Forms, Timeline
+from app.api.quality_matrix.quality_matrix import source_quality, store_in_timeline
 from app.api.quality_matrix.timeline import timestamps
 from app.api.quality_matrix.utils import transpose
 from app.api.score.models import ScoreOutput
@@ -23,7 +22,7 @@ from app.api.score.score import (
     calc_scores,
     calc_weighted_score,
     collection_id_param,
-    query_score,
+    search_score,
 )
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.elastic.elastic import (
@@ -41,66 +40,79 @@ def get_database(request: Request) -> Database:
 router = APIRouter()
 
 QUALITY_MATRIX_DESCRIPTION = """Calculation of the quality matrix.
-    For each replication source and each property, e.g., `cm:creator`, the quality matrix returns the ratio of
-    elements which miss this entry compared to the total number of entries.
+    Depending on the chosen form the quality matrix returns the ratio of entries which miss this property compared to
+    the total number of entries.
     A missing entry may be `cm:creator = null`.
     Additional parameters:
-        store_to_db: Default False. Causes returned quality matrix to also be stored in the backend database."""
+        node_id: Default collection root id. Node id of the collection for which to evaluate the quality.
+        store_to_db: Default False. Causes returned quality matrix to also be stored in the backend database.
+        forms: Default replication source. Choose what type of quality determination you want.
+        transpose_output: Default false. Transpose the output matrix.
+
+    The user chooses the node id in the editorial environment (german: Redaktionsumgebung) in the "Fach" selection.
+    """
 
 TAG_STATISTICS = "Statistics"
 
 
-@router.get(
-    "/collection_quality_matrix",
-    status_code=HTTP_200_OK,
-    response_model=List[ColumnOutputModel],
-    responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
-    tags=[TAG_STATISTICS],
-    description=QUALITY_MATRIX_DESCRIPTION
-    + """ The Node ID is what the user chooses in the editorial environment
-    (Redaktionsumgebung) in the "Fach" selection.""",
-)
-async def get_collection_quality_matrix(
-    database: Database = Depends(get_database),
-    node_id: Optional[str] = COLLECTION_ROOT_ID,
-    # Using UUID here leads to https://github.com/OpenAPITools/openapi-generator/issues/3516
-    store_to_db=False,
-    transpose_output=True,
-):
-    _quality_matrix = await collection_quality_matrix(uuid.UUID(node_id))
-    # if store_to_db and node_id == COLLECTION_ROOT_ID:  # only store standard case
-    # await stored_in_timeline(_quality_matrix, database)
-    if transpose_output:
-        _quality_matrix = transpose(_quality_matrix)
-    return _quality_matrix
+def node_ids_for_major_collections(
+    *,
+    node_id: UUID = Path(
+        ...,
+        examples={
+            "Alle Fachportale": {"value": COLLECTION_ROOT_ID},
+            **COLLECTION_NAME_TO_ID,
+        },
+    ),
+) -> UUID:
+    return node_id
 
 
 @router.get(
-    "/quality_matrix",
+    "/quality",
     status_code=HTTP_200_OK,
-    response_model=List[ColumnOutputModel],
+    response_model=list[ColumnOutputModel],
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[TAG_STATISTICS],
     description=QUALITY_MATRIX_DESCRIPTION,
 )
-async def get_quality_matrix(
+async def get_quality(
     database: Database = Depends(get_database),
-    store_to_db=False,
+    node_id: str = Query(
+        default=COLLECTION_ROOT_ID,
+        examples={
+            "Alle Fachportale": {"value": COLLECTION_ROOT_ID},
+            **COLLECTION_NAME_TO_ID,
+        },
+    ),
+    store_to_db: bool = Query(default=False),
+    form: Forms = Query(
+        default=Forms.REPLICATION_SOURCE,
+        examples={form: {"value": form} for form in Forms},
+    ),
+    transpose_output: bool = Query(default=False),
 ):
-    _quality_matrix = await quality_matrix()
+    if form == Forms.REPLICATION_SOURCE:
+        _quality_matrix = await source_quality(uuid.UUID(node_id))
+    elif form == Forms.COLLECTIONS:
+        _quality_matrix = await collection_quality(uuid.UUID(node_id))
+        _quality_matrix = transpose(_quality_matrix)
+    else:
+        return HTTP_400_BAD_REQUEST
+    if transpose_output:
+        _quality_matrix = transpose(_quality_matrix)
     if store_to_db:
-        await stored_in_timeline(_quality_matrix, database)
+        await store_in_timeline(_quality_matrix, database, form)
     return _quality_matrix
 
 
 @router.get(
-    "/quality_matrix/{timestamp}",
+    "/quality/{timestamp}",
     status_code=HTTP_200_OK,
-    response_model=List[ColumnOutputModel],
+    response_model=list[ColumnOutputModel],
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[TAG_STATISTICS],
-    description=QUALITY_MATRIX_DESCRIPTION
-    + """An unix timestamp in integer seconds since epoch yields the quality matrix at the respective date.""",
+    description="""An unix timestamp in integer seconds since epoch yields the quality matrix at the respective date.""",
 )
 async def get_past_quality_matrix(
     timestamp: int, database: Database = Depends(get_database)
@@ -120,19 +132,27 @@ async def get_past_quality_matrix(
 
 
 @router.get(
-    "/quality_matrix_timestamps",
+    "/quality_timestamps",
     status_code=HTTP_200_OK,
-    response_model=List[int],
+    response_model=list[int],
     responses={
         HTTP_404_NOT_FOUND: {
             "description": "Timestamps of old quality matrix results not determinable"
         }
     },
     tags=[TAG_STATISTICS],
-    description="""Return timestamps of the format XYZ of past calculations of the quality matrix.""",
+    description="""Return timestamps in seconds since epoch of past calculations of the quality matrix.
+    Additional parameters:
+        form: The desired form of quality. This is used to query only the relevant type of data.""",
 )
-async def get_timestamps(database: Database = Depends(get_database)):
-    return await timestamps(database)
+async def get_timestamps(
+    database: Database = Depends(get_database),
+    form: Forms = Query(
+        default=Forms.REPLICATION_SOURCE,
+        examples={form: {"value": form} for form in Forms},
+    ),
+):
+    return await timestamps(database, form)
 
 
 @router.get(
@@ -152,13 +172,13 @@ async def get_timestamps(database: Database = Depends(get_database)):
     """,
 )
 async def score(*, collection_id: UUID = Depends(collection_id_param)):
-    collection_stats = await query_score(
+    collection_stats = await search_score(
         noderef_id=collection_id, resource_type=ResourceType.COLLECTION
     )
 
     collection_scores = calc_scores(stats=collection_stats)
 
-    material_stats = await query_score(
+    material_stats = await search_score(
         noderef_id=collection_id, resource_type=ResourceType.MATERIAL
     )
 
@@ -193,22 +213,9 @@ async def ping_api():
     return {"status": "ok"}
 
 
-def node_ids_for_major_collections(
-    *,
-    node_id: UUID = Path(
-        ...,
-        examples={
-            "Alle Fachportale": {"value": COLLECTION_ROOT_ID},
-            **COLLECTION_NAME_TO_ID,
-        },
-    ),
-) -> UUID:
-    return node_id
-
-
 @router.get(
     "/collections/{node_id}/tree",
-    response_model=List[CollectionTreeNode],
+    response_model=list[CollectionNode],
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=["Collections"],

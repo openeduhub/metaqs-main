@@ -3,9 +3,10 @@ from uuid import UUID
 
 from elasticsearch_dsl.query import Q, Query
 
-from app.api.score.models import CollectionAttribute, LearningMaterialAttribute
+from app.api.score.models import LearningMaterialAttribute
 from app.elastic.dsl import afilter, amissing, qbool, qboolor, qnotexists, qterm, qterms
-from app.models import ElasticResourceAttribute
+from app.elastic.search import Search
+from app.models import CollectionAttribute, ElasticResourceAttribute
 
 
 class ResourceType(str, Enum):
@@ -110,3 +111,9 @@ aggs_material_validation = {
     ),
     "missing_object_type": amissing(qfield=LearningMaterialAttribute.OBJECT_TYPE),
 }
+
+
+def add_base_match_filters(search: Search) -> Search:
+    for entry in base_match_filter:
+        search = search.query(entry)
+    return search

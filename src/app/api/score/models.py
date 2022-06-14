@@ -7,22 +7,6 @@ from app.elastic.fields import FieldType
 from app.models import ElasticResourceAttribute
 
 
-class _CollectionAttribute(ElasticField):
-    TITLE = ("properties.cm:title", FieldType.TEXT)
-    DESCRIPTION = ("properties.cm:description", FieldType.TEXT)
-    PATH = ("path", FieldType.KEYWORD)
-    PARENT_ID = ("parentRef.id", FieldType.KEYWORD)
-
-
-CollectionAttribute = ElasticField(
-    "CollectionAttribute",
-    [
-        (f.name, (f.value, f.field_type))
-        for f in chain(ElasticResourceAttribute, _CollectionAttribute)
-    ],
-)
-
-
 class _LearningMaterialAttribute(ElasticField):
     TITLE = ("properties.cclom:title", FieldType.TEXT)
     SUBJECTS = ("properties.ccm:taxonid", FieldType.TEXT)

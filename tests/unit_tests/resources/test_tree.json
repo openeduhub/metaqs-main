@@ -1,0 +1,25 @@
+[
+  {
+    "noderef_id": "5780f825-0d8d-4473-903f-6fe4eec137f8",
+    "title": "Zellbiologie",
+    "children": [
+    ]
+  },
+  {
+    "noderef_id": "220f48a8-4b53-4179-919d-7cd238ed567e",
+    "title": "Chemische Grundlagen",
+    "children": [
+      {
+        "noderef_id": "c6e3cdd4-b184-4b3a-a279-3187fca6404c",
+        "title": "Chemische Begriffe in der Biologie",
+        "children": [
+        ]
+      },
+      {
+        "noderef_id": "a5ce08a9-1e78-4028-bf5e-9205f598f11a",
+        "title": "Wasser - Grundstoff des Lebens",
+        "children": []
+      }
+    ]
+  }
+]

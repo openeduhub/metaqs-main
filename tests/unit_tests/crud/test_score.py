@@ -3,7 +3,12 @@ from unittest.mock import MagicMock
 import pytest
 from elasticsearch_dsl.response import Response
 
-from app.api.score.score import calc_scores, calc_weighted_score, score, score_search
+from app.api.score.score import (
+    calc_scores,
+    calc_weighted_score,
+    get_score_search,
+    score,
+)
 from app.elastic.elastic import ResourceType
 
 
@@ -74,9 +79,9 @@ def test_score_search_material():
     noderef_id = "dummy_id"
     assert ResourceType.MATERIAL == "MATERIAL"
     resource_type = ResourceType.MATERIAL
-    search = score_search(noderef_id, resource_type)
+    search = get_score_search(noderef_id, resource_type)
 
-    expected_query = {
+    expected_search = {
         "aggs": {
             "missing_ads_qualifier": {
                 "missing": {"field": "properties.ccm:containsAdvertisement.keyword"}
@@ -142,16 +147,16 @@ def test_score_search_material():
             }
         },
     }
-    assert search.to_dict() == expected_query
+    assert search.to_dict() == expected_search
 
 
 def test_score_search_collection():
     noderef_id = "dummy_id"
     assert ResourceType.COLLECTION == "COLLECTION"
     resource_type = ResourceType.COLLECTION
-    search = score_search(noderef_id, resource_type)
+    search = get_score_search(noderef_id, resource_type)
 
-    expected_query = {
+    expected_search = {
         "aggs": {
             "few_keywords": {
                 "filter": {"range": {"token_count_keywords": {"gt": 0, "lt": 3}}}
@@ -185,14 +190,14 @@ def test_score_search_collection():
             }
         },
     }
-    assert search.to_dict() == expected_query
+    assert search.to_dict() == expected_search
 
 
 @pytest.mark.skip(reason="Unhandled exception")
 def test_score_search_exception():
     noderef_id = "123"
     resource_type = ""
-    search = score_search(noderef_id, resource_type)
+    search = get_score_search(noderef_id, resource_type)
     assert search.to_dict() == {}
 
 

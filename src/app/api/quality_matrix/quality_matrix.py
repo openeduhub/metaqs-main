@@ -7,26 +7,19 @@ from databases import Database
 from elasticsearch_dsl import AttrDict, Q
 from elasticsearch_dsl.response import Response
 
-from app.api.quality_matrix.models import Timeline
+from app.api.quality_matrix.models import QUALITY_MATRIX_RETURN_TYPE, Forms, Timeline
 from app.api.quality_matrix.utils import default_properties
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import COLLECTION_ROOT_ID, PROPERTIES, REPLICATION_SOURCE_ID
 from app.core.logging import logger
 from app.elastic.dsl import qbool, qmatch
-from app.elastic.elastic import base_match_filter
+from app.elastic.elastic import add_base_match_filters
 from app.elastic.search import Search
 
 PROPERTY_TYPE = list[str]
-QUALITY_MATRIX_RETURN_TYPE = list[dict[str, Union[str, float]]]
 
 
-def add_base_match_filters(search: Search) -> Search:
-    for entry in base_match_filter:
-        search = search.query(entry)
-    return search
-
-
-def create_sources_search(aggregation_name: str):
+def create_sources_search(aggregation_name: str) -> Search:
     s = add_base_match_filters(Search())
     s.aggs.bucket(
         aggregation_name,
@@ -71,7 +64,7 @@ def get_properties() -> PROPERTY_TYPE:
 
 def create_empty_entries_search(
     properties: PROPERTY_TYPE,
-    replication_source: str,
+    search_keyword: str,
     node_id: UUID,
     match_keyword: str,
 ) -> Search:
@@ -80,7 +73,7 @@ def create_empty_entries_search(
         .query(
             qbool(
                 must=[
-                    qmatch(**{match_keyword: replication_source}),
+                    qmatch(**{match_keyword: search_keyword}),
                     Q("term", **{"path": node_id}),
                 ]
             )
@@ -94,16 +87,16 @@ def create_empty_entries_search(
 
 def queried_missing_properties(
     properties: PROPERTY_TYPE,
-    replication_source: str,
+    search_keyword: str,
     node_id: UUID,
     match_keyword: str,
 ) -> Response:
     return create_empty_entries_search(
-        properties, replication_source, node_id=node_id, match_keyword=match_keyword
+        properties, search_keyword, node_id=node_id, match_keyword=match_keyword
     ).execute()
 
 
-def join_data(data, key):
+def join_data(data: dict, key: str) -> dict[str, Union[str, dict]]:
     return {"metadatum": key, "columns": data}
 
 
@@ -116,16 +109,22 @@ def missing_fields_ratio(value: dict, total_count: int) -> float:
 
 
 def missing_fields(
-    value: dict, total_count: int, replication_source: str
+    value: dict, total_count: int, search_keyword: str
 ) -> dict[str, float]:
-    return {replication_source: missing_fields_ratio(value, total_count)}
+    return {search_keyword: missing_fields_ratio(value, total_count)}
 
 
-async def stored_in_timeline(data: QUALITY_MATRIX_RETURN_TYPE, database: Database):
+async def store_in_timeline(
+    data: QUALITY_MATRIX_RETURN_TYPE, database: Database, form: Forms
+):
     await database.connect()
     await database.execute(
         sqlalchemy.insert(Timeline).values(
-            {"timestamp": datetime.now().timestamp(), "quality_matrix": data}
+            {
+                "timestamp": datetime.now().timestamp(),
+                "quality_matrix": data,
+                "form": form,
+            }
         )
     )
 
@@ -134,7 +133,7 @@ async def items_in_response(response: Response) -> dict:
     return response.aggregations.to_dict().items()
 
 
-async def quality_matrix(
+async def source_quality(
     node_id: UUID = COLLECTION_ROOT_ID,
     match_keyword: str = f"{PROPERTIES}.{REPLICATION_SOURCE_ID}",
 ) -> QUALITY_MATRIX_RETURN_TYPE:
@@ -146,7 +145,7 @@ async def quality_matrix(
 
 async def _quality_matrix(
     columns, id_to_name_mapping, match_keyword, node_id, properties
-):
+) -> QUALITY_MATRIX_RETURN_TYPE:
     output = {k: {} for k in properties}
     for column_id, total_count in columns.items():
         if column_id in id_to_name_mapping.keys():

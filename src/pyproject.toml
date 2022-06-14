@@ -19,6 +19,7 @@ python-slugify = "^5.0.2"
 starlette-context = "^0.3.3"
 fastapi-utils = "^0.2.1"
 python-dotenv = "^0.20.0"
+glom = "^22.1.0"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.18.1"

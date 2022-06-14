@@ -6,7 +6,6 @@ import pytest
 from elasticsearch_dsl.response import Hit, Response
 
 from app.api.quality_matrix.quality_matrix import (
-    add_base_match_filters,
     all_sources,
     create_empty_entries_search,
     create_properties_search,
@@ -14,11 +13,12 @@ from app.api.quality_matrix.quality_matrix import (
     get_properties,
     missing_fields,
     missing_fields_ratio,
-    quality_matrix,
     queried_missing_properties,
+    source_quality,
 )
 from app.api.quality_matrix.utils import transpose
 from app.core.config import ELASTICSEARCH_URL
+from app.elastic.elastic import add_base_match_filters
 from app.elastic.search import Search
 from app.elastic.utils import connect_to_elastic
 
@@ -45,7 +45,7 @@ async def test_get_quality_matrix_no_sources_no_properties():
         ) as mocked_get_properties:
             mocked_get_properties.return_value = []
             mocked_get_sourced.return_value = {}
-            assert await quality_matrix() == []
+            assert await source_quality() == []
 
 
 @pytest.mark.asyncio
@@ -58,7 +58,7 @@ async def test_get_quality_matrix_no_sources():
         ) as mocked_get_properties:
             mocked_get_properties.return_value = ["dummy_properties"]
             mocked_get_sourced.return_value = {}
-            assert await quality_matrix() == [
+            assert await source_quality() == [
                 {"metadatum": "dummy_properties", "columns": {}}
             ]
 
@@ -79,7 +79,7 @@ async def test_get_quality_matrix():
                 mocked_response = MagicMock()
                 mocked_response.aggregations.to_dict.return_value = {}
                 mocked_all_missing_properties.return_value = mocked_response
-                assert await quality_matrix() == [
+                assert await source_quality() == [
                     {"metadatum": "dummy_properties", "columns": {}}
                 ]
 
@@ -87,7 +87,7 @@ async def test_get_quality_matrix():
                     "dummy_properties": {"doc_count": 5}
                 }
                 mocked_all_missing_properties.return_value = mocked_response
-                assert await quality_matrix() == [
+                assert await source_quality() == [
                     {"metadatum": "dummy_properties", "columns": {"dummy_source": 50.0}}
                 ]
 
@@ -101,7 +101,7 @@ def test_get_empty_entries_dummy_entries():
         assert (
             queried_missing_properties(
                 ["dummy_property"],
-                replication_source="dummy_source",
+                search_keyword="dummy_source",
                 node_id=DUMMY_UUID,
                 match_keyword="",
             )
@@ -110,7 +110,7 @@ def test_get_empty_entries_dummy_entries():
 
 
 def test_create_empty_entries_search():
-    expected_query = {
+    expected_search = {
         "_source": {"includes": ["aggregations"]},
         "aggs": {
             "dummy_property": {
@@ -136,13 +136,13 @@ def test_create_empty_entries_search():
             DUMMY_UUID,
             "properties.ccm:replicationsource",
         ).to_dict()
-        == expected_query
+        == expected_search
     )
 
 
 def test_create_sources_search():
     aggregation_name = "dummy_aggregation"
-    expected_query = {
+    expected_search = {
         "query": {
             "bool": {
                 "must": [
@@ -161,7 +161,7 @@ def test_create_sources_search():
             }
         },
     }
-    assert create_sources_search(aggregation_name).to_dict() == expected_query
+    assert create_sources_search(aggregation_name).to_dict() == expected_search
 
 
 @pytest.mark.skip(reason="Cannot mock Hit properly,yet. TODO")
@@ -179,7 +179,7 @@ def test_sources():
 
 
 def test_create_properties_search():
-    expected_query = {
+    expected_search = {
         "query": {
             "bool": {
                 "must": [
@@ -191,7 +191,7 @@ def test_create_properties_search():
         },
         "_source": ["properties"],
     }
-    assert create_properties_search().to_dict() == expected_query
+    assert create_properties_search().to_dict() == expected_search
 
 
 def test_add_base_match_filters():
