@@ -100,7 +100,6 @@ async def get_quality(
         _quality_matrix = transpose(_quality_matrix)
     else:
         return HTTP_400_BAD_REQUEST
-
     if transpose_output:
         _quality_matrix = transpose(_quality_matrix)
     if store_to_db:

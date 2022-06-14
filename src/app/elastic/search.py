@@ -16,7 +16,7 @@ class Search(elasticsearch_dsl.Search):
         super(Search, self).__init__(index=index, **kwargs)
 
     def base_filters(self):
-        return add_base_match_filters(self)
+        return add_base_filters(self)
 
     def execute(self, ignore_cache=False) -> Response:
         logger.debug(f"Sending query to elastic:\n{pformat(self.to_dict())}")
@@ -37,7 +37,7 @@ class Search(elasticsearch_dsl.Search):
         return response
 
 
-def add_base_match_filters(search: Search) -> Search:
+def add_base_filters(search: Search) -> Search:
     for entry in base_filter:
         search = search.filter(entry)
     return search
