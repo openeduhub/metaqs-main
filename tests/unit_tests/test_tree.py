@@ -89,8 +89,7 @@ def test_parse_tree():
     with open(f"{directory}/test_tree.json") as file:
         expected_tree = json.load(file)
     with open(f"{directory}/test_tree_response.json") as file:
-        response = json.load(file)
-        response = [hit["_source"] for hit in response]
+        response = [hit["_source"] for hit in json.load(file)]
 
     with mock.patch("app.api.collections.tree.Search.execute") as mocked_execute:
         dummy_hits = {"hits": {"hits": response}}
@@ -105,7 +104,7 @@ def test_parse_tree():
         mocked_execute.return_value = mocked_response
         tree = tree_from_elastic(node_id_biology)
 
-    def tree_to_json(_tree: dict) -> list:
+    def tree_to_json(_tree: list[CollectionNode]) -> list:
         return [
             {
                 "noderef_id": collection.noderef_id,
@@ -118,13 +117,7 @@ def test_parse_tree():
         ]
 
     json_tree = tree_to_json(tree)
-
     assert len(json_tree) == len(expected_tree)
-
-    def top_nodes(data: list) -> set:
-        return {str(entry["noderef_id"]) for entry in data}
-
-    assert top_nodes(json_tree) == top_nodes(expected_tree)
 
     def flatten_list(list_of_lists):
         flat_list = []
@@ -144,13 +137,14 @@ def test_parse_tree():
             for collection in data
         ]
 
-    assert (
+    parsed_and_expected_tree_contain_the_same_node_ids = (
         flatten_list(nodes(json_tree)).sort()
         == flatten_list(nodes(expected_tree)).sort()
     )
-    flat_tree = flatten_list(nodes(json_tree))
-    flat_tree.sort()
-    assert len(flat_tree) == 94
+    assert parsed_and_expected_tree_contain_the_same_node_ids
+
+    has_tree_expected_length = len(flatten_list(nodes(json_tree))) == 3
+    assert has_tree_expected_length
 
 
 def test_build_portal_tree():
