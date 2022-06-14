@@ -1,14 +1,14 @@
-from __future__ import annotations
-
 from uuid import UUID
 
 from aiohttp import ClientSession
 
-from app.api.collections.models import CollectionTreeNode
+from app.api.collections.models import CollectionNode
 from app.core.constants import COLLECTION_ROOT_ID
 
 
-async def tree_from_vocabs(session: ClientSession, node_id: UUID):
+async def tree_from_vocabs(
+    session: ClientSession, node_id: UUID
+) -> list[CollectionNode]:
     url = f"https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/oehTopics/{node_id}.json"
     response = await session.get(url=url)
     if response.status == 200:
@@ -17,9 +17,9 @@ async def tree_from_vocabs(session: ClientSession, node_id: UUID):
         return collection_to_model(data[keyword])
 
 
-def collection_to_model(data: list[dict]) -> list[CollectionTreeNode]:
+def collection_to_model(data: list[dict]) -> list[CollectionNode]:
     return [
-        CollectionTreeNode(
+        CollectionNode(
             noderef_id=collection["id"].split("/")[-1],
             title=collection["prefLabel"]["de"],
             children=collection_to_model(collection["narrower"])

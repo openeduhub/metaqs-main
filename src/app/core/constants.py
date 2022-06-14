@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 REPLICATION_SOURCE_ID = "ccm:replicationsource"
 PROPERTIES = "properties"
 

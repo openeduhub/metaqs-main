@@ -2,40 +2,14 @@ from __future__ import (  # Needed for recursive type annotation, can be dropped
     annotations,
 )
 
-from itertools import chain
+from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel
 
-from app.elastic.fields import Field, FieldType
-from app.models import ElasticResourceAttribute
 
-
-class CollectionTreeNode(BaseModel):
+class CollectionNode(BaseModel):
     noderef_id: UUID
-    title: str
-    children: list[CollectionTreeNode]
-
-
-class Collection(BaseModel):
-    noderef_id: UUID
-    title: str
-    children: list[CollectionTreeNode]
-    parent_id: UUID
-
-
-class _CollectionAttribute(Field):
-    TITLE = ("properties.cm:title", FieldType.TEXT)
-    DESCRIPTION = ("properties.cm:description", FieldType.TEXT)
-    PATH = ("path", FieldType.KEYWORD)
-    PARENT_ID = ("parentRef.id", FieldType.KEYWORD)
-    NODE_ID = ("nodeRef.id", FieldType.KEYWORD)
-
-
-CollectionAttribute = Field(
-    "CollectionAttribute",
-    [
-        (f.name, (f.value, f.field_type))
-        for f in chain(ElasticResourceAttribute, _CollectionAttribute)
-    ],
-)
+    title: Optional[str]  # might be none due to data model
+    children: list[CollectionNode]
+    parent_id: Optional[UUID]

@@ -51,7 +51,7 @@ def calc_weighted_score(collection_scores: dict, material_scores: dict) -> int:
     return int((100 * score_sum) / number_of_relevant_terms)
 
 
-def score_search(noderef_id: UUID, resource_type: ResourceType) -> Search:
+def get_score_search(noderef_id: UUID, resource_type: ResourceType) -> Search:
     query, aggs = None, None
     if resource_type is ResourceType.COLLECTION:
         query, aggs = query_collections, aggs_collection_validation
@@ -70,8 +70,8 @@ def score(response: Response) -> dict:
     }
 
 
-async def query_score(noderef_id: UUID, resource_type: ResourceType) -> dict:
-    s = score_search(noderef_id, resource_type)
+async def search_score(noderef_id: UUID, resource_type: ResourceType) -> dict:
+    s = get_score_search(noderef_id, resource_type)
 
     response: Response = s.execute()
 

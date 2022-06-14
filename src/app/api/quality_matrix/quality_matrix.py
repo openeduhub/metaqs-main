@@ -7,7 +7,7 @@ from databases import Database
 from elasticsearch_dsl import AttrDict, Q
 from elasticsearch_dsl.response import Response
 
-from app.api.quality_matrix.models import Forms, Timeline
+from app.api.quality_matrix.models import QUALITY_MATRIX_RETURN_TYPE, Forms, Timeline
 from app.api.quality_matrix.utils import default_properties
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import COLLECTION_ROOT_ID, PROPERTIES, REPLICATION_SOURCE_ID
@@ -16,10 +16,9 @@ from app.elastic.dsl import qbool, qmatch
 from app.elastic.search import Search
 
 PROPERTY_TYPE = list[str]
-QUALITY_MATRIX_RETURN_TYPE = list[dict[str, Union[str, float]]]
 
 
-def create_sources_search(aggregation_name: str):
+def create_sources_search(aggregation_name: str) -> Search:
     s = Search().base_filters()
     s.aggs.bucket(
         aggregation_name,
@@ -98,7 +97,7 @@ def queried_missing_properties(
     ).execute()
 
 
-def join_data(data, key):
+def join_data(data: dict, key: str) -> dict[str, Union[str, dict]]:
     return {"metadatum": key, "columns": data}
 
 
@@ -116,7 +115,7 @@ def missing_fields(
     return {search_keyword: missing_fields_ratio(value, total_count)}
 
 
-async def stored_in_timeline(
+async def store_in_timeline(
     data: QUALITY_MATRIX_RETURN_TYPE, database: Database, form: Forms
 ):
     await database.connect()
@@ -147,7 +146,7 @@ async def source_quality(
 
 async def _quality_matrix(
     columns, id_to_name_mapping, match_keyword, node_id, properties
-):
+) -> QUALITY_MATRIX_RETURN_TYPE:
     output = {k: {} for k in properties}
     for column_id, total_count in columns.items():
         if column_id in id_to_name_mapping.keys():

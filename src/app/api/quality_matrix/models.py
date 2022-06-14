@@ -1,6 +1,5 @@
-from __future__ import annotations
-
 from enum import Enum
+from typing import Union
 
 from pydantic import BaseModel, Field
 from sqlalchemy import JSON, Column, Integer, Text
@@ -26,5 +25,17 @@ class Timeline(Base):
 
 
 class Forms(str, Enum):
+    """
+    The form of a quality matrix specifies what will be used as grouping.
+    It defines the columns and row labels of the table.
+    E.g. for REPLICATION_SOURCE, every row will correspond to a specific replication source, and the columns will
+    be metadata fields.
+    The values in the cells correspond to the percentages of fields that are missing given the replication source
+    of the row.
+    """
+
     REPLICATION_SOURCE = "Bezugsquelle"
     COLLECTIONS = "Sammlungen"
+
+
+QUALITY_MATRIX_RETURN_TYPE = list[dict[str, Union[str, dict[str, float]]]]

@@ -109,7 +109,7 @@ def test_get_empty_entries_dummy_entries():
 
 
 def test_create_empty_entries_search():
-    expected_query = {
+    expected_search = {
         "_source": {"includes": ["aggregations"]},
         "aggs": {
             "dummy_property": {
@@ -137,13 +137,13 @@ def test_create_empty_entries_search():
             DUMMY_UUID,
             "properties.ccm:replicationsource",
         ).to_dict()
-        == expected_query
+        == expected_search
     )
 
 
 def test_create_sources_search():
     aggregation_name = "dummy_aggregation"
-    expected_query = {
+    expected_search = {
         "query": {
             "bool": {
                 "filter": [
@@ -162,7 +162,7 @@ def test_create_sources_search():
             }
         },
     }
-    assert create_sources_search(aggregation_name).to_dict() == expected_query
+    assert create_sources_search(aggregation_name).to_dict() == expected_search
 
 
 @pytest.mark.skip(reason="Cannot mock Hit properly,yet. TODO")
@@ -180,7 +180,7 @@ def test_sources():
 
 
 def test_create_properties_search():
-    expected_query = {
+    expected_search = {
         "query": {
             "bool": {
                 "filter": [
@@ -192,7 +192,7 @@ def test_create_properties_search():
         },
         "_source": ["properties"],
     }
-    assert create_properties_search().to_dict() == expected_query
+    assert create_properties_search().to_dict() == expected_search
 
 
 def test_add_base_match_filters():

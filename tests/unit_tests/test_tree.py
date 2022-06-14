@@ -1,6 +1,5 @@
 import asyncio
 import json
-import os
 import uuid
 from unittest import mock
 from unittest.mock import MagicMock
@@ -8,7 +7,13 @@ from unittest.mock import MagicMock
 import pytest
 from elasticsearch_dsl.response import Response
 
-from app.api.collections.tree import collection_tree, tree_from_elastic, tree_query
+from app.api.collections.models import CollectionNode
+from app.api.collections.tree import (
+    build_portal_tree,
+    collection_tree,
+    tree_from_elastic,
+    tree_search,
+)
 from app.api.collections.vocabs import tree_from_vocabs
 
 
@@ -50,8 +55,8 @@ async def test_parsed_tree_empty_json():
 def test_parse_tree():
     node_id_biology = uuid.UUID("15fce411-54d9-467f-8f35-61ea374a298d")
 
-    query = tree_query(node_id_biology)
-    expected_query = {
+    query = tree_search(node_id_biology)
+    expected_search = {
         "_source": [
             "nodeRef.id",
             "properties.cm:title",
@@ -61,11 +66,11 @@ def test_parse_tree():
         "from": 0,
         "query": {
             "bool": {
-                "filter": [
-                    {"term": {"permissions.Read.keyword": "GROUP_EVERYONE"}},
-                    {"term": {"properties.cm:edu_metadataset.keyword": "mds_oeh"}},
-                    {"term": {"nodeRef.storeRef.protocol": "workspace"}},
-                    {"term": {"path": node_id_biology}},
+                "filter": [{"term": {"path": node_id_biology}}],
+                "must": [
+                    {"match": {"permissions.Read": "GROUP_EVERYONE"}},
+                    {"match": {"properties.cm:edu_metadataset": "mds_oeh"}},
+                    {"match": {"nodeRef.storeRef.protocol": "workspace"}},
                 ],
             }
         },
@@ -73,18 +78,14 @@ def test_parse_tree():
         "sort": ["fullpath"],
     }
 
-    assert query.to_dict() == expected_query
+    assert query.to_dict() == expected_search
 
-    if os.getenv("CI", False):
-        directory = "tests/unit_tests/resources"
-    else:
-        directory = "unit_tests/resources"
+    directory = "tests/unit_tests/resources"
 
     with open(f"{directory}/test_tree.json") as file:
-        expected_tree = json.loads("".join(file.readlines()))
+        expected_tree = json.load(file)
     with open(f"{directory}/test_tree_response.json") as file:
-        response = json.loads("".join(file.readlines()))
-        response = [hit["_source"] for hit in response]
+        response = [hit["_source"] for hit in json.load(file)]
 
     with mock.patch("app.api.collections.tree.Search.execute") as mocked_execute:
         dummy_hits = {"hits": {"hits": response}}
@@ -99,7 +100,7 @@ def test_parse_tree():
         mocked_execute.return_value = mocked_response
         tree = tree_from_elastic(node_id_biology)
 
-    def tree_to_json(_tree: dict) -> list:
+    def tree_to_json(_tree: list[CollectionNode]) -> list:
         return [
             {
                 "noderef_id": collection.noderef_id,
@@ -112,13 +113,7 @@ def test_parse_tree():
         ]
 
     json_tree = tree_to_json(tree)
-
     assert len(json_tree) == len(expected_tree)
-
-    def top_nodes(data: list) -> set:
-        return {str(entry["noderef_id"]) for entry in data}
-
-    assert top_nodes(json_tree) == top_nodes(expected_tree)
 
     def flatten_list(list_of_lists):
         flat_list = []
@@ -138,10 +133,58 @@ def test_parse_tree():
             for collection in data
         ]
 
-    assert (
+    parsed_and_expected_tree_contain_the_same_node_ids = (
         flatten_list(nodes(json_tree)).sort()
         == flatten_list(nodes(expected_tree)).sort()
     )
-    flat_tree = flatten_list(nodes(json_tree))
-    flat_tree.sort()
-    assert len(flat_tree) == 94
+    assert parsed_and_expected_tree_contain_the_same_node_ids
+
+    has_tree_expected_length = len(flatten_list(nodes(json_tree))) == 3
+    assert has_tree_expected_length
+
+
+def test_build_portal_tree():
+    dummy_uuid = uuid.uuid4()
+
+    # empty collections case
+    empty_input = []
+    result = build_portal_tree(empty_input, dummy_uuid)
+    assert result == empty_input
+
+    # single collection case with missing title
+    dummy_child_uuid = uuid.uuid4()
+    dummy_node = CollectionNode(
+        title=None,
+        noderef_id=dummy_child_uuid,
+        children=[],
+        parent_id=dummy_uuid,
+    )
+    result = build_portal_tree([dummy_node], dummy_uuid)
+    assert result == []
+
+    # single collection case
+    dummy_child_uuid = uuid.uuid4()
+    dummy_node = CollectionNode(
+        title="dummy_node",
+        noderef_id=dummy_child_uuid,
+        children=[],
+        parent_id=dummy_uuid,
+    )
+    result = build_portal_tree([dummy_node], dummy_uuid)
+    dummy_node.parent_id = None
+    assert result == [dummy_node]
+    dummy_node.parent_id = dummy_uuid
+
+    # single collection with single child collection case
+    another_child_uuid = uuid.uuid4()
+    another_node = CollectionNode(
+        title="dummy_node",
+        noderef_id=another_child_uuid,
+        children=[],
+        parent_id=dummy_child_uuid,
+    )
+    result = build_portal_tree([dummy_node, another_node], dummy_uuid)
+    another_node.parent_id = None
+    dummy_node.children = [another_node]
+    dummy_node.parent_id = None
+    assert result == [dummy_node]

@@ -1,6 +1,6 @@
 import json
 import uuid
-from typing import List, Mapping
+from typing import Mapping
 from uuid import UUID
 
 from databases import Database
@@ -9,15 +9,15 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from starlette.requests import Request
 from starlette.responses import Response
-from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
+from starlette.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 from starlette_context import context
 
 from app.api.collections.counts import PortalTreeCount, portal_counts
-from app.api.collections.models import CollectionTreeNode
+from app.api.collections.models import CollectionNode
 from app.api.collections.tree import collection_tree
 from app.api.quality_matrix.collections import collection_quality
 from app.api.quality_matrix.models import ColumnOutputModel, Forms, Timeline
-from app.api.quality_matrix.quality_matrix import source_quality, stored_in_timeline
+from app.api.quality_matrix.quality_matrix import source_quality, store_in_timeline
 from app.api.quality_matrix.timeline import timestamps
 from app.api.quality_matrix.utils import transpose
 from app.api.score.models import ScoreOutput
@@ -28,7 +28,7 @@ from app.api.score.score import (
     calc_weighted_score,
     collection_id_param,
     field_names_used_for_score_calculation,
-    query_score,
+    search_score,
 )
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.elastic.elastic import ResourceType
@@ -72,7 +72,7 @@ def node_ids_for_major_collections(
 @router.get(
     "/quality",
     status_code=HTTP_200_OK,
-    response_model=List[ColumnOutputModel],
+    response_model=list[ColumnOutputModel],
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[TAG_STATISTICS],
     description=QUALITY_MATRIX_DESCRIPTION,
@@ -99,18 +99,25 @@ async def get_quality(
         _quality_matrix = await collection_quality(uuid.UUID(node_id))
         _quality_matrix = transpose(_quality_matrix)
     else:
+        return HTTP_400_BAD_REQUEST
+    if form == Forms.REPLICATION_SOURCE:
+        _quality_matrix = await source_quality(uuid.UUID(node_id))
+    elif form == Forms.COLLECTIONS:
+        _quality_matrix = await collection_quality(uuid.UUID(node_id))
+        _quality_matrix = transpose(_quality_matrix)
+    else:
         return HTTP_404_NOT_FOUND
     if transpose_output:
         _quality_matrix = transpose(_quality_matrix)
     if store_to_db:
-        await stored_in_timeline(_quality_matrix, database, form)
+        await store_in_timeline(_quality_matrix, database, form)
     return _quality_matrix
 
 
 @router.get(
     "/quality/{timestamp}",
     status_code=HTTP_200_OK,
-    response_model=List[ColumnOutputModel],
+    response_model=list[ColumnOutputModel],
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[TAG_STATISTICS],
     description="""An unix timestamp in integer seconds since epoch yields the quality matrix at the respective date.""",
@@ -135,7 +142,7 @@ async def get_past_quality_matrix(
 @router.get(
     "/quality_timestamps",
     status_code=HTTP_200_OK,
-    response_model=List[int],
+    response_model=list[int],
     responses={
         HTTP_404_NOT_FOUND: {
             "description": "Timestamps of old quality matrix results not determinable"
@@ -173,13 +180,13 @@ async def get_timestamps(
     """,
 )
 async def score(*, collection_id: UUID = Depends(collection_id_param)):
-    collection_stats = await query_score(
+    collection_stats = await search_score(
         noderef_id=collection_id, resource_type=ResourceType.COLLECTION
     )
 
     collection_scores = calc_scores(stats=collection_stats)
 
-    material_stats = await query_score(
+    material_stats = await search_score(
         noderef_id=collection_id, resource_type=ResourceType.MATERIAL
     )
 
@@ -216,7 +223,7 @@ async def ping_api():
 
 @router.get(
     "/collections/{node_id}/tree",
-    response_model=list[CollectionTreeNode],
+    response_model=list[CollectionNode],
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=["Collections"],

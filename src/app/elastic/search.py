@@ -1,6 +1,7 @@
 from pprint import pformat
 
 import elasticsearch_dsl
+from elasticsearch_dsl.response import Response
 from starlette_context import context
 from starlette_context.errors import ContextDoesNotExistError
 
@@ -16,7 +17,7 @@ class Search(elasticsearch_dsl.Search):
     def base_filters(self):
         return add_base_match_filters(self)
 
-    def execute(self, ignore_cache=False):
+    def execute(self, ignore_cache=False) -> Response:
         logger.debug(f"Sending query to elastic:\n{pformat(self.to_dict())}")
 
         response = super(Search, self).execute(ignore_cache=ignore_cache)
