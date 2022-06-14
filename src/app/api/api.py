@@ -5,6 +5,7 @@ from uuid import UUID
 
 from databases import Database
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from fastapi.params import Param
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from starlette.requests import Request
@@ -12,7 +13,7 @@ from starlette.responses import Response
 from starlette.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 from starlette_context import context
 
-from app.api.collections.counts import PortalTreeCount, portal_counts
+from app.api.collections.counts import PortalTreeCount, portal_counts, _AGGREGATION_MAPPINGS
 from app.api.collections.models import CollectionNode
 from app.api.collections.tree import collection_tree
 from app.api.quality_matrix.collections import collection_quality
@@ -238,9 +239,9 @@ async def get_collection_tree(
 async def get_portal_counts(
     *,
     node_id: UUID = Depends(node_ids_for_major_collections),
+    # TODO: make field except one of the  _AGGREGATION_MAPPINGS key
+    facet: str = Param(default=list(_AGGREGATION_MAPPINGS.keys())[0]),
     response: Response,
 ):
-    counts = await portal_counts(node_id=node_id)
-    response.headers["X-Total-Count"] = str(len(counts))
-    response.headers["X-Query-Count"] = str(len(context.get("elastic_queries")))
+    counts = await portal_counts(node_id=node_id, facet=facet)
     return counts
