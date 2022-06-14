@@ -1,6 +1,6 @@
 import json
 import uuid
-from typing import List, Mapping
+from typing import Mapping
 from uuid import UUID
 
 from databases import Database
@@ -71,7 +71,7 @@ def node_ids_for_major_collections(
 @router.get(
     "/quality",
     status_code=HTTP_200_OK,
-    response_model=List[ColumnOutputModel],
+    response_model=list[ColumnOutputModel],
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[TAG_STATISTICS],
     description=QUALITY_MATRIX_DESCRIPTION,
@@ -109,7 +109,7 @@ async def get_quality(
 @router.get(
     "/quality/{timestamp}",
     status_code=HTTP_200_OK,
-    response_model=List[ColumnOutputModel],
+    response_model=list[ColumnOutputModel],
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[TAG_STATISTICS],
     description="""An unix timestamp in integer seconds since epoch yields the quality matrix at the respective date.""",
@@ -134,7 +134,7 @@ async def get_past_quality_matrix(
 @router.get(
     "/quality_timestamps",
     status_code=HTTP_200_OK,
-    response_model=List[int],
+    response_model=list[int],
     responses={
         HTTP_404_NOT_FOUND: {
             "description": "Timestamps of old quality matrix results not determinable"
@@ -215,7 +215,7 @@ async def ping_api():
 
 @router.get(
     "/collections/{node_id}/tree",
-    response_model=List[CollectionNode],
+    response_model=list[CollectionNode],
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=["Collections"],

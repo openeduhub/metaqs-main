@@ -3,8 +3,8 @@ from uuid import UUID
 from elasticsearch_dsl import Q
 from elasticsearch_dsl.response import Response
 
+from app.api.quality_matrix.models import QUALITY_MATRIX_RETURN_TYPE
 from app.api.quality_matrix.quality_matrix import (
-    QUALITY_MATRIX_RETURN_TYPE,
     _quality_matrix,
     extract_sources_from_response,
     get_properties,
@@ -43,7 +43,7 @@ def queried_collections(node_id: UUID = COLLECTION_ROOT_ID) -> dict[str, int]:
     return extract_sources_from_response(response, aggregation_name)
 
 
-async def id_to_title_mapping(node_id: UUID):
+async def id_to_title_mapping(node_id: UUID) -> dict[str, str]:
     s = add_base_match_filters(
         Search()
         .query(

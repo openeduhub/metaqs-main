@@ -13,7 +13,7 @@ from app.api.collections.tree import (
     build_portal_tree,
     collection_tree,
     tree_from_elastic,
-    tree_query,
+    tree_search,
 )
 from app.api.collections.vocabs import tree_from_vocabs
 
@@ -56,7 +56,7 @@ async def test_parsed_tree_empty_json():
 def test_parse_tree():
     node_id_biology = uuid.UUID("15fce411-54d9-467f-8f35-61ea374a298d")
 
-    query = tree_query(node_id_biology)
+    query = tree_search(node_id_biology)
     expected_query = {
         "_source": [
             "nodeRef.id",
@@ -87,9 +87,9 @@ def test_parse_tree():
         directory = "unit_tests/resources"
 
     with open(f"{directory}/test_tree.json") as file:
-        expected_tree = json.loads("".join(file.readlines()))
+        expected_tree = json.load(file)
     with open(f"{directory}/test_tree_response.json") as file:
-        response = json.loads("".join(file.readlines()))
+        response = json.load(file)
         response = [hit["_source"] for hit in response]
 
     with mock.patch("app.api.collections.tree.Search.execute") as mocked_execute:

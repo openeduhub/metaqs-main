@@ -1,6 +1,5 @@
-from __future__ import annotations
-
 from enum import Enum
+from typing import Union
 
 from pydantic import BaseModel, Field
 from sqlalchemy import JSON, Column, Integer, Text
@@ -28,3 +27,6 @@ class Timeline(Base):
 class Forms(str, Enum):
     REPLICATION_SOURCE = "Bezugsquelle"
     COLLECTIONS = "Sammlungen"
+
+
+QUALITY_MATRIX_RETURN_TYPE = list[dict[str, Union[str, dict[str, float]]]]

@@ -40,7 +40,7 @@ def build_hierarchy(
     return tree_hierarchy
 
 
-def tree_query(node_id: UUID) -> Search:
+def tree_search(node_id: UUID) -> Search:
     s = add_base_match_filters(
         Search().query(qbool(filter=qterm(qfield="path", value=node_id)))
     )
@@ -81,15 +81,17 @@ def hits_to_collection(hits: Response) -> list[CollectionNode]:
     return collections
 
 
-def tree_from_elastic(node_id: UUID):
-    response: Response = tree_query(node_id).execute()
+def tree_from_elastic(node_id: UUID) -> list[CollectionNode]:
+    response: Response = tree_search(node_id).execute()
 
     if response.success():
         collection = hits_to_collection(response)
         return build_portal_tree(collection, node_id)
 
 
-async def collection_tree(node_id: UUID, use_vocabs: bool = False):
+async def collection_tree(
+    node_id: UUID, use_vocabs: bool = False
+) -> list[CollectionNode]:
     if use_vocabs:
         async with ClientSession() as session:
             return await tree_from_vocabs(session, node_id)
