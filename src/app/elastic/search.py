@@ -7,7 +7,8 @@ from starlette_context.errors import ContextDoesNotExistError
 
 from app.core.config import ELASTIC_INDEX
 from app.core.logging import logger
-from app.elastic.filters import base_filter
+from app.elastic.dsl import qterm
+from app.models import ElasticResourceAttribute
 
 
 class Search(elasticsearch_dsl.Search):
@@ -40,3 +41,10 @@ def add_base_match_filters(search: Search) -> Search:
     for entry in base_filter:
         search = search.filter(entry)
     return search
+
+
+base_filter = [
+    qterm(qfield=ElasticResourceAttribute.PERMISSION_READ, value="GROUP_EVERYONE"),
+    qterm(qfield=ElasticResourceAttribute.EDU_METADATASET, value="mds_oeh"),
+    qterm(qfield=ElasticResourceAttribute.PROTOCOL, value="workspace"),
+]

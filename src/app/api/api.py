@@ -100,13 +100,7 @@ async def get_quality(
         _quality_matrix = transpose(_quality_matrix)
     else:
         return HTTP_400_BAD_REQUEST
-    if form == Forms.REPLICATION_SOURCE:
-        _quality_matrix = await source_quality(uuid.UUID(node_id))
-    elif form == Forms.COLLECTIONS:
-        _quality_matrix = await collection_quality(uuid.UUID(node_id))
-        _quality_matrix = transpose(_quality_matrix)
-    else:
-        return HTTP_404_NOT_FOUND
+
     if transpose_output:
         _quality_matrix = transpose(_quality_matrix)
     if store_to_db:
