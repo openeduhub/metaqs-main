@@ -1,6 +1,5 @@
 import asyncio
 import json
-import os
 import uuid
 from unittest import mock
 from unittest.mock import MagicMock
@@ -81,10 +80,7 @@ def test_parse_tree():
 
     assert query.to_dict() == expected_search
 
-    if os.getenv("CI", False):
-        directory = "tests/unit_tests/resources"
-    else:
-        directory = "unit_tests/resources"
+    directory = "tests/unit_tests/resources"
 
     with open(f"{directory}/test_tree.json") as file:
         expected_tree = json.load(file)
