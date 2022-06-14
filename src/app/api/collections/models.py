@@ -2,7 +2,7 @@ from __future__ import (  # Needed for recursive type annotation, can be dropped
     annotations,
 )
 
-from typing import Optional, Union
+from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -10,6 +10,6 @@ from pydantic import BaseModel
 
 class CollectionNode(BaseModel):
     noderef_id: UUID
-    title: Union[str, None]  # might be none due to data model
+    title: Optional[str]  # might be none due to data model
     children: list[CollectionNode]
     parent_id: Optional[UUID]
