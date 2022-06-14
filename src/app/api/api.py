@@ -22,7 +22,7 @@ from app.api.score.score import (
     calc_scores,
     calc_weighted_score,
     collection_id_param,
-    query_score,
+    search_score,
 )
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.elastic.elastic import (
@@ -172,13 +172,13 @@ async def get_timestamps(
     """,
 )
 async def score(*, collection_id: UUID = Depends(collection_id_param)):
-    collection_stats = await query_score(
+    collection_stats = await search_score(
         noderef_id=collection_id, resource_type=ResourceType.COLLECTION
     )
 
     collection_scores = calc_scores(stats=collection_stats)
 
-    material_stats = await query_score(
+    material_stats = await search_score(
         noderef_id=collection_id, resource_type=ResourceType.MATERIAL
     )
 

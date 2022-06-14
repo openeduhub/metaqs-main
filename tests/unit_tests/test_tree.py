@@ -57,7 +57,7 @@ def test_parse_tree():
     node_id_biology = uuid.UUID("15fce411-54d9-467f-8f35-61ea374a298d")
 
     query = tree_search(node_id_biology)
-    expected_query = {
+    expected_search = {
         "_source": [
             "nodeRef.id",
             "properties.cm:title",
@@ -79,7 +79,7 @@ def test_parse_tree():
         "sort": ["fullpath"],
     }
 
-    assert query.to_dict() == expected_query
+    assert query.to_dict() == expected_search
 
     if os.getenv("CI", False):
         directory = "tests/unit_tests/resources"
