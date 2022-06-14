@@ -9,6 +9,7 @@ from app.api.collections.counts import build_counts, query_portal_counts
 def test_query_portal_counts():
     node_id = uuid.UUID("15fce411-54d9-467f-8f35-61ea374a298d")
     total_size_elastic = 500_000
+    facet = "dummy_facet"
     expected_query = {
         "query": {
             "bool": {
@@ -28,9 +29,9 @@ def test_query_portal_counts():
                     "size": total_size_elastic,
                 },
                 "aggs": {
-                    "lrt": {
+                    "facet": {
                         "terms": {
-                            "field": "properties.ccm:oeh_lrt_aggregated.keyword",
+                            "field": facet,
                             "size": total_size_elastic,
                         }
                     }
@@ -38,10 +39,10 @@ def test_query_portal_counts():
             }
         },
         "from": 0,
-        "size": total_size_elastic,
+        "size": 0,
         "_source": ["nodeRef.id", "properties.cm:title", "path", "parentRef.id"],
     }
-    search = query_portal_counts(node_id)
+    search = query_portal_counts(node_id, facet)
     assert search.to_dict() == expected_query
 
 
@@ -61,12 +62,14 @@ def test_build_counts():
     mocked_data = MagicMock()
     mocked_data.__getitem__.side_effect = _get_key
 
-    mocked_data.return_value = {"key": uuid.uuid4(), "doc_count": -1}
-    mocked_data.lrt.buckets = [mocked_data]
+    dummy_id = uuid.uuid4()
+    mocked_data.return_value = {"key": dummy_id, "doc_count": -1}
+    mocked_data.facet.buckets = [mocked_data]
     mocked_response.aggregations["collection_id"].buckets = [mocked_data]
 
     result = build_counts(mocked_response)
 
     assert len(result) == 1
-    assert result[0].counts["total"] == -1
+    assert result[0].total == 1
+    assert list(result[0].counts.values())[0] == -1
     assert isinstance(result[0].noderef_id, uuid.UUID)

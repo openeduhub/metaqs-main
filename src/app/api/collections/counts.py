@@ -1,3 +1,4 @@
+from enum import Enum
 from uuid import UUID
 
 from elasticsearch_dsl import A
@@ -16,14 +17,18 @@ class PortalTreeCount(BaseModel):
 
 
 _AGGREGATION_NAME = "collection_id"
-# Mappings of the elastic fields where facets should be built for each individual collection
-_AGGREGATION_MAPPINGS = {
-    "lrt": "properties.ccm:oeh_lrt_aggregated.keyword",
-    "license": "properties.ccm:commonlicense_key.keyword",
-}
 
 
-def query_portal_counts(node_id: UUID, facet: str) -> Search:
+class AggregationMappings(str, Enum):
+    """
+    Mappings of the elastic fields where facets should be built for each individual collection
+    """
+
+    lrt = ("properties.ccm:oeh_lrt_aggregated.keyword",)
+    license = ("properties.ccm:commonlicense_key.keyword",)
+
+
+def query_portal_counts(node_id: UUID, facet: AggregationMappings) -> Search:
     s = Search().base_filters().query(query_materials(ancestor_id=node_id))
     material_agg = A(
         "terms", field="collections.nodeRef.id.keyword", size=ELASTIC_TOTAL_SIZE
@@ -32,7 +37,7 @@ def query_portal_counts(node_id: UUID, facet: str) -> Search:
         "facet",
         A(
             "terms",
-            field=_AGGREGATION_MAPPINGS.get(facet),
+            field=facet,
             size=ELASTIC_TOTAL_SIZE,
         ),
     )
@@ -48,7 +53,9 @@ def query_portal_counts(node_id: UUID, facet: str) -> Search:
     return s
 
 
-async def portal_counts(node_id: UUID, facet: str) -> list[PortalTreeCount]:
+async def portal_counts(
+    node_id: UUID, facet: AggregationMappings
+) -> list[PortalTreeCount]:
     response = query_portal_counts(node_id, facet).execute()
     if response.success():
         return build_counts(response)
@@ -56,7 +63,7 @@ async def portal_counts(node_id: UUID, facet: str) -> list[PortalTreeCount]:
 
 def counts(data):
     _counts = {}
-    _counts.update({sub["key"]: sub["doc_count"] for sub in data["facet"].buckets})
+    _counts.update({sub["key"]: sub["doc_count"] for sub in data.facet.buckets})
     return _counts
 
 
