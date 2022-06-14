@@ -8,7 +8,13 @@ from unittest.mock import MagicMock
 import pytest
 from elasticsearch_dsl.response import Response
 
-from app.api.collections.tree import collection_tree, tree_from_elastic, tree_query
+from app.api.collections.models import CollectionNode
+from app.api.collections.tree import (
+    build_portal_tree,
+    collection_tree,
+    tree_from_elastic,
+    tree_query,
+)
 from app.api.collections.vocabs import tree_from_vocabs
 
 
@@ -145,3 +151,36 @@ def test_parse_tree():
     flat_tree = flatten_list(nodes(json_tree))
     flat_tree.sort()
     assert len(flat_tree) == 94
+
+
+def test_build_portal_tree():
+    dummy_uuid = uuid.uuid4()
+
+    empty_input = []
+    result = build_portal_tree(empty_input, dummy_uuid)
+    assert result == empty_input
+
+    dummy_child_uuid = uuid.uuid4()
+    dummy_node = CollectionNode(
+        title="dummy_node",
+        noderef_id=dummy_child_uuid,
+        children=[],
+        parent_id=dummy_uuid,
+    )
+    result = build_portal_tree([dummy_node], dummy_uuid)
+    dummy_node.parent_id = None
+    assert result == [dummy_node]
+    dummy_node.parent_id = dummy_uuid
+
+    another_child_uuid = uuid.uuid4()
+    another_node = CollectionNode(
+        title="dummy_node",
+        noderef_id=another_child_uuid,
+        children=[],
+        parent_id=dummy_child_uuid,
+    )
+    result = build_portal_tree([dummy_node, another_node], dummy_uuid)
+    another_node.parent_id = None
+    dummy_node.children = [another_node]
+    dummy_node.parent_id = None
+    assert result == [dummy_node]

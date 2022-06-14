@@ -8,9 +8,9 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from starlette.requests import Request
-from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
+from starlette.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
-from app.api.collections.models import CollectionTreeNode
+from app.api.collections.models import CollectionNode
 from app.api.collections.tree import collection_tree
 from app.api.quality_matrix.collections import collection_quality
 from app.api.quality_matrix.models import ColumnOutputModel, Forms, Timeline
@@ -98,7 +98,7 @@ async def get_quality(
         _quality_matrix = await collection_quality(uuid.UUID(node_id))
         _quality_matrix = transpose(_quality_matrix)
     else:
-        return HTTP_404_NOT_FOUND
+        return HTTP_400_BAD_REQUEST
     if transpose_output:
         _quality_matrix = transpose(_quality_matrix)
     if store_to_db:
@@ -215,7 +215,7 @@ async def ping_api():
 
 @router.get(
     "/collections/{node_id}/tree",
-    response_model=List[CollectionTreeNode],
+    response_model=List[CollectionNode],
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=["Collections"],
