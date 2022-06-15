@@ -224,7 +224,7 @@ async def ping_api():
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=["Collections"],
 )
-async def gCleanupet_collection_tree(
+async def get_collection_tree(
     *, node_id: UUID = Depends(node_ids_for_major_collections)
 ):
     return await collection_tree(node_id)

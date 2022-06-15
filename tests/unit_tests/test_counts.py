@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 from elasticsearch_dsl.response import Response
 
-from app.api.collections.counts import build_counts, query_portal_counts
+from app.api.collections.counts import build_counts, portal_counts_search
 
 
 def test_query_portal_counts():
@@ -42,7 +42,7 @@ def test_query_portal_counts():
         "size": 0,
         "_source": ["nodeRef.id", "properties.cm:title", "path", "parentRef.id"],
     }
-    search = query_portal_counts(node_id, facet)
+    search = portal_counts_search(node_id, facet)
     assert search.to_dict() == expected_query
 
 

@@ -28,7 +28,7 @@ class AggregationMappings(str, Enum):
     license = ("properties.ccm:commonlicense_key.keyword",)
 
 
-def query_portal_counts(node_id: UUID, facet: AggregationMappings) -> Search:
+def portal_counts_search(node_id: UUID, facet: AggregationMappings) -> Search:
     s = Search().base_filters().query(query_materials(ancestor_id=node_id))
     material_agg = A(
         "terms", field="collections.nodeRef.id.keyword", size=ELASTIC_TOTAL_SIZE
@@ -56,7 +56,7 @@ def query_portal_counts(node_id: UUID, facet: AggregationMappings) -> Search:
 async def portal_counts(
     node_id: UUID, facet: AggregationMappings
 ) -> list[PortalTreeCount]:
-    response = query_portal_counts(node_id, facet).execute()
+    response = portal_counts_search(node_id, facet).execute()
     if response.success():
         return build_counts(response)
 
