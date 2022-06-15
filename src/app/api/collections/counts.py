@@ -65,16 +65,12 @@ async def collection_counts(
         return build_counts(response)
 
 
-def counts(data):
-    _counts = {}
-    _counts.update({sub["key"]: sub["doc_count"] for sub in data.facet.buckets})
-    return _counts
-
-
 def build_counts(response) -> list[CollectionTreeCount]:
     return [
         CollectionTreeCount(
-            noderef_id=data["key"], counts=counts(data), total=data.doc_count
+            noderef_id=data["key"],
+            counts={sub["key"]: sub["doc_count"] for sub in data.facet.buckets},
+            total=data.doc_count,
         )
         for data in response.aggregations[_AGGREGATION_NAME].buckets
     ]
