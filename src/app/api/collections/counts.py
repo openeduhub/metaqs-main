@@ -10,7 +10,11 @@ from app.elastic.search import Search
 from app.models import CollectionAttribute, ElasticResourceAttribute
 
 
-class PortalTreeCount(BaseModel):
+class CollectionTreeCount(BaseModel):
+    """
+    A preliminary model to yield the total number of collections as well as counts for specific metrics, e.g. OER licence
+    """
+
     noderef_id: UUID
     total: int
     counts: dict[str, int]
@@ -28,7 +32,7 @@ class AggregationMappings(str, Enum):
     license = ("properties.ccm:commonlicense_key.keyword",)
 
 
-def portal_counts_search(node_id: UUID, facet: AggregationMappings) -> Search:
+def collection_counts_search(node_id: UUID, facet: AggregationMappings) -> Search:
     s = Search().base_filters().query(query_materials(ancestor_id=node_id))
     material_agg = A(
         "terms", field="collections.nodeRef.id.keyword", size=ELASTIC_TOTAL_SIZE
@@ -53,10 +57,10 @@ def portal_counts_search(node_id: UUID, facet: AggregationMappings) -> Search:
     return s
 
 
-async def portal_counts(
+async def collection_counts(
     node_id: UUID, facet: AggregationMappings
-) -> list[PortalTreeCount]:
-    response = portal_counts_search(node_id, facet).execute()
+) -> list[CollectionTreeCount]:
+    response = collection_counts_search(node_id, facet).execute()
     if response.success():
         return build_counts(response)
 
@@ -67,12 +71,10 @@ def counts(data):
     return _counts
 
 
-def total(data):
-    return data.doc_count
-
-
-def build_counts(response) -> list[PortalTreeCount]:
+def build_counts(response) -> list[CollectionTreeCount]:
     return [
-        PortalTreeCount(noderef_id=data["key"], counts=counts(data), total=total(data))
+        CollectionTreeCount(
+            noderef_id=data["key"], counts=counts(data), total=data.doc_count
+        )
         for data in response.aggregations[_AGGREGATION_NAME].buckets
     ]

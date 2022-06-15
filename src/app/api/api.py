@@ -13,8 +13,8 @@ from starlette.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOU
 
 from app.api.collections.counts import (
     AggregationMappings,
-    PortalTreeCount,
-    portal_counts,
+    CollectionTreeCount,
+    collection_counts,
 )
 from app.api.collections.models import CollectionNode
 from app.api.collections.tree import collection_tree
@@ -232,13 +232,13 @@ async def get_collection_tree(
 
 @router.get(
     "/collections/{node_id}/counts",
-    summary="Return the material counts for each collection id which this portal tree includes",
-    response_model=list[PortalTreeCount],
+    summary="Return the material counts for each collection id which this collection tree includes",
+    response_model=list[CollectionTreeCount],
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=["Collections"],
 )
-async def get_portal_counts(
+async def get_collection_counts(
     *,
     node_id: UUID = Depends(node_ids_for_major_collections),
     facet: AggregationMappings = Param(
@@ -246,5 +246,5 @@ async def get_portal_counts(
         examples={key: {"value": key} for key in AggregationMappings},
     ),
 ):
-    counts = await portal_counts(node_id=node_id, facet=facet)
+    counts = await collection_counts(node_id=node_id, facet=facet)
     return counts
