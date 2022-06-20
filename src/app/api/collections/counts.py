@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Optional
 from uuid import UUID
 
 from elasticsearch_dsl import A
@@ -59,7 +60,7 @@ def collection_counts_search(node_id: UUID, facet: AggregationMappings) -> Searc
 
 async def collection_counts(
     node_id: UUID, facet: AggregationMappings
-) -> list[CollectionTreeCount]:
+) -> Optional[list[CollectionTreeCount]]:
     response = collection_counts_search(node_id, facet).execute()
     if response.success():
         return build_counts(response)
