@@ -1,9 +1,10 @@
 import json
 import uuid
-from typing import Mapping
+from typing import Mapping, Optional, Set
 from uuid import UUID
 
 from databases import Database
+from elasticsearch_dsl.response import Response
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from fastapi.params import Param
 from pydantic import BaseModel, Field
@@ -15,6 +16,13 @@ from app.api.collections.counts import (
     AggregationMappings,
     CollectionTreeCount,
     collection_counts,
+)
+from app.api.collections.missing_attributes import (
+    MissingAttributeFilter,
+    collection_response_fields,
+    collections_filter_params,
+    filter_response_fields,
+    get_child_collections_with_missing_attributes,
 )
 from app.api.collections.models import CollectionNode
 from app.api.collections.tree import collection_tree
@@ -35,6 +43,7 @@ from app.api.score.score import (
 )
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.elastic.elastic import ResourceType
+from app.models import CollectionAttribute
 
 
 def get_database(request: Request) -> Database:
@@ -248,3 +257,31 @@ async def get_collection_counts(
 ):
     counts = await collection_counts(node_id=node_id, facet=facet)
     return counts
+
+
+@router.get(
+    "/collections/{node_id}/pending-subcollections/{missing_attr}",
+    response_model=list[CollectionNode],
+    response_model_exclude_unset=True,
+    status_code=HTTP_200_OK,
+    responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
+    tags=["Collections"],
+)
+async def filter_collections_with_missing_attributes(
+    *,
+    node_id: UUID = Depends(node_ids_for_major_collections),
+    missing_attr_filter: MissingAttributeFilter = Depends(collections_filter_params),
+    source_fields: Optional[set[CollectionAttribute]] = Depends(
+        collection_response_fields
+    ),
+):
+    if source_fields:
+        source_fields.add(CollectionAttribute.NODEREF_ID)
+
+    collections = await get_child_collections_with_missing_attributes(
+        noderef_id=node_id,
+        missing_attr_filter=missing_attr_filter,
+        source_fields=source_fields,
+    )
+
+    return filter_response_fields(collections, response_fields=source_fields)
