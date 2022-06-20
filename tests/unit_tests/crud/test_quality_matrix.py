@@ -18,7 +18,6 @@ from app.api.quality_matrix.quality_matrix import (
 )
 from app.api.quality_matrix.utils import transpose
 from app.core.config import ELASTICSEARCH_URL
-from app.elastic.elastic import add_base_match_filters
 from app.elastic.search import Search
 from app.elastic.utils import connect_to_elastic
 
@@ -122,10 +121,12 @@ def test_create_empty_entries_search():
                 "must": [
                     {"match": {"properties.ccm:replicationsource": "dummy_source"}},
                     {"term": {"path": DUMMY_UUID}},
-                    {"match": {"permissions.Read": "GROUP_EVERYONE"}},
-                    {"match": {"properties.cm:edu_metadataset": "mds_oeh"}},
-                    {"match": {"nodeRef.storeRef.protocol": "workspace"}},
-                ]
+                ],
+                "filter": [
+                    {"term": {"permissions.Read.keyword": "GROUP_EVERYONE"}},
+                    {"term": {"properties.cm:edu_metadataset.keyword": "mds_oeh"}},
+                    {"term": {"nodeRef.storeRef.protocol": "workspace"}},
+                ],
             }
         },
     }
@@ -145,10 +146,10 @@ def test_create_sources_search():
     expected_search = {
         "query": {
             "bool": {
-                "must": [
-                    {"match": {"permissions.Read": "GROUP_EVERYONE"}},
-                    {"match": {"properties.cm:edu_metadataset": "mds_oeh"}},
-                    {"match": {"nodeRef.storeRef.protocol": "workspace"}},
+                "filter": [
+                    {"term": {"permissions.Read.keyword": "GROUP_EVERYONE"}},
+                    {"term": {"properties.cm:edu_metadataset.keyword": "mds_oeh"}},
+                    {"term": {"nodeRef.storeRef.protocol": "workspace"}},
                 ]
             }
         },
@@ -182,10 +183,10 @@ def test_create_properties_search():
     expected_search = {
         "query": {
             "bool": {
-                "must": [
-                    {"match": {"permissions.Read": "GROUP_EVERYONE"}},
-                    {"match": {"properties.cm:edu_metadataset": "mds_oeh"}},
-                    {"match": {"nodeRef.storeRef.protocol": "workspace"}},
+                "filter": [
+                    {"term": {"permissions.Read.keyword": "GROUP_EVERYONE"}},
+                    {"term": {"properties.cm:edu_metadataset.keyword": "mds_oeh"}},
+                    {"term": {"nodeRef.storeRef.protocol": "workspace"}},
                 ]
             }
         },
@@ -198,16 +199,16 @@ def test_add_base_match_filters():
     excpectation = {
         "query": {
             "bool": {
-                "must": [
-                    {"match": {"permissions.Read": "GROUP_EVERYONE"}},
-                    {"match": {"properties.cm:edu_metadataset": "mds_oeh"}},
-                    {"match": {"nodeRef.storeRef.protocol": "workspace"}},
+                "filter": [
+                    {"term": {"permissions.Read.keyword": "GROUP_EVERYONE"}},
+                    {"term": {"properties.cm:edu_metadataset.keyword": "mds_oeh"}},
+                    {"term": {"nodeRef.storeRef.protocol": "workspace"}},
                 ]
             }
         }
     }
 
-    assert add_base_match_filters(Search()).to_dict() == excpectation
+    assert Search().base_filters().to_dict() == excpectation
 
 
 def test_missing_fields_zero_division_error():

@@ -30,7 +30,7 @@ async def test_collection_tree():
     data = await collection_tree(root_node_id, use_vocabs=True)
     assert len(data) == 26
     count = node_count(data)
-    assert count == 2216
+    assert count == 2218  # adapt this number to the current state, may change regularly
 
 
 @pytest.mark.asyncio
@@ -66,11 +66,11 @@ def test_parse_tree():
         "from": 0,
         "query": {
             "bool": {
-                "filter": [{"term": {"path": node_id_biology}}],
-                "must": [
-                    {"match": {"permissions.Read": "GROUP_EVERYONE"}},
-                    {"match": {"properties.cm:edu_metadataset": "mds_oeh"}},
-                    {"match": {"nodeRef.storeRef.protocol": "workspace"}},
+                "filter": [
+                    {"term": {"permissions.Read.keyword": "GROUP_EVERYONE"}},
+                    {"term": {"properties.cm:edu_metadataset.keyword": "mds_oeh"}},
+                    {"term": {"nodeRef.storeRef.protocol": "workspace"}},
+                    {"term": {"path": node_id_biology}},
                 ],
             }
         },

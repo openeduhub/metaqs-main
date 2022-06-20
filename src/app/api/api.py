@@ -5,11 +5,17 @@ from uuid import UUID
 
 from databases import Database
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from fastapi.params import Param
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from starlette.requests import Request
 from starlette.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
+from app.api.collections.counts import (
+    AggregationMappings,
+    CollectionTreeCount,
+    collection_counts,
+)
 from app.api.collections.models import CollectionNode
 from app.api.collections.tree import collection_tree
 from app.api.quality_matrix.collections import collection_quality
@@ -19,18 +25,16 @@ from app.api.quality_matrix.timeline import timestamps
 from app.api.quality_matrix.utils import transpose
 from app.api.score.models import ScoreOutput
 from app.api.score.score import (
+    aggs_collection_validation,
+    aggs_material_validation,
     calc_scores,
     calc_weighted_score,
     collection_id_param,
+    field_names_used_for_score_calculation,
     search_score,
 )
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
-from app.elastic.elastic import (
-    ResourceType,
-    aggs_collection_validation,
-    aggs_material_validation,
-    field_names_used_for_score_calculation,
-)
+from app.elastic.elastic import ResourceType
 
 
 def get_database(request: Request) -> Database:
@@ -224,3 +228,23 @@ async def get_collection_tree(
     *, node_id: UUID = Depends(node_ids_for_major_collections)
 ):
     return await collection_tree(node_id)
+
+
+@router.get(
+    "/collections/{node_id}/counts",
+    summary="Return the material counts for each collection id which this collection tree includes",
+    response_model=list[CollectionTreeCount],
+    status_code=HTTP_200_OK,
+    responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
+    tags=["Collections"],
+)
+async def get_collection_counts(
+    *,
+    node_id: UUID = Depends(node_ids_for_major_collections),
+    facet: AggregationMappings = Param(
+        default=AggregationMappings.lrt,
+        examples={key: {"value": key} for key in AggregationMappings},
+    ),
+):
+    counts = await collection_counts(node_id=node_id, facet=facet)
+    return counts

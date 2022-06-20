@@ -13,14 +13,13 @@ from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import COLLECTION_ROOT_ID, PROPERTIES, REPLICATION_SOURCE_ID
 from app.core.logging import logger
 from app.elastic.dsl import qbool, qmatch
-from app.elastic.elastic import add_base_match_filters
 from app.elastic.search import Search
 
 PROPERTY_TYPE = list[str]
 
 
 def create_sources_search(aggregation_name: str) -> Search:
-    s = add_base_match_filters(Search())
+    s = Search().base_filters()
     s.aggs.bucket(
         aggregation_name,
         "terms",
@@ -53,7 +52,7 @@ def extract_properties(hits: list[AttrDict]) -> PROPERTY_TYPE:
 
 
 def create_properties_search() -> Search:
-    return add_base_match_filters(Search().source([PROPERTIES]))
+    return Search().base_filters().source([PROPERTIES])
 
 
 def get_properties() -> PROPERTY_TYPE:
@@ -68,8 +67,9 @@ def create_empty_entries_search(
     node_id: UUID,
     match_keyword: str,
 ) -> Search:
-    s = add_base_match_filters(
+    s = (
         Search()
+        .base_filters()
         .query(
             qbool(
                 must=[
@@ -80,6 +80,7 @@ def create_empty_entries_search(
         )
         .source(includes=["aggregations"])
     )
+
     for keyword in properties:
         s.aggs.bucket(keyword, "missing", field=f"{PROPERTIES}.{keyword}.keyword")
     return s
