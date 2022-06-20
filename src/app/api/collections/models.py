@@ -13,3 +13,11 @@ class CollectionNode(BaseModel):
     title: Optional[str]  # might be none due to data model
     children: list[CollectionNode]
     parent_id: Optional[UUID]
+
+
+class MissingMaterials(CollectionNode):
+    keywords: list[str]
+    description: str
+    path: list[str]
+    type: str
+    name: str
