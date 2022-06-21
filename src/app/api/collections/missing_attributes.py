@@ -130,7 +130,6 @@ async def get_child_collections_with_missing_attributes(
     s = missing_attributes_search(noderef_id, missing_attr_filter, max_hits)
 
     response = s.execute()
-
     if response.success():
         return hits_to_object(response, missing_attributes_spec, MissingMaterials)
 
