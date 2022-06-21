@@ -278,9 +278,7 @@ async def filter_collections_with_missing_attributes(
         source_fields.add(CollectionAttribute.NODEREF_ID)
 
     collections = await get_child_collections_with_missing_attributes(
-        noderef_id=node_id,
-        missing_attr_filter=missing_attr_filter,
-        source_fields=source_fields,
+        noderef_id=node_id, missing_attr_filter=missing_attr_filter
     )
 
     return filter_response_fields(collections, response_fields=source_fields)

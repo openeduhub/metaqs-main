@@ -9,6 +9,7 @@ _DESCENDANT_COLLECTIONS_MATERIALS_COUNTS = TypeVar(
 )
 
 
+# TODO: Refactor! This code cannot be refactored or indexed properly, right now. Reduce complexity, e.g., see field
 class ElasticResourceAttribute(Field):
     NODEREF_ID = ("nodeRef.id", FieldType.KEYWORD)
     TYPE = ("type", FieldType.KEYWORD)

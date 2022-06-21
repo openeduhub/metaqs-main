@@ -2,9 +2,10 @@ from uuid import UUID
 
 from aiohttp import ClientSession
 from elasticsearch_dsl.response import Response
-from glom import Coalesce, Iter, glom
+from glom import Coalesce, Iter
 
 from app.api.collections.models import CollectionNode
+from app.api.collections.utils import hits_to_object
 from app.api.collections.vocabs import tree_from_vocabs
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.elastic.dsl import qbool, qterm
@@ -47,42 +48,28 @@ def tree_search(node_id: UUID) -> Search:
     return s
 
 
-def hits_to_collection(hits: Response) -> list[CollectionNode]:
-    collections = []
-    for hit in hits:
-        entry = hit.to_dict()
-        spec = {
-            "title": Coalesce(CollectionAttribute.TITLE.path, default=None),
-            "keywords": (
-                Coalesce(CollectionAttribute.KEYWORDS.path, default=[]),
-                Iter().all(),
-            ),
-            "description": Coalesce(CollectionAttribute.DESCRIPTION.path, default=None),
-            "path": (
-                Coalesce(CollectionAttribute.PATH.path, default=[]),
-                Iter().all(),
-            ),
-            "parent_id": Coalesce(CollectionAttribute.PARENT_ID.path, default=None),
-            "node_id": Coalesce(CollectionAttribute.NODE_ID.path, default=None),
-        }
-        parsed_entry = glom(entry, spec)
-        if parsed_entry["title"] is not None:
-            collections.append(
-                CollectionNode(
-                    noderef_id=parsed_entry["node_id"],
-                    title=parsed_entry["title"],
-                    children=[],
-                    parent_id=parsed_entry["parent_id"],
-                )
-            )
-    return collections
+collection_spec = {
+    "title": Coalesce(CollectionAttribute.TITLE.path, default=None),
+    "keywords": (
+        Coalesce(CollectionAttribute.KEYWORDS.path, default=[]),
+        Iter().all(),
+    ),
+    "description": Coalesce(CollectionAttribute.DESCRIPTION.path, default=None),
+    "path": (
+        Coalesce(CollectionAttribute.PATH.path, default=[]),
+        Iter().all(),
+    ),
+    "parent_id": Coalesce(CollectionAttribute.PARENT_ID.path, default=None),
+    "noderef_id": Coalesce(CollectionAttribute.NODE_ID.path, default=None),
+    "children": Coalesce("", default=[]),
+}
 
 
 def tree_from_elastic(node_id: UUID) -> list[CollectionNode]:
     response: Response = tree_search(node_id).execute()
 
     if response.success():
-        collection = hits_to_collection(response)
+        collection = hits_to_object(response, collection_spec, CollectionNode)
         return build_portal_tree(collection, node_id)
 
 

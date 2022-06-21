@@ -2,13 +2,13 @@ from typing import Optional, TypeVar, Union
 from uuid import UUID
 
 from elasticsearch_dsl.query import Q, Query
-from elasticsearch_dsl.response import Response
 from fastapi.params import Path
 from fastapi.params import Query as ParamQuery
-from glom import Coalesce, Iter, glom
+from glom import Coalesce, Iter
 from pydantic import BaseModel
 
 from app.api.collections.models import MissingMaterials
+from app.api.collections.utils import hits_to_object
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.elastic.dsl import qbool, qmatch
 from app.elastic.elastic import ResourceType, type_filter
@@ -76,19 +76,6 @@ all_source_fields: list = [
     CollectionAttribute.PARENT_ID,
 ]
 
-MissingCollectionField = Field(
-    "MissingCollectionField",
-    [
-        (f.name, (f.value, f.field_type))
-        for f in [
-            CollectionAttribute.NAME,
-            CollectionAttribute.TITLE,
-            CollectionAttribute.KEYWORDS,
-            CollectionAttribute.DESCRIPTION,
-        ]
-    ],
-)
-
 
 class MissingAttributeFilter(BaseModel):
     attr: MissingCollectionField
@@ -98,93 +85,68 @@ class MissingAttributeFilter(BaseModel):
         return query_dict
 
 
-async def get_child_collections_with_missing_attributes(
-    noderef_id: UUID,
-    missing_attr_filter: MissingAttributeFilter,
-    source_fields: Optional[set[CollectionAttribute]],
-    max_hits: Optional[int] = ELASTIC_TOTAL_SIZE,
-) -> list[MissingMaterials]:
-    return await get_many(
-        ancestor_id=noderef_id,
-        missing_attr_filter=missing_attr_filter,
-        source_fields=source_fields,
-        max_hits=max_hits,
-    )
-
-
-def hits_to_missing_attributes(hits: Response) -> list[MissingMaterials]:
-    collections = []
-    for hit in hits:
-        entry = hit.to_dict()
-        spec = {
-            "title": Coalesce(CollectionAttribute.TITLE.path, default=None),
-            "keywords": (
-                Coalesce(CollectionAttribute.KEYWORDS.path, default=[]),
-                Iter().all(),
-            ),
-            "description": Coalesce(CollectionAttribute.DESCRIPTION.path, default=None),
-            "path": (
-                Coalesce(CollectionAttribute.PATH.path, default=[]),
-                Iter().all(),
-            ),
-            "parent_id": Coalesce(CollectionAttribute.PARENT_ID.path, default=None),
-            "noderef_id": Coalesce(CollectionAttribute.NODE_ID.path, default=None),
-            "name": Coalesce(CollectionAttribute.NAME.path, default=None),
-            "type": Coalesce(CollectionAttribute.TYPE.path, default=None),
-        }
-        parsed_entry = glom(entry, spec)
-        if parsed_entry["title"] is not None:
-            collections.append(
-                MissingMaterials(
-                    noderef_id=parsed_entry["noderef_id"],
-                    title=parsed_entry["title"],
-                    children=[],
-                    parent_id=parsed_entry["parent_id"],
-                    keywords=parsed_entry["keywords"],
-                    name=parsed_entry["name"],
-                    description=parsed_entry["description"],
-                    type=parsed_entry["type"],
-                    path=parsed_entry["path"],
-                )
-            )
-    return collections
-
-
-async def get_many(
-    ancestor_id: Optional[UUID] = None,
-    missing_attr_filter: Optional[MissingAttributeFilter] = None,
-    max_hits: Optional[int] = ELASTIC_TOTAL_SIZE,
-    source_fields: Optional[set[CollectionAttribute]] = None,
-) -> list[MissingMaterials]:
+def missing_attributes_search(
+    noderef_id: UUID, missing_attr_filter: MissingAttributeFilter, max_hits: int
+) -> Search:
     query_dict = get_many_base_query(
         resource_type=ResourceType.COLLECTION,
-        ancestor_id=ancestor_id,
+        noderef_id=noderef_id,
     )
     if missing_attr_filter:
         query_dict = missing_attr_filter.__call__(query_dict=query_dict)
-    s = Search().base_filters().query(qbool(**query_dict))
+    search = (
+        Search()
+        .base_filters()
+        .query(qbool(**query_dict))
+        .source(includes=[source.path for source in all_source_fields])[:max_hits]
+    )
+    return search
 
-    response = s.source()[:max_hits].execute()
+
+missing_attributes_spec = {
+    "title": Coalesce(CollectionAttribute.TITLE.path, default=None),
+    "keywords": (
+        Coalesce(CollectionAttribute.KEYWORDS.path, default=[]),
+        Iter().all(),
+    ),
+    "description": Coalesce(CollectionAttribute.DESCRIPTION.path, default=None),
+    "path": (
+        Coalesce(CollectionAttribute.PATH.path, default=[]),
+        Iter().all(),
+    ),
+    "parent_id": Coalesce(CollectionAttribute.PARENT_ID.path, default=None),
+    "noderef_id": Coalesce(CollectionAttribute.NODE_ID.path, default=None),
+    "name": Coalesce(CollectionAttribute.NAME.path, default=None),
+    "type": Coalesce(CollectionAttribute.TYPE.path, default=None),
+    "children": Coalesce("", default=[]),  # workaround to map easier to pydantic model
+}
+
+
+async def get_child_collections_with_missing_attributes(
+    noderef_id: UUID,
+    missing_attr_filter: MissingAttributeFilter,
+    max_hits: Optional[int] = ELASTIC_TOTAL_SIZE,
+) -> list[MissingMaterials]:
+    s = missing_attributes_search(noderef_id, missing_attr_filter, max_hits)
+
+    response = s.execute()
 
     if response.success():
-        # rewind to parse with elastic hit
-        return hits_to_missing_attributes(response)
+        return hits_to_object(response, missing_attributes_spec, MissingMaterials)
 
 
-# TODO: eliminate; use query_many instead
 def get_many_base_query(
     resource_type: ResourceType,
-    ancestor_id: Optional[UUID] = None,
+    noderef_id: UUID,
 ) -> dict:
     query_dict = {"filter": [*type_filter[resource_type]]}
 
-    if ancestor_id:
-        prefix = "collections." if resource_type == ResourceType.MATERIAL else ""
-        query_dict["should"] = [
-            qmatch(**{f"{prefix}path": ancestor_id}),
-            qmatch(**{f"{prefix}nodeRef.id": ancestor_id}),
-        ]
-        query_dict["minimum_should_match"] = 1
+    prefix = "collections." if resource_type == ResourceType.MATERIAL else ""
+    query_dict["should"] = [
+        qmatch(**{f"{prefix}path": noderef_id}),
+        qmatch(**{f"{prefix}nodeRef.id": noderef_id}),
+    ]
+    query_dict["minimum_should_match"] = 1
 
     return query_dict
 
