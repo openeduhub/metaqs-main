@@ -1,6 +1,6 @@
 import json
 import uuid
-from typing import Mapping, Optional
+from typing import Mapping
 from uuid import UUID
 
 from databases import Database
@@ -18,9 +18,7 @@ from app.api.collections.counts import (
 )
 from app.api.collections.missing_attributes import (
     MissingAttributeFilter,
-    collection_response_fields,
     collections_filter_params,
-    filter_response_fields,
     get_child_collections_with_missing_attributes,
 )
 from app.api.collections.models import CollectionNode, MissingMaterials
@@ -42,7 +40,6 @@ from app.api.score.score import (
 )
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.elastic.elastic import ResourceType
-from app.models import CollectionAttribute
 
 
 def get_database(request: Request) -> Database:
@@ -270,15 +267,7 @@ async def filter_collections_with_missing_attributes(
     *,
     node_id: UUID = Depends(node_ids_for_major_collections),
     missing_attr_filter: MissingAttributeFilter = Depends(collections_filter_params),
-    source_fields: Optional[set[CollectionAttribute]] = Depends(
-        collection_response_fields
-    ),
 ):
-    if source_fields:
-        source_fields.add(CollectionAttribute.NODEREF_ID)
-
-    collections = await get_child_collections_with_missing_attributes(
+    return await get_child_collections_with_missing_attributes(
         noderef_id=node_id, missing_attr_filter=missing_attr_filter
     )
-
-    return filter_response_fields(collections, response_fields=source_fields)

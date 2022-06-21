@@ -85,6 +85,22 @@ class MissingAttributeFilter(BaseModel):
         return query_dict
 
 
+def get_many_base_query(
+    resource_type: ResourceType,
+    noderef_id: UUID,
+) -> dict:
+    query_dict = {"filter": [*type_filter[resource_type]]}
+
+    prefix = "collections." if resource_type == ResourceType.MATERIAL else ""
+    query_dict["should"] = [
+        qmatch(**{f"{prefix}path": noderef_id}),
+        qmatch(**{f"{prefix}nodeRef.id": noderef_id}),
+    ]
+    query_dict["minimum_should_match"] = 1
+
+    return query_dict
+
+
 def missing_attributes_search(
     noderef_id: UUID, missing_attr_filter: MissingAttributeFilter, max_hits: int
 ) -> Search:
@@ -92,8 +108,9 @@ def missing_attributes_search(
         resource_type=ResourceType.COLLECTION,
         noderef_id=noderef_id,
     )
-    if missing_attr_filter:
-        query_dict = missing_attr_filter.__call__(query_dict=query_dict)
+    # TODO: Refactor, simplify
+    query_dict = missing_attr_filter.__call__(query_dict=query_dict)
+
     search = (
         Search()
         .base_filters()
@@ -132,29 +149,3 @@ async def get_child_collections_with_missing_attributes(
     response = s.execute()
     if response.success():
         return hits_to_object(response, missing_attributes_spec, MissingMaterials)
-
-
-def get_many_base_query(
-    resource_type: ResourceType,
-    noderef_id: UUID,
-) -> dict:
-    query_dict = {"filter": [*type_filter[resource_type]]}
-
-    prefix = "collections." if resource_type == ResourceType.MATERIAL else ""
-    query_dict["should"] = [
-        qmatch(**{f"{prefix}path": noderef_id}),
-        qmatch(**{f"{prefix}nodeRef.id": noderef_id}),
-    ]
-    query_dict["minimum_should_match"] = 1
-
-    return query_dict
-
-
-def filter_response_fields(
-    items: list[BaseModel], response_fields: set[Field] = None
-) -> list[BaseModel]:
-    if response_fields:
-        return [
-            i.copy(include={f.name.lower() for f in response_fields}) for i in items
-        ]
-    return items
