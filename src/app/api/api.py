@@ -65,7 +65,6 @@ _TAG_COLLECTIONS = "Collections"
 
 
 def node_ids_for_major_collections(
-    *,
     node_id: UUID = Path(
         ...,
         examples={
@@ -267,8 +266,7 @@ async def get_collection_counts(
     + f"{', '.join([entry.value for entry in missing_attribute_filter])}.",
 )
 async def filter_collections_with_missing_attributes(
-    *,
-    noderef_id: UUID = Depends(node_ids_for_major_collections),
+    node_id: UUID = Depends(node_ids_for_major_collections),
     missing_attribute: str = Path(
         ...,
         examples={
@@ -276,4 +274,4 @@ async def filter_collections_with_missing_attributes(
         },
     ),
 ):
-    return await collections_with_missing_attributes(noderef_id, missing_attribute)
+    return await collections_with_missing_attributes(node_id, missing_attribute)
