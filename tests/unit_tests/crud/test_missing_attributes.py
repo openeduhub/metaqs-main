@@ -15,7 +15,6 @@ def test_missing_attributes_search():
     dummy_uuid = uuid.uuid4()
     dummy_attribute = "properties.cm:title"
     dummy_missing_attribute = missing_attribute_filter[0].value
-    print(dummy_missing_attribute)
     dummy_maximum_size = 3
     search = missing_attributes_search(
         dummy_uuid, dummy_missing_attribute, dummy_maximum_size
