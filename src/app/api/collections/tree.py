@@ -10,7 +10,7 @@ from app.api.collections.vocabs import tree_from_vocabs
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.elastic.dsl import qbool, qterm
 from app.elastic.search import Search
-from app.models import CollectionAttribute
+from app.models import CollectionAttribute, ElasticResourceAttribute
 
 
 def build_portal_tree(collections: list, root_noderef_id: UUID) -> list[CollectionNode]:
@@ -51,7 +51,7 @@ def tree_search(node_id: UUID) -> Search:
 collection_spec = {
     "title": Coalesce(CollectionAttribute.TITLE.path, default=None),
     "keywords": (
-        Coalesce(CollectionAttribute.KEYWORDS.path, default=[]),
+        Coalesce(ElasticResourceAttribute.KEYWORDS.path, default=[]),
         Iter().all(),
     ),
     "description": Coalesce(CollectionAttribute.DESCRIPTION.path, default=None),

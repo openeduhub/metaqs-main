@@ -11,27 +11,23 @@ from app.api.collections.utils import map_elastic_response_to_model
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.elastic.dsl import qbool, qmatch
 from app.elastic.elastic import ResourceType, type_filter
-from app.elastic.fields import Field
+from app.elastic.fields import ElasticField
 from app.elastic.search import Search
-from app.models import (
-    CollectionAttribute,
-    ElasticResourceAttribute,
-    _CollectionAttribute,
-)
+from app.models import CollectionAttribute, ElasticResourceAttribute
 
 
-def qwildcard(qfield: Union[Field, str], value: str) -> Query:
-    if isinstance(qfield, Field):
+def qwildcard(qfield: Union[ElasticField, str], value: str) -> Query:
+    if isinstance(qfield, ElasticField):
         qfield = qfield.path
     return Q("wildcard", **{qfield: {"value": value}})
 
 
 all_source_fields: list = [
-    CollectionAttribute.NODEREF_ID,
-    CollectionAttribute.TYPE,
-    CollectionAttribute.NAME,
+    ElasticResourceAttribute.NODEREF_ID,
+    ElasticResourceAttribute.TYPE,
+    ElasticResourceAttribute.NAME,
     CollectionAttribute.TITLE,
-    CollectionAttribute.KEYWORDS,
+    ElasticResourceAttribute.KEYWORDS,
     CollectionAttribute.DESCRIPTION,
     CollectionAttribute.PATH,
     CollectionAttribute.PARENT_ID,
@@ -76,7 +72,7 @@ def missing_attributes_search(
 missing_attributes_spec = {
     "title": Coalesce(CollectionAttribute.TITLE.path, default=""),
     "keywords": (
-        Coalesce(CollectionAttribute.KEYWORDS.path, default=[]),
+        Coalesce(ElasticResourceAttribute.KEYWORDS.path, default=[]),
         Iter().all(),
     ),
     "description": Coalesce(CollectionAttribute.DESCRIPTION.path, default=""),
@@ -86,8 +82,8 @@ missing_attributes_spec = {
     ),
     "parent_id": Coalesce(CollectionAttribute.PARENT_ID.path, default=""),
     "noderef_id": Coalesce(CollectionAttribute.NODE_ID.path, default=""),
-    "name": Coalesce(CollectionAttribute.NAME.path, default=""),
-    "type": Coalesce(CollectionAttribute.TYPE.path, default=""),
+    "name": Coalesce(ElasticResourceAttribute.NAME.path, default=""),
+    "type": Coalesce(ElasticResourceAttribute.TYPE.path, default=""),
     "children": Coalesce("", default=[]),  # workaround to map easier to pydantic model
 }
 
@@ -107,8 +103,8 @@ async def collections_with_missing_attributes(
 
 
 missingPropertyFilter = [
-    _CollectionAttribute.TITLE,
+    CollectionAttribute.TITLE,
     ElasticResourceAttribute.NAME,
     ElasticResourceAttribute.KEYWORDS,
-    _CollectionAttribute.DESCRIPTION,
+    CollectionAttribute.DESCRIPTION,
 ]
