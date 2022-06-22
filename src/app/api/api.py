@@ -65,6 +65,7 @@ _TAG_COLLECTIONS = "Collections"
 
 
 def node_ids_for_major_collections(
+    *,
     node_id: UUID = Path(
         ...,
         examples={
@@ -85,6 +86,7 @@ def node_ids_for_major_collections(
     description=QUALITY_MATRIX_DESCRIPTION,
 )
 async def get_quality(
+    *,
     database: Database = Depends(get_database),
     node_id: str = Query(
         default=COLLECTION_ROOT_ID,
@@ -123,7 +125,7 @@ async def get_quality(
     description="""An unix timestamp in integer seconds since epoch yields the quality matrix at the respective date.""",
 )
 async def get_past_quality_matrix(
-    timestamp: int, database: Database = Depends(get_database)
+    *, timestamp: int, database: Database = Depends(get_database)
 ):
     if not timestamp:
         raise HTTPException(status_code=400, detail="Invalid or no timestamp given")
@@ -154,6 +156,7 @@ async def get_past_quality_matrix(
         form: The desired form of quality. This is used to query only the relevant type of data.""",
 )
 async def get_timestamps(
+    *,
     database: Database = Depends(get_database),
     form: Forms = Query(
         default=Forms.REPLICATION_SOURCE,
@@ -266,6 +269,7 @@ async def get_collection_counts(
     + f"{', '.join([entry.value for entry in missing_attribute_filter])}.",
 )
 async def filter_collections_with_missing_attributes(
+    *,
     node_id: UUID = Depends(node_ids_for_major_collections),
     missing_attribute: str = Path(
         ...,
