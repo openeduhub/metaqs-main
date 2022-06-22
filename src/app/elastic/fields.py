@@ -1,13 +1,13 @@
 from enum import Enum, auto
 
 
-class FieldType(str, Enum):
+class ElasticFieldType(str, Enum):
     KEYWORD = auto()
     TEXT = auto()
 
 
-class Field(str, Enum):
-    def __new__(cls, path: str, field_type: FieldType):
+class ElasticField(str, Enum):
+    def __new__(cls, path: str, field_type: ElasticFieldType):
         obj = str.__new__(cls, [path])
         obj._value_ = path
         obj.path = path

@@ -5,7 +5,7 @@ from elasticsearch_dsl import connections
 from app.core.config import ELASTICSEARCH_TIMEOUT, ELASTICSEARCH_URL
 from app.core.logging import logger
 
-from .fields import Field, FieldType
+from .fields import ElasticField, ElasticFieldType
 
 
 async def connect_to_elastic():
@@ -16,10 +16,10 @@ async def connect_to_elastic():
     )
 
 
-def handle_text_field(qfield: Union[Field, str]) -> str:
-    if isinstance(qfield, Field):
+def handle_text_field(qfield: Union[ElasticField, str]) -> str:
+    if isinstance(qfield, ElasticField):
         qfield_key = qfield.path
-        if qfield.field_type is FieldType.TEXT:
+        if qfield.field_type is ElasticFieldType.TEXT:
             qfield_key = f"{qfield_key}.keyword"
         return qfield_key
     else:

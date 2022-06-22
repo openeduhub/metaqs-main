@@ -4,16 +4,16 @@ from elasticsearch_dsl import A, Q
 from elasticsearch_dsl.aggs import Agg
 from elasticsearch_dsl.query import Query
 
-from .fields import Field
+from .fields import ElasticField
 from .utils import handle_text_field
 
 
-def qterm(qfield: Union[Field, str], value, **kwargs) -> Query:
+def qterm(qfield: Union[ElasticField, str], value, **kwargs) -> Query:
     kwargs[handle_text_field(qfield)] = value
     return Q("term", **kwargs)
 
 
-def qterms(qfield: Union[Field, str], values: list, **kwargs) -> Query:
+def qterms(qfield: Union[ElasticField, str], values: list, **kwargs) -> Query:
     kwargs[handle_text_field(qfield)] = values
     return Q("terms", **kwargs)
 
@@ -26,8 +26,8 @@ def qbool(**kwargs) -> Query:
     return Q("bool", **kwargs)
 
 
-def qexists(qfield: Union[Field, str], **kwargs) -> Query:
-    if isinstance(qfield, Field):
+def qexists(qfield: Union[ElasticField, str], **kwargs) -> Query:
+    if isinstance(qfield, ElasticField):
         qfield = qfield.path
     return Q("exists", field=qfield, **kwargs)
 
@@ -47,5 +47,5 @@ def afilter(query: Query) -> Agg:
     return A("filter", query)
 
 
-def amissing(qfield: Union[Field, str]) -> Agg:
+def amissing(qfield: Union[ElasticField, str]) -> Agg:
     return A("missing", field=handle_text_field(qfield))

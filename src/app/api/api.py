@@ -16,7 +16,11 @@ from app.api.collections.counts import (
     CollectionTreeCount,
     collection_counts,
 )
-from app.api.collections.models import CollectionNode
+from app.api.collections.missing_attributes import (
+    collections_with_missing_attributes,
+    missing_attribute_filter,
+)
+from app.api.collections.models import CollectionNode, MissingMaterials
 from app.api.collections.tree import collection_tree
 from app.api.quality_matrix.collections import collection_quality
 from app.api.quality_matrix.models import ColumnOutputModel, Forms, Timeline
@@ -57,6 +61,7 @@ QUALITY_MATRIX_DESCRIPTION = """Calculation of the quality matrix.
     """
 
 TAG_STATISTICS = "Statistics"
+_TAG_COLLECTIONS = "Collections"
 
 
 def node_ids_for_major_collections(
@@ -164,7 +169,7 @@ async def get_timestamps(
     response_model=ScoreOutput,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=[TAG_STATISTICS],
+    tags=[_TAG_COLLECTIONS],
     description=f"""Returns the average ratio of non-empty properties for the chosen collection.
     For certain properties, e.g. `properties.cclom:title`, the ratio of
     elements which miss this entry compared to the total number of entries is calculated.
@@ -222,7 +227,7 @@ async def ping_api():
     response_model=list[CollectionNode],
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=["Collections"],
+    tags=[_TAG_COLLECTIONS],
 )
 async def get_collection_tree(
     *, node_id: UUID = Depends(node_ids_for_major_collections)
@@ -236,7 +241,7 @@ async def get_collection_tree(
     response_model=list[CollectionTreeCount],
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=["Collections"],
+    tags=[_TAG_COLLECTIONS],
 )
 async def get_collection_counts(
     *,
@@ -248,3 +253,27 @@ async def get_collection_counts(
 ):
     counts = await collection_counts(node_id=node_id, facet=facet)
     return counts
+
+
+@router.get(
+    "/collections/{node_id}/pending-subcollections/{missing_attribute}",
+    response_model=list[MissingMaterials],
+    response_model_exclude_unset=True,
+    status_code=HTTP_200_OK,
+    responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
+    tags=[_TAG_COLLECTIONS],
+    description="""A list of missing entries for different types of materials by subcollection.
+    Searches for entries with one of the following properties being empty or missing: """
+    + f"{', '.join([entry.value for entry in missing_attribute_filter])}.",
+)
+async def filter_collections_with_missing_attributes(
+    *,
+    noderef_id: UUID = Depends(node_ids_for_major_collections),
+    missing_attribute: str = Path(
+        ...,
+        examples={
+            form.name: {"value": form.value} for form in missing_attribute_filter
+        },
+    ),
+):
+    return await collections_with_missing_attributes(noderef_id, missing_attribute)

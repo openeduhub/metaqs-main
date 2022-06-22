@@ -1,7 +1,6 @@
-from itertools import chain
 from typing import TypeVar
 
-from app.elastic.fields import Field, FieldType
+from app.elastic.fields import ElasticField, ElasticFieldType
 
 _ELASTIC_RESOURCE = TypeVar("_ELASTIC_RESOURCE")
 _DESCENDANT_COLLECTIONS_MATERIALS_COUNTS = TypeVar(
@@ -9,32 +8,25 @@ _DESCENDANT_COLLECTIONS_MATERIALS_COUNTS = TypeVar(
 )
 
 
-class ElasticResourceAttribute(Field):
-    NODEREF_ID = ("nodeRef.id", FieldType.KEYWORD)
-    TYPE = ("type", FieldType.KEYWORD)
-    NAME = ("properties.cm:name", FieldType.TEXT)
-    PERMISSION_READ = ("permissions.Read", FieldType.TEXT)
-    EDU_METADATASET = ("properties.cm:edu_metadataset", FieldType.TEXT)
-    PROTOCOL = ("nodeRef.storeRef.protocol", FieldType.KEYWORD)
-    FULLPATH = ("fullpath", FieldType.KEYWORD)
-    KEYWORDS = ("properties.cclom:general_keyword", FieldType.TEXT)
-    EDU_CONTEXT = ("properties.ccm:educationalcontext", FieldType.TEXT)
-    EDU_CONTEXT_DE = ("i18n.de_DE.ccm:educationalcontext", FieldType.TEXT)
-    REPLICATION_SOURCE_DE = ("replicationsource", FieldType.TEXT)
+# TODO: distinguish better what ElasticResourceAttribute and CollectionAttribute do, how they differ
+#  and why there additional context is meaningful
+class ElasticResourceAttribute(ElasticField):
+    EDU_CONTEXT = ("properties.ccm:educationalcontext", ElasticFieldType.TEXT)
+    EDU_CONTEXT_DE = ("i18n.de_DE.ccm:educationalcontext", ElasticFieldType.TEXT)
+    EDU_METADATASET = ("properties.cm:edu_metadataset", ElasticFieldType.TEXT)
+    FULLPATH = ("fullpath", ElasticFieldType.KEYWORD)
+    KEYWORDS = ("properties.cclom:general_keyword", ElasticFieldType.TEXT)
+    NAME = ("properties.cm:name", ElasticFieldType.TEXT)
+    NODEREF_ID = ("nodeRef.id", ElasticFieldType.KEYWORD)
+    PERMISSION_READ = ("permissions.Read", ElasticFieldType.TEXT)
+    PROTOCOL = ("nodeRef.storeRef.protocol", ElasticFieldType.KEYWORD)
+    REPLICATION_SOURCE_DE = ("replicationsource", ElasticFieldType.TEXT)
+    TYPE = ("type", ElasticFieldType.KEYWORD)
 
 
-class _CollectionAttribute(Field):
-    TITLE = ("properties.cm:title", FieldType.TEXT)
-    DESCRIPTION = ("properties.cm:description", FieldType.TEXT)
-    PATH = ("path", FieldType.KEYWORD)
-    PARENT_ID = ("parentRef.id", FieldType.KEYWORD)
-    NODE_ID = ("nodeRef.id", FieldType.KEYWORD)
-
-
-CollectionAttribute = Field(
-    "CollectionAttribute",
-    [
-        (f.name, (f.value, f.field_type))
-        for f in chain(ElasticResourceAttribute, _CollectionAttribute)
-    ],
-)
+class CollectionAttribute(ElasticField):
+    DESCRIPTION = ("properties.cm:description", ElasticFieldType.TEXT)
+    PARENT_ID = ("parentRef.id", ElasticFieldType.KEYWORD)
+    PATH = ("path", ElasticFieldType.KEYWORD)
+    NODE_ID = ("nodeRef.id", ElasticFieldType.KEYWORD)
+    TITLE = ("properties.cm:title", ElasticFieldType.TEXT)

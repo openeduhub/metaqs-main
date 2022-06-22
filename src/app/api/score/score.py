@@ -14,7 +14,7 @@ from app.elastic.elastic import (
     query_missing_material_license,
 )
 from app.elastic.search import Search
-from app.models import CollectionAttribute
+from app.models import CollectionAttribute, ElasticResourceAttribute
 
 material_terms_relevant_for_score = [
     "missing_title",
@@ -116,11 +116,11 @@ aggs_material_validation = {
 aggs_collection_validation = {
     "missing_title": amissing(qfield=CollectionAttribute.TITLE),
     "short_title": afilter(Q("range", char_count_title={"gt": 0, "lt": 5})),
-    "missing_keywords": amissing(qfield=CollectionAttribute.KEYWORDS),
+    "missing_keywords": amissing(qfield=ElasticResourceAttribute.KEYWORDS),
     "few_keywords": afilter(Q("range", token_count_keywords={"gt": 0, "lt": 3})),
     "missing_description": amissing(qfield=CollectionAttribute.DESCRIPTION),
     "short_description": afilter(
         Q("range", char_count_description={"gt": 0, "lt": 30})
     ),
-    "missing_edu_context": amissing(qfield=CollectionAttribute.EDU_CONTEXT),
+    "missing_edu_context": amissing(qfield=ElasticResourceAttribute.EDU_CONTEXT),
 }
