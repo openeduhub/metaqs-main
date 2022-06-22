@@ -1,8 +1,9 @@
-from typing import Optional, TypeVar, Union
+from __future__ import annotations
+
+from typing import Optional, Union
 from uuid import UUID
 
 from elasticsearch_dsl.query import Q, Query
-from fastapi.params import Query as ParamQuery
 from glom import Coalesce, Iter
 
 from app.api.collections.models import MissingMaterials
@@ -12,21 +13,11 @@ from app.elastic.dsl import qbool, qmatch
 from app.elastic.elastic import ResourceType, type_filter
 from app.elastic.fields import Field
 from app.elastic.search import Search
-from app.models import CollectionAttribute
-
-CollectionResponseField = Field(
-    "CollectionAttribute",
-    [(f.name, (f.value, f.field_type)) for f in CollectionAttribute],
+from app.models import (
+    CollectionAttribute,
+    ElasticResourceAttribute,
+    _CollectionAttribute,
 )
-
-
-def collection_response_fields(
-    *, response_fields: set[CollectionResponseField] = ParamQuery(None)
-) -> set[CollectionAttribute]:
-    return response_fields
-
-
-_COLLECTION = TypeVar("_COLLECTION")
 
 
 def qwildcard(qfield: Union[Field, str], value: str) -> Query:
@@ -71,7 +62,7 @@ def missing_attributes_search(
         noderef_id=noderef_id,
     )
 
-    query_dict["must_not"] = qwildcard(qfield=missing_attribute, value="*")
+    query_dict["must_not"] = Q("wildcard", **{missing_attribute: {"value": "*"}})
 
     search = (
         Search()
@@ -113,3 +104,11 @@ async def collections_with_missing_attributes(
         return map_elastic_response_to_model(
             response, missing_attributes_spec, MissingMaterials
         )
+
+
+missingPropertyFilter = [
+    _CollectionAttribute.TITLE,
+    ElasticResourceAttribute.NAME,
+    ElasticResourceAttribute.KEYWORDS,
+    _CollectionAttribute.DESCRIPTION,
+]

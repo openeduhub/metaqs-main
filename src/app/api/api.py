@@ -16,12 +16,11 @@ from app.api.collections.counts import (
     CollectionTreeCount,
     collection_counts,
 )
-from app.api.collections.missing_attributes import collections_with_missing_attributes
-from app.api.collections.models import (
-    CollectionNode,
-    MissingMaterials,
-    MissingPropertyFilter,
+from app.api.collections.missing_attributes import (
+    collections_with_missing_attributes,
+    missingPropertyFilter,
 )
+from app.api.collections.models import CollectionNode, MissingMaterials
 from app.api.collections.tree import collection_tree
 from app.api.quality_matrix.collections import collection_quality
 from app.api.quality_matrix.models import ColumnOutputModel, Forms, Timeline
@@ -265,14 +264,14 @@ async def get_collection_counts(
     tags=[_TAG_COLLECTIONS],
     description="""A list of missing entries for different types of materials by subcollection.
     Searches for entries with one of the following properties being empty or missing: """
-    + f"{', '.join([entry.value for entry in MissingPropertyFilter])}.",
+    + f"{', '.join([entry.value for entry in missingPropertyFilter])}.",
 )
 async def filter_collections_with_missing_attributes(
     *,
     noderef_id: UUID = Depends(node_ids_for_major_collections),
     missing_attribute: str = Path(
         ...,
-        examples={form.name: {"value": form.value} for form in MissingPropertyFilter},
+        examples={form.name: {"value": form.value} for form in missingPropertyFilter},
     ),
 ):
     return await collections_with_missing_attributes(

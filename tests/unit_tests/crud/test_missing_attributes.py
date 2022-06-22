@@ -5,15 +5,17 @@ from elasticsearch_dsl import AttrDict
 from app.api.collections.missing_attributes import (
     missing_attributes_search,
     missing_attributes_spec,
+    missingPropertyFilter,
 )
-from app.api.collections.models import MissingMaterials, MissingPropertyFilter
+from app.api.collections.models import MissingMaterials
 from app.api.collections.utils import map_elastic_response_to_model
 
 
 def test_missing_attributes_search():
     dummy_uuid = uuid.uuid4()
-    dummy_attribute = "properties.cclom:general_keyword"
-    dummy_missing_attribute = MissingPropertyFilter.KEYWORDS.value
+    dummy_attribute = "properties.cm:title"
+    dummy_missing_attribute = missingPropertyFilter[0].value
+    print(dummy_missing_attribute)
     dummy_maximum_size = 3
     search = missing_attributes_search(
         dummy_uuid, dummy_missing_attribute, dummy_maximum_size
