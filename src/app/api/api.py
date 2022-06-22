@@ -274,6 +274,4 @@ async def filter_collections_with_missing_attributes(
         examples={form.name: {"value": form.value} for form in missingPropertyFilter},
     ),
 ):
-    return await collections_with_missing_attributes(
-        noderef_id=noderef_id, missing_attribute=missing_attribute
-    )
+    return await collections_with_missing_attributes(noderef_id, missing_attribute)

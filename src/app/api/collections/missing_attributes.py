@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import Optional, Union
+from typing import Optional
 from uuid import UUID
 
-from elasticsearch_dsl.query import Q, Query
+from elasticsearch_dsl.query import Q
 from glom import Coalesce, Iter
 
 from app.api.collections.models import MissingMaterials
@@ -11,16 +11,8 @@ from app.api.collections.utils import map_elastic_response_to_model
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.elastic.dsl import qbool, qmatch
 from app.elastic.elastic import ResourceType, type_filter
-from app.elastic.fields import ElasticField
 from app.elastic.search import Search
 from app.models import CollectionAttribute, ElasticResourceAttribute
-
-
-def qwildcard(qfield: Union[ElasticField, str], value: str) -> Query:
-    if isinstance(qfield, ElasticField):
-        qfield = qfield.path
-    return Q("wildcard", **{qfield: {"value": value}})
-
 
 all_source_fields: list = [
     ElasticResourceAttribute.NODEREF_ID,
@@ -32,42 +24,6 @@ all_source_fields: list = [
     CollectionAttribute.PATH,
     CollectionAttribute.PARENT_ID,
 ]
-
-
-def get_many_base_query(
-    resource_type: ResourceType,
-    noderef_id: UUID,
-) -> dict:
-    query_dict = {"filter": [*type_filter[resource_type]]}
-
-    prefix = "collections." if resource_type == ResourceType.MATERIAL else ""
-    query_dict["should"] = [
-        qmatch(**{f"{prefix}path": noderef_id}),
-        qmatch(**{f"{prefix}nodeRef.id": noderef_id}),
-    ]
-    query_dict["minimum_should_match"] = 1
-
-    return query_dict
-
-
-def missing_attributes_search(
-    noderef_id: UUID, missing_attribute: str, max_hits: int
-) -> Search:
-    query_dict = get_many_base_query(
-        resource_type=ResourceType.COLLECTION,
-        noderef_id=noderef_id,
-    )
-
-    query_dict["must_not"] = Q("wildcard", **{missing_attribute: {"value": "*"}})
-
-    search = (
-        Search()
-        .base_filters()
-        .query(qbool(**query_dict))
-        .source(includes=[source.path for source in all_source_fields])[:max_hits]
-    )
-    return search
-
 
 missing_attributes_spec = {
     "title": Coalesce(CollectionAttribute.TITLE.path, default=""),
@@ -86,6 +42,27 @@ missing_attributes_spec = {
     "type": Coalesce(ElasticResourceAttribute.TYPE.path, default=""),
     "children": Coalesce("", default=[]),  # workaround to map easier to pydantic model
 }
+
+
+def missing_attributes_search(
+    noderef_id: UUID, missing_attribute: str, max_hits: int
+) -> Search:
+    query = {
+        "filter": [*type_filter[ResourceType.COLLECTION]],
+        "minimum_should_match": 1,
+        "should": [
+            qmatch(**{"path": noderef_id}),
+            qmatch(**{"nodeRef.id": noderef_id}),
+        ],
+        "must_not": Q("wildcard", **{missing_attribute: {"value": "*"}}),
+    }
+
+    return (
+        Search()
+        .base_filters()
+        .query(qbool(**query))
+        .source(includes=[source.path for source in all_source_fields])[:max_hits]
+    )
 
 
 async def collections_with_missing_attributes(
