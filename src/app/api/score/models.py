@@ -2,8 +2,7 @@ from itertools import chain
 
 from pydantic import BaseModel, Field
 
-from app.elastic.fields import ElasticField as ElasticField
-from app.elastic.fields import ElasticFieldType
+from app.elastic.fields import ElasticField, ElasticFieldType
 from app.models import ElasticResourceAttribute
 
 

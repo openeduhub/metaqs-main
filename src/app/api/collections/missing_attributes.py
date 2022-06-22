@@ -14,6 +14,14 @@ from app.elastic.elastic import ResourceType, type_filter
 from app.elastic.search import Search
 from app.models import CollectionAttribute, ElasticResourceAttribute
 
+missing_attribute_filter = [
+    CollectionAttribute.TITLE,
+    ElasticResourceAttribute.NAME,
+    ElasticResourceAttribute.KEYWORDS,
+    CollectionAttribute.DESCRIPTION,
+]
+
+
 all_source_fields: list = [
     ElasticResourceAttribute.NODEREF_ID,
     ElasticResourceAttribute.TYPE,
@@ -77,11 +85,3 @@ async def collections_with_missing_attributes(
         return map_elastic_response_to_model(
             response, missing_attributes_spec, MissingMaterials
         )
-
-
-missingPropertyFilter = [
-    CollectionAttribute.TITLE,
-    ElasticResourceAttribute.NAME,
-    ElasticResourceAttribute.KEYWORDS,
-    CollectionAttribute.DESCRIPTION,
-]

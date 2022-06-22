@@ -8,6 +8,8 @@ _DESCENDANT_COLLECTIONS_MATERIALS_COUNTS = TypeVar(
 )
 
 
+# TODO: distinguish better what ElasticResourceAttribute and CollectionAttribute do, how they differ
+#  and why there additional context is meaningful
 class ElasticResourceAttribute(ElasticField):
     EDU_CONTEXT = ("properties.ccm:educationalcontext", ElasticFieldType.TEXT)
     EDU_CONTEXT_DE = ("i18n.de_DE.ccm:educationalcontext", ElasticFieldType.TEXT)
