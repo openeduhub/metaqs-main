@@ -8,9 +8,11 @@ from app.api.collections.models import CollectionNode, MissingMaterials
 T = TypeVar("T", CollectionNode, MissingMaterials)
 
 
-def hits_to_object(hits: Response, specs: dict, model: Generic[T]) -> list[T]:
+def map_elastic_response_to_model(
+    response: Response, specs: dict, model: Generic[T]
+) -> list[T]:
     collections = []
-    for hit in hits:
+    for hit in response:
         parsed_entry = glom(hit.to_dict(), specs)
         if parsed_entry["title"] is not None:
             collections.append(model(**parsed_entry))

@@ -5,7 +5,7 @@ from elasticsearch_dsl.response import Response
 from glom import Coalesce, Iter
 
 from app.api.collections.models import CollectionNode
-from app.api.collections.utils import hits_to_object
+from app.api.collections.utils import map_elastic_response_to_model
 from app.api.collections.vocabs import tree_from_vocabs
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.elastic.dsl import qbool, qterm
@@ -69,7 +69,9 @@ def tree_from_elastic(node_id: UUID) -> list[CollectionNode]:
     response: Response = tree_search(node_id).execute()
 
     if response.success():
-        collection = hits_to_object(response, collection_spec, CollectionNode)
+        collection = map_elastic_response_to_model(
+            response, collection_spec, CollectionNode
+        )
         return build_portal_tree(collection, node_id)
 
 

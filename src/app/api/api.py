@@ -18,8 +18,9 @@ from app.api.collections.counts import (
 )
 from app.api.collections.missing_attributes import (
     MissingAttributeFilter,
+    MissingCollectionField,
     collections_filter_params,
-    get_child_collections_with_missing_attributes,
+    collections_with_missing_attributes,
 )
 from app.api.collections.models import CollectionNode, MissingMaterials
 from app.api.collections.tree import collection_tree
@@ -62,6 +63,7 @@ QUALITY_MATRIX_DESCRIPTION = """Calculation of the quality matrix.
     """
 
 TAG_STATISTICS = "Statistics"
+_TAG_COLLECTIONS = "Collections"
 
 
 def node_ids_for_major_collections(
@@ -169,7 +171,7 @@ async def get_timestamps(
     response_model=ScoreOutput,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=[TAG_STATISTICS],
+    tags=[_TAG_COLLECTIONS],
     description=f"""Returns the average ratio of non-empty properties for the chosen collection.
     For certain properties, e.g. `properties.cclom:title`, the ratio of
     elements which miss this entry compared to the total number of entries is calculated.
@@ -227,7 +229,7 @@ async def ping_api():
     response_model=list[CollectionNode],
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=["Collections"],
+    tags=[_TAG_COLLECTIONS],
 )
 async def get_collection_tree(
     *, node_id: UUID = Depends(node_ids_for_major_collections)
@@ -241,7 +243,7 @@ async def get_collection_tree(
     response_model=list[CollectionTreeCount],
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=["Collections"],
+    tags=[_TAG_COLLECTIONS],
 )
 async def get_collection_counts(
     *,
@@ -261,13 +263,16 @@ async def get_collection_counts(
     response_model_exclude_unset=True,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=["Collections"],
+    tags=[_TAG_COLLECTIONS],
+    description="""A list of missing entries for different types of materials by subcollection.
+    Searches for entries with one of the following properties being empty or missing: """
+    + f"{', '.join([entry.path for entry in MissingCollectionField])}.",
 )
 async def filter_collections_with_missing_attributes(
     *,
-    node_id: UUID = Depends(node_ids_for_major_collections),
+    noderef_id: UUID = Depends(node_ids_for_major_collections),
     missing_attr_filter: MissingAttributeFilter = Depends(collections_filter_params),
 ):
-    return await get_child_collections_with_missing_attributes(
-        noderef_id=node_id, missing_attr_filter=missing_attr_filter
+    return await collections_with_missing_attributes(
+        noderef_id=noderef_id, missing_attr_filter=missing_attr_filter
     )

@@ -8,7 +8,7 @@ from glom import Coalesce, Iter
 from pydantic import BaseModel
 
 from app.api.collections.models import MissingMaterials
-from app.api.collections.utils import hits_to_object
+from app.api.collections.utils import map_elastic_response_to_model
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.elastic.dsl import qbool, qmatch
 from app.elastic.elastic import ResourceType, type_filter
@@ -16,6 +16,7 @@ from app.elastic.fields import Field
 from app.elastic.search import Search
 from app.models import CollectionAttribute
 
+# TODO Refactor
 MissingCollectionField = Field(
     "MissingCollectionField",
     [
@@ -139,7 +140,7 @@ missing_attributes_spec = {
 }
 
 
-async def get_child_collections_with_missing_attributes(
+async def collections_with_missing_attributes(
     noderef_id: UUID,
     missing_attr_filter: MissingAttributeFilter,
     max_hits: Optional[int] = ELASTIC_TOTAL_SIZE,
@@ -148,4 +149,6 @@ async def get_child_collections_with_missing_attributes(
 
     response = s.execute()
     if response.success():
-        return hits_to_object(response, missing_attributes_spec, MissingMaterials)
+        return map_elastic_response_to_model(
+            response, missing_attributes_spec, MissingMaterials
+        )

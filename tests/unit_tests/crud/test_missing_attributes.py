@@ -8,7 +8,7 @@ from app.api.collections.missing_attributes import (
     missing_attributes_spec,
 )
 from app.api.collections.models import MissingMaterials
-from app.api.collections.utils import hits_to_object
+from app.api.collections.utils import map_elastic_response_to_model
 
 
 def test_missing_attributes_search():
@@ -85,7 +85,9 @@ def test_hits_to_missing_attributes():
     }
 
     mocked_response = [AttrDict(entry)]
-    result = hits_to_object(mocked_response, missing_attributes_spec, MissingMaterials)
+    result = map_elastic_response_to_model(
+        mocked_response, missing_attributes_spec, MissingMaterials
+    )
     assert len(result) == 1
     assert len(result[0].children) == 0
     assert result[0].description == ""
