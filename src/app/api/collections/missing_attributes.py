@@ -2,10 +2,8 @@ from typing import Optional, TypeVar, Union
 from uuid import UUID
 
 from elasticsearch_dsl.query import Q, Query
-from fastapi.params import Path
 from fastapi.params import Query as ParamQuery
 from glom import Coalesce, Iter
-from pydantic import BaseModel
 
 from app.api.collections.models import MissingMaterials
 from app.api.collections.utils import map_elastic_response_to_model
@@ -15,35 +13,6 @@ from app.elastic.elastic import ResourceType, type_filter
 from app.elastic.fields import Field
 from app.elastic.search import Search
 from app.models import CollectionAttribute
-
-# TODO Refactor
-MissingCollectionField = Field(
-    "MissingCollectionField",
-    [
-        (f.name, (f.value, f.field_type))
-        for f in [
-            CollectionAttribute.NAME,
-            CollectionAttribute.TITLE,
-            CollectionAttribute.KEYWORDS,
-            CollectionAttribute.DESCRIPTION,
-        ]
-    ],
-)
-
-
-class MissingAttributeFilter(BaseModel):
-    attr: MissingCollectionField
-
-    def __call__(self, query_dict: dict):
-        query_dict["must_not"] = qwildcard(qfield=self.attr, value="*")
-        return query_dict
-
-
-def collections_filter_params(
-    *, missing_attr: MissingCollectionField = Path(...)
-) -> MissingAttributeFilter:
-    return MissingAttributeFilter(attr=missing_attr.value)
-
 
 CollectionResponseField = Field(
     "CollectionAttribute",
@@ -78,14 +47,6 @@ all_source_fields: list = [
 ]
 
 
-class MissingAttributeFilter(BaseModel):
-    attr: MissingCollectionField
-
-    def __call__(self, query_dict: dict):
-        query_dict["must_not"] = qwildcard(qfield=self.attr, value="*")
-        return query_dict
-
-
 def get_many_base_query(
     resource_type: ResourceType,
     noderef_id: UUID,
@@ -103,14 +64,14 @@ def get_many_base_query(
 
 
 def missing_attributes_search(
-    noderef_id: UUID, missing_attr_filter: MissingAttributeFilter, max_hits: int
+    noderef_id: UUID, missing_attribute: str, max_hits: int
 ) -> Search:
     query_dict = get_many_base_query(
         resource_type=ResourceType.COLLECTION,
         noderef_id=noderef_id,
     )
-    # TODO: Refactor, simplify
-    query_dict = missing_attr_filter.__call__(query_dict=query_dict)
+
+    query_dict["must_not"] = qwildcard(qfield=missing_attribute, value="*")
 
     search = (
         Search()
@@ -122,32 +83,32 @@ def missing_attributes_search(
 
 
 missing_attributes_spec = {
-    "title": Coalesce(CollectionAttribute.TITLE.path, default=None),
+    "title": Coalesce(CollectionAttribute.TITLE.path, default=""),
     "keywords": (
         Coalesce(CollectionAttribute.KEYWORDS.path, default=[]),
         Iter().all(),
     ),
-    "description": Coalesce(CollectionAttribute.DESCRIPTION.path, default=None),
+    "description": Coalesce(CollectionAttribute.DESCRIPTION.path, default=""),
     "path": (
         Coalesce(CollectionAttribute.PATH.path, default=[]),
         Iter().all(),
     ),
-    "parent_id": Coalesce(CollectionAttribute.PARENT_ID.path, default=None),
-    "noderef_id": Coalesce(CollectionAttribute.NODE_ID.path, default=None),
-    "name": Coalesce(CollectionAttribute.NAME.path, default=None),
-    "type": Coalesce(CollectionAttribute.TYPE.path, default=None),
+    "parent_id": Coalesce(CollectionAttribute.PARENT_ID.path, default=""),
+    "noderef_id": Coalesce(CollectionAttribute.NODE_ID.path, default=""),
+    "name": Coalesce(CollectionAttribute.NAME.path, default=""),
+    "type": Coalesce(CollectionAttribute.TYPE.path, default=""),
     "children": Coalesce("", default=[]),  # workaround to map easier to pydantic model
 }
 
 
 async def collections_with_missing_attributes(
     noderef_id: UUID,
-    missing_attr_filter: MissingAttributeFilter,
+    missing_attribute: str,
     max_hits: Optional[int] = ELASTIC_TOTAL_SIZE,
 ) -> list[MissingMaterials]:
-    s = missing_attributes_search(noderef_id, missing_attr_filter, max_hits)
+    search = missing_attributes_search(noderef_id, missing_attribute, max_hits)
 
-    response = s.execute()
+    response = search.execute()
     if response.success():
         return map_elastic_response_to_model(
             response, missing_attributes_spec, MissingMaterials
