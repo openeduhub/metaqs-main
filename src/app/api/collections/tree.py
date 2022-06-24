@@ -12,30 +12,30 @@ from app.elastic.search import Search
 from app.models import CollectionAttribute, ElasticResourceAttribute
 
 
-def build_portal_tree(collections: list, root_noderef_id: UUID) -> list[CollectionNode]:
-    tree_hierarchy = {str(root_noderef_id): []}
+def build_portal_tree(nodes: list[CollectionNode], root: UUID) -> list[CollectionNode]:
+    tree_hierarchy = {str(root): []}
 
-    for collection in collections:
-        if collection.title:
-            tree_hierarchy.update(build_hierarchy(collection, tree_hierarchy))
+    for node in nodes:
+        if node.title:
+            tree_hierarchy.update(build_hierarchy(node, tree_hierarchy))
 
-    return tree_hierarchy[str(root_noderef_id)]
+    return tree_hierarchy[str(root)]
 
 
 def build_hierarchy(
-    collection, tree_hierarchy: dict[str, list[CollectionNode]]
+    node: CollectionNode, tree_hierarchy: dict[str, list[CollectionNode]]
 ) -> dict[str, list[CollectionNode]]:
     portal_node = CollectionNode(
-        noderef_id=collection.noderef_id,
-        title=collection.title,
+        noderef_id=node.noderef_id,
+        title=node.title,
         children=[],
     )
 
-    if str(collection.parent_id) not in tree_hierarchy.keys():
-        tree_hierarchy.update({str(collection.parent_id): []})
+    if str(node.parent_id) not in tree_hierarchy.keys():
+        tree_hierarchy.update({str(node.parent_id): []})
 
-    tree_hierarchy[str(collection.parent_id)].append(portal_node)
-    tree_hierarchy[str(collection.noderef_id)] = portal_node.children
+    tree_hierarchy[str(node.parent_id)].append(portal_node)
+    tree_hierarchy[str(node.noderef_id)] = portal_node.children
     return tree_hierarchy
 
 
