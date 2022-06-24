@@ -47,7 +47,8 @@ def query_materials(ancestor_id: UUID = None) -> Query:
 
 
 def query_missing_material_license() -> Query:
-    qfield = LearningMaterialAttribute.LICENSES
+    # use keyword field for exact match, no token matching
+    qfield = "properties.ccm:commonlicense_key.keyword"
     return qboolor(
         [
             qterms(
