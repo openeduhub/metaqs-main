@@ -1,16 +1,14 @@
 from uuid import UUID
 
 from elasticsearch_dsl import Q
+from elasticsearch_dsl.query import Term, Bool
 from elasticsearch_dsl.response import Response
 from fastapi import Path
 
 import app.core.constants
 from app.api.score.models import LearningMaterialAttribute
 from app.elastic.dsl import afilter, amissing
-from app.elastic.elastic import (
-    ResourceType,
-    query_missing_material_license, query_many,
-)
+from app.elastic.elastic import ResourceType, query_missing_material_license
 from app.elastic.search import Search
 from app.models import CollectionAttribute, ElasticResourceAttribute
 
@@ -51,15 +49,17 @@ def calc_weighted_score(collection_scores: dict, material_scores: dict) -> int:
 
 
 def get_score_search(noderef_id: UUID, resource_type: ResourceType) -> Search:
-    s = Search().base_filters().query(query_many(resource_type, ancestor_id=noderef_id))
     if resource_type is ResourceType.COLLECTION:
-        aggs = aggs_collection_validation
+        s = Search().base_filters().query(Bool(filter=[Term(type="ccm:map"), Term(path=noderef_id)]))
+        for name, agg in aggs_collection_validation.items():
+            s.aggs.bucket(name, agg)
     elif resource_type is ResourceType.MATERIAL:
-        aggs = aggs_material_validation
+        s = Search().base_filters().query(Bool(filter=[Term(type="ccm:io"), Term(**{"collections.path.keyword": noderef_id})]))
+        for name, agg in aggs_material_validation.items():
+            s.aggs.bucket(name, agg)
     else:
         raise ValueError(f"invalid resource_type {resource_type}")
-    for name, _agg in aggs.items():
-        s.aggs.bucket(name, _agg)
+
     return s
 
 
