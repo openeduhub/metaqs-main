@@ -1,11 +1,4 @@
-from typing import TypeVar
-
 from app.elastic.fields import ElasticField, ElasticFieldType
-
-_ELASTIC_RESOURCE = TypeVar("_ELASTIC_RESOURCE")
-_DESCENDANT_COLLECTIONS_MATERIALS_COUNTS = TypeVar(
-    "_DESCENDANT_COLLECTIONS_MATERIALS_COUNTS"
-)
 
 
 # TODO: distinguish better what ElasticResourceAttribute and CollectionAttribute do, how they differ
@@ -13,13 +6,10 @@ _DESCENDANT_COLLECTIONS_MATERIALS_COUNTS = TypeVar(
 class ElasticResourceAttribute(ElasticField):
     EDU_CONTEXT = ("properties.ccm:educationalcontext", ElasticFieldType.TEXT)
     EDU_CONTEXT_DE = ("i18n.de_DE.ccm:educationalcontext", ElasticFieldType.TEXT)
-    EDU_METADATASET = ("properties.cm:edu_metadataset", ElasticFieldType.TEXT)
     FULLPATH = ("fullpath", ElasticFieldType.KEYWORD)
     KEYWORDS = ("properties.cclom:general_keyword", ElasticFieldType.TEXT)
     NAME = ("properties.cm:name", ElasticFieldType.TEXT)
     NODEREF_ID = ("nodeRef.id", ElasticFieldType.KEYWORD)
-    PERMISSION_READ = ("permissions.Read", ElasticFieldType.TEXT)
-    PROTOCOL = ("nodeRef.storeRef.protocol", ElasticFieldType.KEYWORD)
     REPLICATION_SOURCE_DE = ("replicationsource", ElasticFieldType.TEXT)
     TYPE = ("type", ElasticFieldType.KEYWORD)
 
