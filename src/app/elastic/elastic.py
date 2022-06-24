@@ -38,14 +38,6 @@ def query_many(resource_type: ResourceType, ancestor_id: UUID = None) -> Query:
     return qbool(filter=qfilter)
 
 
-def query_collections(ancestor_id: UUID = None) -> Query:
-    return query_many(ResourceType.COLLECTION, ancestor_id=ancestor_id)
-
-
-def query_materials(ancestor_id: UUID = None) -> Query:
-    return query_many(ResourceType.MATERIAL, ancestor_id=ancestor_id)
-
-
 def query_missing_material_license() -> Query:
     qfield = LearningMaterialAttribute.LICENSES
     return qboolor(
