@@ -1,7 +1,6 @@
 from uuid import UUID
 
 from elasticsearch_dsl import Q
-from elasticsearch_dsl.query import Term, Bool
 from elasticsearch_dsl.response import Response
 from fastapi import Path
 
@@ -50,11 +49,11 @@ def calc_weighted_score(collection_scores: dict, material_scores: dict) -> int:
 
 def get_score_search(noderef_id: UUID, resource_type: ResourceType) -> Search:
     if resource_type is ResourceType.COLLECTION:
-        s = Search().base_filters().query(Bool(filter=[Term(type="ccm:map"), Term(path=noderef_id)]))
+        s = Search().base_filters().collection(id=noderef_id)
         for name, agg in aggs_collection_validation.items():
             s.aggs.bucket(name, agg)
     elif resource_type is ResourceType.MATERIAL:
-        s = Search().base_filters().query(Bool(filter=[Term(type="ccm:io"), Term(**{"collections.path.keyword": noderef_id})]))
+        s = Search().base_filters().material(id=noderef_id)
         for name, agg in aggs_material_validation.items():
             s.aggs.bucket(name, agg)
     else:

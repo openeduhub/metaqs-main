@@ -6,7 +6,6 @@ from elasticsearch_dsl import A
 from pydantic import BaseModel
 
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.elastic.elastic import query_materials
 from app.elastic.search import Search
 from app.models import CollectionAttribute, ElasticResourceAttribute
 
@@ -34,7 +33,7 @@ class AggregationMappings(str, Enum):
 
 
 def collection_counts_search(node_id: UUID, facet: AggregationMappings) -> Search:
-    s = Search().base_filters().query(query_materials(ancestor_id=node_id))
+    s = Search().base_filters().material(id=node_id)
     material_agg = A(
         "terms", field="collections.nodeRef.id.keyword", size=ELASTIC_TOTAL_SIZE
     )

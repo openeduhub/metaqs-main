@@ -1,8 +1,9 @@
 from __future__ import annotations
 from pprint import pformat
+from uuid import UUID
 
 import elasticsearch_dsl
-from elasticsearch_dsl.query import Term
+from elasticsearch_dsl.query import Term, Bool
 from elasticsearch_dsl.response import Response
 from starlette_context import context
 from starlette_context.errors import ContextDoesNotExistError
@@ -20,6 +21,19 @@ class Search(elasticsearch_dsl.Search):
             self.filter(Term(**{"permissions.Read.keyword": "GROUP_EVERYONE"}))
             .filter(Term(**{"properties.cm:edu_metadataset.keyword": "mds_oeh"}))
             .filter(Term(**{"nodeRef.storeRef.protocol": "workspace"}))
+        )
+
+    # fixme: Is ccm:map really a collection? or is this accidentally swapped here?
+    def collection(self, id: UUID) -> Search:
+        """Query collections."""
+        # fixme: Define collection!
+        return self.query(Bool(filter=[Term(type="ccm:map"), Term(path=id)]))
+
+    def material(self, id: UUID) -> Search:
+        """Query materials."""
+        # fixme: Define material!
+        return self.query(
+            Bool(filter=[Term(type="ccm:io"), Term(**{"collections.path.keyword": id})])
         )
 
     def execute(self, ignore_cache=False) -> Response:
