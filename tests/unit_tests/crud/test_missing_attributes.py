@@ -1,6 +1,7 @@
 import uuid
 
 from elasticsearch_dsl import AttrDict
+from glom import glom
 
 from app.api.collections.missing_attributes import (
     missing_attribute_filter,
@@ -8,7 +9,6 @@ from app.api.collections.missing_attributes import (
     missing_attributes_spec,
 )
 from app.api.collections.models import MissingMaterials
-from app.api.collections.utils import map_elastic_response_to_model
 
 
 def test_missing_attributes_search():
@@ -53,7 +53,7 @@ def test_missing_attributes_search():
     }
 
 
-def test_hits_to_missing_attributes():
+def test_missing_attributes_spec():
     parent_ref = uuid.uuid4()
     node_ref = uuid.uuid4()
     entry = {
@@ -85,9 +85,8 @@ def test_hits_to_missing_attributes():
     }
 
     mocked_response = [AttrDict(entry)]
-    result = map_elastic_response_to_model(
-        mocked_response, missing_attributes_spec, MissingMaterials
-    )
+    result = [MissingMaterials(**glom(hit.to_dict(), missing_attributes_spec)) for hit in mocked_response]
+
     assert len(result) == 1
     assert len(result[0].children) == 0
     assert result[0].description == ""

@@ -4,10 +4,9 @@ from typing import Optional
 from uuid import UUID
 
 from elasticsearch_dsl.query import Q
-from glom import Coalesce, Iter
+from glom import Coalesce, Iter, glom
 
 from app.api.collections.models import MissingMaterials
-from app.api.collections.utils import map_elastic_response_to_model
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.elastic.dsl import qbool, qmatch
 from app.elastic.elastic import ResourceType, type_filter
@@ -82,6 +81,4 @@ async def collections_with_missing_attributes(
 
     response = search.execute()
     if response.success():
-        return map_elastic_response_to_model(
-            response, missing_attributes_spec, MissingMaterials
-        )
+        return [MissingMaterials(**glom(hit.to_dict(), missing_attributes_spec)) for hit in response]
