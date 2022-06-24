@@ -1,0 +1,90 @@
+version: '3.9'
+
+volumes:
+  pg-data:
+  superset-data:
+  shared-dbt-docs:
+
+networks:
+  backend:
+    driver: bridge
+
+x-restart-policy: &restart-policy
+  restart: unless-stopped
+
+x-logging-config: &logging-config
+  logging:
+    driver: 'json-file'
+    options:
+      max-file: '5'
+      max-size: '100M'
+
+services:
+  nginx:
+    container_name: metaqs-nginx
+    image: nginx:stable-alpine
+    <<: *restart-policy
+    <<: *logging-config
+    depends_on:
+      - fastapi
+    environment:
+      NGINX_HOST: "${NGINX_HOST}"
+      ROOT_PATH: "/"
+    volumes:
+      - ./nginx/nginx.conf.dev.template:/etc/nginx/templates/default.conf.template:ro
+      - ./nginx/proxy_params:/etc/nginx/proxy_params:ro
+    ports:
+      - "8080:80"
+    networks:
+      - backend
+  fastapi:
+    container_name: metaqs-fastapi
+    build:
+      context: ./src/
+    image: community.docker.edu-sharing.com/metaqs-fastapi_dev:latest
+    <<: *restart-policy
+    <<: *logging-config
+    volumes:
+      - ./:/tmp
+      - .env:/app/.env
+    environment:
+      ROOT_PATH: "/"
+      ALLOWED_HOSTS: "${ALLOWED_HOSTS:-*}"
+      BACKGROUND_TASK_ANALYTICS_INTERVAL: "${BACKGROUND_TASK_ANALYTICS_INTERVAL:-0}"
+      BACKGROUND_TASK_SEARCH_STATS_INTERVAL: "${BACKGROUND_TASK_SEARCH_STATS_INTERVAL:-0}"
+      BACKGROUND_TASK_SEARCH_STATS_SLEEP_INTERVAL: "${BACKGROUND_TASK_SEARCH_STATS_SLEEP_INTERVAL:-0}"
+      BACKGROUND_TASK_SPELLCHECK_INTERVAL: "${BACKGROUND_TASK_SPELLCHECK_INTERVAL:-0}"
+      ENABLE_ANALYTICS: false
+      LOG_LEVEL: "${LOG_LEVEL:-debug}"
+      LOGGER: uvicorn
+      ELASTICSEARCH_URL: "${ELASTICSEARCH_URL:-http://10.254.1.31:9200}"
+      ELASTICSEARCH_TIMEOUT: 20
+      WEB_CONCURRENCY: 1
+    networks:
+      - backend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+
+  yovisto:
+    container_name: yovisto  # Container from https://github.com/openeduhub/meta-yovisto
+    image: docker.edu-sharing.com/projects/oeh-redaktion/edusharing-projects-oeh-redaktion-yovisto:dev
+    <<: *restart-policy
+    <<: *logging-config
+    environment:
+      ROOT_PATH: "/yovisto"
+      ALLOWED_HOSTS: "${ALLOWED_HOSTS:-*}"
+      LOG_LEVEL: "${LOG_LEVEL:-debug}"
+      LOGGER: uvicorn
+      WANT_RETRAINING: "${WANT_RETRAINING:-true}"
+    command: bash -c "uvicorn --host 0.0.0.0 --port 80 --reload main:app"
+    expose:
+      - 443
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:80/_ping" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 250s
+    networks:
+      - backend
