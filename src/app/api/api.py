@@ -1,6 +1,6 @@
 import json
 import uuid
-from typing import Mapping
+from typing import Mapping, Optional
 from uuid import UUID
 
 from databases import Database
@@ -9,6 +9,7 @@ from fastapi.params import Param
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from starlette.requests import Request
+from starlette.responses import Response
 from starlette.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
 from app.api.collections.counts import (
@@ -20,6 +21,14 @@ from app.api.collections.missing_attributes import (
     collections_with_missing_attributes,
     missing_attribute_filter,
 )
+from app.api.collections.missing_materials import (
+    LearningMaterial,
+    MissingAttributeFilter,
+    filter_response_fields,
+    get_child_materials_with_missing_attributes,
+    material_response_fields,
+    materials_filter_params,
+)
 from app.api.collections.models import CollectionNode, MissingMaterials
 from app.api.collections.tree import collection_tree
 from app.api.quality_matrix.collections import collection_quality
@@ -27,7 +36,7 @@ from app.api.quality_matrix.models import ColumnOutputModel, Forms, Timeline
 from app.api.quality_matrix.quality_matrix import source_quality, store_in_timeline
 from app.api.quality_matrix.timeline import timestamps
 from app.api.quality_matrix.utils import transpose
-from app.api.score.models import ScoreOutput
+from app.api.score.models import LearningMaterialAttribute, ScoreOutput
 from app.api.score.score import (
     aggs_collection_validation,
     aggs_material_validation,
@@ -279,3 +288,31 @@ async def filter_collections_with_missing_attributes(
     ),
 ):
     return await collections_with_missing_attributes(node_id, missing_attribute)
+
+
+@router.get(
+    "/collections/{node_id}/pending-materials/{missing_attr}",
+    response_model=list[LearningMaterial],
+    response_model_exclude_unset=True,
+    status_code=HTTP_200_OK,
+    responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
+    tags=["Materials"],
+)
+async def filter_materials_with_missing_attributes(
+    *,
+    node_id: UUID = Depends(node_ids_for_major_collections),
+    missing_attr_filter: MissingAttributeFilter = Depends(materials_filter_params),
+    response_fields: Optional[set[LearningMaterialAttribute]] = Depends(
+        material_response_fields
+    ),
+):
+    if response_fields:
+        response_fields.add(LearningMaterialAttribute.NODEREF_ID)
+
+    materials = await get_child_materials_with_missing_attributes(
+        noderef_id=node_id,
+        missing_attr_filter=missing_attr_filter,
+        source_fields=response_fields,
+    )
+
+    return filter_response_fields(materials, response_fields=response_fields)
