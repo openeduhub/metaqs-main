@@ -8,7 +8,6 @@ from glom import Coalesce, Iter, glom
 from pydantic import BaseModel, Extra
 from pydantic.validators import str_validator
 
-from app.api.score.models import LearningMaterialAttribute
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.elastic.dsl import qbool, qmatch, qterm
 from app.elastic.elastic import (
@@ -18,7 +17,7 @@ from app.elastic.elastic import (
 )
 from app.elastic.fields import ElasticField, ElasticFieldType
 from app.elastic.search import Search
-from app.models import _ELASTIC_RESOURCE, ElasticResourceAttribute
+from app.models import _ELASTIC_RESOURCE, CollectionAttribute, ElasticResourceAttribute
 
 _LEARNING_MATERIAL = TypeVar("_LEARNING_MATERIAL")
 
@@ -282,26 +281,66 @@ def missing_attributes_search(
     )
 
 
+all_source_fields: list = [
+    ElasticResourceAttribute.NODEREF_ID,
+    ElasticResourceAttribute.TYPE,
+    ElasticResourceAttribute.NAME,
+    CollectionAttribute.TITLE,
+    ElasticResourceAttribute.KEYWORDS,
+    CollectionAttribute.DESCRIPTION,
+    CollectionAttribute.PATH,
+    CollectionAttribute.PARENT_ID,
+]
+
+
+def missing_materials_search(
+    noderef_id: UUID,
+    missing_attr_filter: Optional[MissingAttributeFilter],
+    max_hits: Optional[int] = ELASTIC_TOTAL_SIZE,
+):
+    print(missing_attr_filter)
+    print(missing_attr_filter.attr)
+    # # TODO: Why is there collections. in the match?
+    # query = {
+    #     "filter": [*type_filter[ResourceType.MATERIAL]],
+    #     "minimum_should_match": 1,
+    #     "should": [
+    #         qmatch(**{"collections.path": noderef_id}),
+    #         qmatch(**{"collections.nodeRef.id": noderef_id}),
+    #     ],
+    #     "must_not": Q("wildcard", **{missing_attr_filter.attr: {"value": "*"}}),
+    # }
+    #
+    # return (
+    #     Search()
+    #     .base_filters()
+    #     .query(qbool(**query))
+    #     .source(includes=[source.path for source in all_source_fields])[:max_hits]
+    # )
+    query_dict = get_many_base_query(
+        resource_type=ResourceType.MATERIAL,
+        ancestor_id=noderef_id,
+    )
+    if missing_attr_filter:
+        query_dict = missing_attr_filter.__call__(query_dict=query_dict)
+    s = Search().query(qbool(**query_dict))
+    all_source_fields_old = [
+        (field.path if isinstance(field, ElasticField) else field)
+        for field in LearningMaterial.source_fields
+    ]
+    search = s.source(all_source_fields_old)[:max_hits]
+    return search
+
+
 async def get_many(
     ancestor_id: Optional[UUID] = None,
     missing_attr_filter: Optional[MissingAttributeFilter] = None,
     source_fields: Optional[set[LearningMaterialAttribute]] = None,
     max_hits: Optional[int] = ELASTIC_TOTAL_SIZE,
 ) -> list[LearningMaterial]:
-    query_dict = get_many_base_query(
-        resource_type=ResourceType.MATERIAL,
-        ancestor_id=ancestor_id,
+    search = missing_materials_search(
+        ancestor_id, missing_attr_filter, max_hits=max_hits
     )
-    if missing_attr_filter:
-        query_dict = missing_attr_filter.__call__(query_dict=query_dict)
-    s = Search().query(qbool(**query_dict))
-
-    all_source_fields = [
-        (field.path if isinstance(field, ElasticField) else field)
-        for field in LearningMaterial.source_fields
-    ]
-
-    search = s.source(all_source_fields)[:max_hits]
 
     print(search.to_dict())
     response = search.execute()
