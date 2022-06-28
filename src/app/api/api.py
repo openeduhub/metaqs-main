@@ -17,6 +17,11 @@ from app.api.collections.counts import (
     CollectionTreeCount,
     collection_counts,
 )
+from app.api.collections.descendants import (
+    CollectionMaterialsCount,
+    get_many_descendants,
+    material_counts_by_descendant,
+)
 from app.api.collections.missing_attributes import (
     collections_with_missing_attributes,
     missing_attribute_filter,
@@ -48,6 +53,7 @@ from app.api.score.score import (
 )
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.elastic.elastic import ResourceType
+from app.models import CollectionAttribute
 
 
 def get_database(request: Request) -> Database:
@@ -316,3 +322,62 @@ async def filter_materials_with_missing_attributes(
     )
 
     return filter_response_fields(materials, response_fields=response_fields)
+
+
+@router.get(
+    "/collections/{node_id}/stats/descendant-collections-materials-counts",
+    response_model=list[CollectionMaterialsCount],
+    status_code=HTTP_200_OK,
+    responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
+    tags=["Statistics"],
+)
+async def material_counts_tree(
+    *,
+    node_id: UUID = Depends(node_ids_for_major_collections),
+    response: Response,
+):
+    descendant_collections = await get_many_descendants(
+        ancestor_id=node_id,
+        source_fields={
+            CollectionAttribute.NODE_ID,
+            CollectionAttribute.PATH,
+            CollectionAttribute.TITLE,
+        },
+    )
+    materials_counts = await material_counts_by_descendant(
+        ancestor_id=node_id,
+    )
+
+    descendant_collections = {
+        collection.noderef_id: collection.title for collection in descendant_collections
+    }
+    stats = []
+    errors = []
+    for record in materials_counts.results:
+        try:
+            title = descendant_collections.pop(record.noderef_id)
+        except KeyError:
+            errors.append(record.noderef_id)
+            continue
+
+        stats.append(
+            CollectionMaterialsCount(
+                noderef_id=record.noderef_id,
+                title=title,
+                materials_count=record.materials_count,
+            )
+        )
+
+    stats = [
+        *[
+            CollectionMaterialsCount(
+                noderef_id=noderef_id,
+                title=title,
+                materials_count=0,
+            )
+            for (noderef_id, title) in descendant_collections.items()
+        ],
+        *stats,
+    ]
+
+    return stats
