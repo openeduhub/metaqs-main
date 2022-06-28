@@ -6,7 +6,7 @@ from glom import Coalesce, glom
 from pydantic import BaseModel as PydanticBaseModel
 from pydantic import Extra
 
-from app.elastic.fields import Field, FieldType
+from src.app.elastic.fields import Field, FieldType
 
 from .base import BaseModel
 from .util import EmptyStrToNone

@@ -4,8 +4,8 @@ from elasticsearch_dsl import Search as ElasticSearch
 from starlette_context import context
 from starlette_context.errors import ContextDoesNotExistError
 
-from app.core.config import DEBUG, ELASTIC_INDEX
-from app.core.logging import logger
+from src.app.core.config import DEBUG, ELASTIC_INDEX
+from src.app.core.logging import logger
 
 from .fields import Field
 from .utils import handle_text_field

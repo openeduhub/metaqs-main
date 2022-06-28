@@ -6,7 +6,7 @@ from uuid import UUID
 
 from glom import Coalesce, Iter, glom
 
-from app.elastic.fields import Field, FieldType
+from src.app.elastic.fields import Field, FieldType
 
 from .base import BaseModel, ResponseModel
 from .elastic import ElasticResource, ElasticResourceAttribute
@@ -38,7 +38,7 @@ class CollectionBase(ElasticResource):
     path: Optional[List[UUID]] = None
     parent_id: Optional[UUID] = None
 
-    source_fields: ClassVar[set] = {
+    source_fields= {
         CollectionAttribute.NODEREF_ID,
         CollectionAttribute.TYPE,
         CollectionAttribute.NAME,

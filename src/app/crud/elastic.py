@@ -5,8 +5,8 @@ from uuid import UUID
 from elasticsearch_dsl.aggs import Agg
 from elasticsearch_dsl.query import Q, Query
 
-from app.core.config import ELASTIC_MAX_SIZE
-from app.elastic import (
+from src.app.core.config import ELASTIC_MAX_SIZE
+from src.app.elastic import (
     acomposite,
     afilter,
     amissing,
@@ -19,9 +19,9 @@ from app.elastic import (
     qterm,
     qterms,
 )
-from app.models.collection import CollectionAttribute
-from app.models.elastic import ElasticResourceAttribute
-from app.models.learning_material import LearningMaterialAttribute
+from src.app.models.collection import CollectionAttribute
+from src.app.models.elastic import ElasticResourceAttribute
+from src.app.models.learning_material import LearningMaterialAttribute
 
 MATERIAL_TYPES_MAP_EN_DE = {
     "other web resource": "Andere Web Ressource",

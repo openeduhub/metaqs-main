@@ -3,7 +3,7 @@ from typing import ClassVar, Dict, List, Optional, Type, TypeVar
 
 from glom import Coalesce, Iter, glom
 
-from app.elastic.fields import Field, FieldType
+from src.app.elastic.fields import Field, FieldType
 
 from .base import ResponseModel
 from .elastic import ElasticResource, ElasticResourceAttribute

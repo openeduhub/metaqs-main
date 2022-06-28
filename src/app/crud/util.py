@@ -7,7 +7,7 @@ from sqlalchemy.sql import ClauseElement
 from starlette.exceptions import HTTPException
 from starlette.status import HTTP_404_NOT_FOUND
 
-from app.models.collection import Collection, PortalTreeNode
+from src.app.models.collection import Collection, PortalTreeNode
 
 
 class CollectionNotFoundException(HTTPException):

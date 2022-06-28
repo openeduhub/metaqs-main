@@ -1,3 +1,5 @@
+import asyncio
+import uuid
 from random import randint
 from typing import List, Optional, Set
 from uuid import UUID
@@ -9,17 +11,11 @@ from glom import Iter, glom
 from pydantic import BaseModel
 
 # from app.core.util import slugify
-from app.core.config import ELASTIC_MAX_SIZE
-from app.elastic import Field, Search, qbool, qwildcard
-from app.models.learning_material import LearningMaterial, LearningMaterialAttribute
-
-from .elastic import (
-    ResourceType,
-    agg_material_types,
-    get_many_base_query,
-    query_materials,
-    query_missing_material_license,
-)
+from src.app.core.config import ELASTIC_MAX_SIZE
+from src.app.crud.elastic import query_missing_material_license, get_many_base_query, ResourceType, query_materials, \
+    agg_material_types
+from src.app.elastic import Field, Search, qbool, qwildcard
+from src.app.models.learning_material import LearningMaterial, LearningMaterialAttribute
 
 MissingMaterialField = Field(
     "MissingMaterialField",
@@ -65,9 +61,11 @@ async def get_many(
         query_dict = missing_attr_filter.__call__(query_dict=query_dict)
     s = Search().query(qbool(**query_dict))
 
-    response = s.source(
+    search = s.source(
         source_fields if source_fields else LearningMaterial.source_fields
-    )[:max_hits].execute()
+    )[:max_hits]
+    print(search.to_dict())
+    response = search.execute()
 
     if response.success():
         return [LearningMaterial.parse_elastic_hit(hit) for hit in response]
@@ -120,3 +118,7 @@ async def material_types() -> List[str]:
 # async def material_types_lut() -> dict:
 #     mt = await get_material_types()
 #     return {v: k for k, v in mt.items()}
+
+if __name__ == '__main__':
+    dummy_id = uuid.uuid4()
+    newfeature = asyncio.run(get_many(dummy_id))
