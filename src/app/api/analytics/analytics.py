@@ -3,7 +3,7 @@ from enum import Enum
 from typing import ClassVar, Generic, Optional, TypeVar
 from uuid import UUID
 
-from pydantic import BaseModel, Extra, Field
+from pydantic import BaseModel, Extra, Field, validator
 from pydantic.generics import GenericModel
 from starlette.exceptions import HTTPException
 from starlette.status import HTTP_404_NOT_FOUND
@@ -14,7 +14,7 @@ class StatType(str, Enum):
     SEARCH = "search"
     MATERIAL_TYPES = "material-types"
     VALIDATION_COLLECTIONS = "validation-collections"
-    # VALIDATION_MATERIALS = "validation-materials"  # Currently unused
+    VALIDATION_MATERIALS = "validation-materials"  # Currently unused
 
 
 class StatsNotFoundException(HTTPException):
@@ -89,3 +89,28 @@ class OehValidationError(str, Enum):
 
 class CollectionValidationStats(ElasticValidationStats[list[OehValidationError]]):
     pass
+
+
+def none_to_empty_list(v: list) -> Optional[list]:
+    if v is None:
+        return []
+    return v
+
+
+class MaterialFieldValidation(BaseModel):
+    missing: Optional[list[UUID]]
+    too_short: Optional[list[UUID]]
+    too_few: Optional[list[UUID]]
+    lacks_clarity: Optional[list[UUID]]
+    invalid_spelling: Optional[list[UUID]]
+
+    # validators
+    _none_to_empty_list = validator("*", pre=True, allow_reuse=True)(none_to_empty_list)
+
+
+class MaterialValidationStats(ElasticValidationStats[MaterialFieldValidation]):
+    subjects: Optional[MaterialFieldValidation]
+    license: Optional[MaterialFieldValidation]
+    ads_qualifier: Optional[MaterialFieldValidation]
+    material_type: Optional[MaterialFieldValidation]
+    object_type: Optional[MaterialFieldValidation]

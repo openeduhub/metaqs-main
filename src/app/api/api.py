@@ -17,6 +17,8 @@ from starlette.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOU
 
 from app.api.analytics.analytics import (
     CollectionValidationStats,
+    MaterialFieldValidation,
+    MaterialValidationStats,
     OehValidationError,
     StatsResponse,
     StatType,
@@ -464,6 +466,45 @@ async def read_stats_validation_collection(
                     k.lower(): [OehValidationError.MISSING]
                     for k in stat["missing_fields"]
                 }
+            ),
+        )
+        for stat in stats
+    ]
+
+    return response
+
+
+@router.get(
+    "/{node_id}/validation",
+    response_model=list[ValidationStatsResponse[MaterialValidationStats]],
+    response_model_exclude_unset=True,
+    status_code=HTTP_200_OK,
+    responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
+    tags=["Analytics"],
+)
+async def read_stats_validation(
+    *,
+    node_id: UUID = Depends(node_ids_for_major_collections),
+):
+    # TODO: See if this can be removed, partially needed in unused components in the frontend
+    pool = MagicMock()
+    async with pool.acquire() as conn:
+        stats = await stats_latest(
+            conn=conn, stat_type=StatType.VALIDATION_MATERIALS, noderef_id=node_id
+        )
+
+    if not stats:
+        pass
+        # raise StatsNotFoundException
+
+    response = [
+        ValidationStatsResponse[MaterialValidationStats](
+            noderef_id=stat["collection_id"],
+            validation_stats=MaterialValidationStats(
+                **{
+                    field.lower(): MaterialFieldValidation(missing=material_ids)
+                    for field, material_ids in stat["missing_fields"].items()
+                },
             ),
         )
         for stat in stats
