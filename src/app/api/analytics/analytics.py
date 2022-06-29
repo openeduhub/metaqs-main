@@ -50,14 +50,6 @@ class StatsResponse(ResponseModel):
     stats: dict[str, dict[str, dict[str, int]]]
 
 
-async def stats_latest(conn, stat_type: StatType, noderef_id: UUID) -> list[dict]:
-    results = []
-    print(conn, stat_type, noderef_id)
-    results = [dict(record) for record in results]
-
-    return results
-
-
 ValidationStatsT = TypeVar("ValidationStatsT")
 
 

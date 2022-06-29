@@ -23,8 +23,8 @@ from app.api.analytics.analytics import (
     StatsResponse,
     StatType,
     ValidationStatsResponse,
-    stats_latest,
 )
+from app.api.analytics.stats import stats_latest
 from app.api.collections.counts import (
     AggregationMappings,
     CollectionTreeCount,
