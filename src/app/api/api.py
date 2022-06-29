@@ -15,7 +15,14 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
-from app.api.analytics.analytics import StatsResponse, StatType, stats_latest
+from app.api.analytics.analytics import (
+    CollectionValidationStats,
+    OehValidationError,
+    StatsResponse,
+    StatType,
+    ValidationStatsResponse,
+    stats_latest,
+)
 from app.api.collections.counts import (
     AggregationMappings,
     CollectionTreeCount,
@@ -425,3 +432,41 @@ async def read_stats(*, node_id: UUID = Depends(node_ids_for_major_collections))
         derived_at=datetime.fromtimestamp(0),
         stats=stats,
     )
+
+
+@router.get(
+    "/analytics/{node_id}/validation/collections",
+    response_model=list[ValidationStatsResponse[CollectionValidationStats]],
+    response_model_exclude_unset=True,
+    status_code=HTTP_200_OK,
+    responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
+    tags=["Analytics"],
+)
+async def read_stats_validation_collection(
+    *,
+    node_id: UUID = Depends(node_ids_for_major_collections),
+):
+    pool = MagicMock()
+    async with pool.acquire() as conn:
+        stats = await stats_latest(
+            conn=conn, stat_type=StatType.VALIDATION_COLLECTIONS, noderef_id=node_id
+        )
+
+    if not stats:
+        pass
+        # raise StatsNotFoundException
+
+    response = [
+        ValidationStatsResponse[CollectionValidationStats](
+            noderef_id=stat["collection_id"],
+            validation_stats=CollectionValidationStats(
+                **{
+                    k.lower(): [OehValidationError.MISSING]
+                    for k in stat["missing_fields"]
+                }
+            ),
+        )
+        for stat in stats
+    ]
+
+    return response
