@@ -1,6 +1,5 @@
 import json
 import uuid
-from collections import defaultdict
 from datetime import datetime
 from typing import Mapping, Optional
 from unittest.mock import MagicMock
@@ -24,7 +23,7 @@ from app.api.analytics.analytics import (
     StatType,
     ValidationStatsResponse,
 )
-from app.api.analytics.stats import stats_latest
+from app.api.analytics.stats import overall_stats, stats_latest
 from app.api.collections.counts import (
     AggregationMappings,
     CollectionTreeCount,
@@ -404,31 +403,7 @@ async def material_counts_tree(
     tags=["Analytics"],
 )
 async def read_stats(*, node_id: UUID = Depends(node_ids_for_major_collections)):
-    pool = MagicMock()
-    async with pool.acquire() as conn:
-        search_stats = await stats_latest(
-            conn=conn, stat_type=StatType.SEARCH, noderef_id=node_id
-        )
-
-        if not search_stats:
-            pass
-            # raise StatsNotFoundException
-
-        material_types_stats = await stats_latest(
-            conn=conn, stat_type=StatType.MATERIAL_TYPES, noderef_id=node_id
-        )
-
-        if not material_types_stats:
-            pass
-            # raise StatsNotFoundException
-
-    stats = defaultdict(dict)
-
-    for stat in search_stats:
-        stats[str(stat["collection_id"])]["search"] = stat["stats"]
-
-    for stat in material_types_stats:
-        stats[str(stat["collection_id"])]["material_types"] = stat["counts"]
+    stats = await overall_stats(node_id)
 
     return StatsResponse(
         derived_at=datetime.fromtimestamp(0),
@@ -448,11 +423,10 @@ async def read_stats_validation_collection(
     *,
     node_id: UUID = Depends(node_ids_for_major_collections),
 ):
-    pool = MagicMock()
-    async with pool.acquire() as conn:
-        stats = await stats_latest(
-            conn=conn, stat_type=StatType.VALIDATION_COLLECTIONS, noderef_id=node_id
-        )
+
+    stats = await stats_latest(
+        stat_type=StatType.VALIDATION_COLLECTIONS, noderef_id=node_id
+    )
 
     if not stats:
         pass
@@ -487,11 +461,9 @@ async def read_stats_validation(
     node_id: UUID = Depends(node_ids_for_major_collections),
 ):
     # TODO: See if this can be removed, partially needed in unused components in the frontend
-    pool = MagicMock()
-    async with pool.acquire() as conn:
-        stats = await stats_latest(
-            conn=conn, stat_type=StatType.VALIDATION_MATERIALS, noderef_id=node_id
-        )
+    stats = await stats_latest(
+        stat_type=StatType.VALIDATION_MATERIALS, noderef_id=node_id
+    )
 
     if not stats:
         pass
