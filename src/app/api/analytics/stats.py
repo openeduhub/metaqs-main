@@ -9,7 +9,7 @@ from elasticsearch_dsl.query import Q, Query
 from elasticsearch_dsl.response import AggResponse, Response
 from glom import merge
 
-from app.api.analytics.analytics import StatType
+from app.api.analytics.analytics import StatsNotFoundException, StatsResponse, StatType
 from app.api.collections.descendants import aterms
 from app.api.collections.missing_materials import base_filter
 from app.api.collections.models import CollectionNode
@@ -72,6 +72,7 @@ def query_materials(ancestor_id: UUID = None) -> Query:
 
 
 def agg_material_types(size: int = ELASTIC_TOTAL_SIZE) -> Agg:
+    # TODO: This is the key property we are aggregating for
     return aterms(
         qfield=LearningMaterialAttribute.LEARNINGRESOURCE_TYPE,
         missing="N/A",
@@ -90,8 +91,6 @@ def merge_agg_response(
 
 def search_hits_by_material_type(query_string: str) -> dict:
     s = build_material_search(query_string)
-
-    print(s.to_dict())
     response: Response = s[:0].execute()
 
     if response.success():
@@ -142,7 +141,43 @@ async def get_ids_to_iterate(node_id: UUID):
     return [Row(id=row[0], title=row[1]) for row in flatten_list(nodes(tree))]
 
 
-async def stats_latest(stat_type: StatType, node_id: UUID) -> list[dict]:
+def query_material_types(node_id):
+    """TODO Based on the following query from MetaQS Prod:
+    with collections as (
+
+        select id
+        from staging.collections
+        where portal_id = $1
+
+    ), counts as (
+
+        select counts.*
+        from staging.material_counts_by_learning_resource_type counts
+                 join collections c on c.id =  counts.collection_id
+
+    ), agg as (
+
+        select counts.collection_id
+             , jsonb_object_agg(counts.learning_resource_type::text, counts.count) counts
+        from counts
+        group by counts.collection_id
+
+    )
+
+    select c.id collection_id
+         , case
+                when agg.counts is not null
+                    then jsonb_set(agg.counts, '{total}', to_jsonb(mc.total))
+                else jsonb_build_object('total', mc.total)
+           end counts
+    from collections c
+        join staging.material_counts mc on mc.collection_id = c.id
+        left join agg on agg.collection_id = c.id
+    """
+    return []
+
+
+async def stats_latest(stat_type: StatType, node_id: UUID) -> list[StatsResponse]:
     results = []
 
     results = [dict(record) for record in results]
@@ -152,7 +187,8 @@ async def stats_latest(stat_type: StatType, node_id: UUID) -> list[dict]:
             # TODO: What is the title? What is it used for?
             stats = search_hits_by_material_type(row.title)
             results.append({"stats": stats, "collection_id": row.id})
-
+    elif stat_type is StatType.MATERIAL_TYPES:
+        results = query_material_types(node_id)
     return results
 
 
@@ -160,8 +196,7 @@ async def overall_stats(node_id):
     search_stats = await stats_latest(stat_type=StatType.SEARCH, node_id=node_id)
 
     if not search_stats:
-        pass
-        # raise StatsNotFoundException
+        raise StatsNotFoundException
 
     material_types_stats = await stats_latest(
         stat_type=StatType.MATERIAL_TYPES, node_id=node_id
