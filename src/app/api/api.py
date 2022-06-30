@@ -2,7 +2,6 @@ import json
 import uuid
 from datetime import datetime
 from typing import Mapping, Optional
-from unittest.mock import MagicMock
 from uuid import UUID
 
 from databases import Database
@@ -425,7 +424,7 @@ async def read_stats_validation_collection(
 ):
 
     stats = await stats_latest(
-        stat_type=StatType.VALIDATION_COLLECTIONS, noderef_id=node_id
+        stat_type=StatType.VALIDATION_COLLECTIONS, node_id=node_id
     )
 
     if not stats:
@@ -461,9 +460,7 @@ async def read_stats_validation(
     node_id: UUID = Depends(node_ids_for_major_collections),
 ):
     # TODO: See if this can be removed, partially needed in unused components in the frontend
-    stats = await stats_latest(
-        stat_type=StatType.VALIDATION_MATERIALS, noderef_id=node_id
-    )
+    stats = await stats_latest(stat_type=StatType.VALIDATION_MATERIALS, node_id=node_id)
 
     if not stats:
         pass

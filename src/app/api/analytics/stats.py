@@ -2,22 +2,20 @@ import uuid
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import Union
-from unittest.mock import MagicMock
 from uuid import UUID
 
-import sqlalchemy
 from elasticsearch_dsl.aggs import Agg
 from elasticsearch_dsl.query import Q, Query
 from elasticsearch_dsl.response import AggResponse, Response
 from glom import merge
-from sqlalchemy.orm import declarative_base
 
 from app.api.analytics.analytics import StatType
 from app.api.collections.descendants import aterms
 from app.api.collections.missing_materials import base_filter
+from app.api.collections.models import CollectionNode
+from app.api.collections.tree import collection_tree
 from app.api.score.models import LearningMaterialAttribute
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.db.core import database_url
 from app.elastic.dsl import qbool, qterm
 from app.elastic.elastic import ResourceType, type_filter
 from app.elastic.fields import ElasticField
@@ -114,49 +112,59 @@ class Row:
     title: str
 
 
-def get_ids_to_iterate():
+async def get_ids_to_iterate(node_id: UUID):
     """
     Contains the collection id's to iterate over.
 
-    Hardcoded for now
+    Hardcoded for now including multiple inefficient data transformations, e.g., from list to tree back to list
     :return:
     """
-    # TODO: Find out, which collections should be here
-    dummy_row = Row(
-        id=uuid.UUID("4940d5da-9b21-4ec0-8824-d16e0409e629"), title="Chemie"
-    )
-    return [dummy_row]
+
+    def flatten_list(list_of_lists):
+        flat_list = []
+        for item in list_of_lists:
+            if type(item) == list:
+                flat_list += flatten_list(item)
+            else:
+                flat_list.append(item)
+
+        return flat_list
+
+    def nodes(data: list[CollectionNode]) -> list:
+        return [
+            nodes(collection.children)
+            if collection.children
+            else (collection.noderef_id, collection.title)
+            for collection in data
+        ]
+
+    tree = await collection_tree(node_id)
+    return [Row(id=row[0], title=row[1]) for row in flatten_list(nodes(tree))]
 
 
-async def stats_latest(stat_type: StatType, noderef_id: UUID) -> list[dict]:
+async def stats_latest(stat_type: StatType, node_id: UUID) -> list[dict]:
     results = []
-    print(stat_type, noderef_id)
+
     results = [dict(record) for record in results]
     if stat_type is StatType.SEARCH:
-        # TODO: Hypothesis: this goes through the complete collection tree, starting from noderef_id
-        c_title = sqlalchemy.literal_column("doc -> 'properties' ->> 'cm:title'").label(
-            "title"
-        )
-        print(c_title)
-        for i, row in enumerate(get_ids_to_iterate()):
-            print(i, row)
-            # TODO: What is the title?
+        # TODO: Hypothesis: this goes through the complete collection tree, starting from node_id
+        for i, row in enumerate(await get_ids_to_iterate(node_id)):
+            # TODO: What is the title? What is it used for?
             stats = search_hits_by_material_type(row.title)
-            print(stats)
             results.append({"stats": stats, "collection_id": row.id})
 
     return results
 
 
 async def overall_stats(node_id):
-    search_stats = await stats_latest(stat_type=StatType.SEARCH, noderef_id=node_id)
+    search_stats = await stats_latest(stat_type=StatType.SEARCH, node_id=node_id)
 
     if not search_stats:
         pass
         # raise StatsNotFoundException
 
     material_types_stats = await stats_latest(
-        stat_type=StatType.MATERIAL_TYPES, noderef_id=node_id
+        stat_type=StatType.MATERIAL_TYPES, node_id=node_id
     )
 
     if not material_types_stats:
