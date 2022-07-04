@@ -58,12 +58,15 @@ def create_properties_search() -> Search:
 def get_properties(use_required_properties_only: bool = True) -> PROPERTY_TYPE:
     if use_required_properties_only:
         return [
-            "cclom:title",
+            "cclom:general_title",
+            "ccm:oeh_lrt",
             "ccm:taxonid",
             "cclom:general_description",
             "ccm:educationalintendedenduserrole",
             "ccm:educationalcontext",
-            "cclom:location",
+            "ccm:wwwurl",
+            "ccm:oeh_publisher_combined",
+            "ccm:commonlicense_key",  # Todo: Ignore NONE
         ]
     else:
         s = create_properties_search()
