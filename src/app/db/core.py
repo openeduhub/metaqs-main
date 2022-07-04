@@ -3,6 +3,7 @@ from urllib.parse import quote
 
 from sqlalchemy import create_engine, inspect
 
+from app.api.analytics.models import Collection
 from app.api.quality_matrix.models import Timeline
 
 
@@ -25,3 +26,9 @@ async def create_timeline_table():
     engine = create_engine(database_url())
     with engine.connect():
         Timeline.create()
+
+
+async def create_collection_table():
+    engine = create_engine(database_url())
+    with engine.connect():
+        Collection.create()

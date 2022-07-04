@@ -22,6 +22,7 @@ from app.api.analytics.analytics import (
     StatType,
     ValidationStatsResponse,
 )
+from app.api.analytics.background_task import background_router, global_storage
 from app.api.analytics.stats import overall_stats, stats_latest
 from app.api.collections.counts import (
     AggregationMappings,
@@ -72,6 +73,7 @@ def get_database(request: Request) -> Database:
 
 
 router = APIRouter()
+router.include_router(background_router)
 
 QUALITY_MATRIX_DESCRIPTION = """Calculation of the quality matrix.
     Depending on the chosen form the quality matrix returns the ratio of entries which miss this property compared to
@@ -422,7 +424,6 @@ async def read_stats_validation_collection(
     *,
     node_id: UUID = Depends(node_ids_for_major_collections),
 ):
-
     stats = await stats_latest(
         stat_type=StatType.VALIDATION_COLLECTIONS, node_id=node_id
     )
@@ -480,3 +481,10 @@ async def read_stats_validation(
     ]
 
     return response
+
+
+@router.get(
+    "/global",
+)
+async def get_global():
+    return global_storage
