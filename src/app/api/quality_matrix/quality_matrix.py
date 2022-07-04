@@ -55,10 +55,20 @@ def create_properties_search() -> Search:
     return Search().base_filters().source([PROPERTIES])
 
 
-def get_properties() -> PROPERTY_TYPE:
-    s = create_properties_search()
-    response = s.execute()
-    return extract_properties(response.hits)
+def get_properties(use_required_properties_only: bool = True) -> PROPERTY_TYPE:
+    if use_required_properties_only:
+        return [
+            "cclom:title",
+            "ccm:taxonid",
+            "cclom:general_description",
+            "ccm:educationalintendedenduserrole",
+            "ccm:educationalcontext",
+            "cclom:location",
+        ]
+    else:
+        s = create_properties_search()
+        response = s.execute()
+        return extract_properties(response.hits)
 
 
 def create_empty_entries_search(
