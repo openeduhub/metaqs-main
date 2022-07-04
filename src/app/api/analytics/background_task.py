@@ -10,6 +10,7 @@ from starlette.background import BackgroundTasks
 from starlette.status import HTTP_202_ACCEPTED
 
 from app.api.analytics.models import Collection
+from app.api.analytics.stats import search_hits_by_material_type
 from app.api.collections.missing_materials import base_filter
 from app.api.score.models import LearningMaterialAttribute
 from app.core.constants import COLLECTION_ROOT_ID
@@ -23,10 +24,15 @@ background_router = APIRouter()
 
 _COLLECTIONS = "collections"
 _MATERIALS = "materials"
+_SEARCH = "search"
 """
 A quick fix for a global storage
 """
-global_storage = {_COLLECTIONS: [], _MATERIALS: []}  # TODO: Refactor me ASAP
+global_storage = {
+    _COLLECTIONS: [],
+    _MATERIALS: [],
+    _SEARCH: {},
+}  # TODO: Refactor me ASAP
 
 
 @background_router.post(
@@ -85,6 +91,7 @@ def import_collections(derived_at: datetime):
         )
     global global_storage
     global_storage[_COLLECTIONS] = collections
+    return seen
 
 
 def query_materials(ancestor_id: UUID = None) -> Query:
@@ -130,5 +137,11 @@ def run():
     logger.info(f"{os.getpid()}: Starting analytics import at: {derived_at}")
     print(f"{os.getpid()}: Starting analytics import at: {derived_at}")
 
-    import_collections(derived_at=derived_at)
+    all_collections = import_collections(derived_at=derived_at)
     import_materials(derived_at=derived_at)
+
+    global global_storage
+    for i, row in enumerate(all_collections):
+        # Search with shotgun approach through a number of properties if the title of the collection is there
+        stats = search_hits_by_material_type(row.title)
+        global_storage[_SEARCH].update({row.id: stats})

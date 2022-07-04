@@ -1,4 +1,7 @@
+import pytest
+
 from app.api.analytics.stats import build_material_search, overall_stats
+from app.elastic.utils import connect_to_elastic
 
 expected_output_particle_model = {
     "derived_at": "1970-01-01T00:00:00",
@@ -41,9 +44,14 @@ expected_output_particle_model = {
 }
 
 
-def test_overall_stats():
-    chemistry_node = "4940d5da-9b21-4ec0-8824-d16e0409e629"
-    stats = overall_stats(chemistry_node)
+@pytest.mark.asyncio
+async def test_overall_stats():
+    await connect_to_elastic()
+    # TODO continue here
+    chemistry_node = (
+        "5e3526e1-f943-49e6-8408-e496738665ad"  # "4940d5da-9b21-4ec0-8824-d16e0409e629"
+    )
+    stats = await overall_stats(chemistry_node)
     assert stats == expected_output_particle_model
 
 
