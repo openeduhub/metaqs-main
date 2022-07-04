@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import datetime
 from uuid import UUID
@@ -76,7 +77,11 @@ def import_collections(derived_at: datetime):
 
         seen.add(hit.nodeRef["id"])
         collections.append(
-            Collection(id=hit.nodeRef["id"], doc=hit.to_dict(), derived_at=derived_at)
+            Collection(
+                id=str(hit.nodeRef["id"]),
+                doc=json.dumps(hit.to_dict()),
+                derived_at=derived_at,
+            )
         )
     global global_storage
     global_storage[_COLLECTIONS] = collections
@@ -109,7 +114,11 @@ def import_materials(derived_at: datetime):
 
         seen.add(hit.nodeRef["id"])
         collections.append(
-            Collection(id=hit.nodeRef["id"], doc=hit.to_dict(), derived_at=derived_at)
+            Collection(
+                id=str(hit.nodeRef["id"]),
+                doc=json.dumps(hit.to_dict()),
+                derived_at=derived_at,
+            )
         )
     global global_storage
     global_storage[_MATERIALS] = collections

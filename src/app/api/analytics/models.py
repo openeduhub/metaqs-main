@@ -4,6 +4,6 @@ from pydantic import BaseModel, Json
 
 
 class Collection(BaseModel):
-    id: int
+    id: str
     doc: Json
     derived_at: datetime

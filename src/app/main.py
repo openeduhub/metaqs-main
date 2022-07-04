@@ -6,6 +6,7 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
 from starlette_context.middleware import RawContextMiddleware
 
+from app.api.analytics.background_task import background_task
 from app.api.api import router
 from app.core.config import ALLOWED_HOSTS, API_DEBUG, API_PORT, LOG_LEVEL, ROOT_PATH
 from app.core.constants import OPEN_API_VERSION
@@ -34,6 +35,7 @@ def api() -> FastAPI:
 
     _api.add_event_handler("startup", connect_to_elastic)
     _api.add_event_handler("startup", create_start_app_handler(_api))
+    _api.add_event_handler("startup", background_task)
     _api.add_event_handler("shutdown", create_stop_app_handler(_api))
 
     _api.add_exception_handler(HTTPException, http_error_handler)
