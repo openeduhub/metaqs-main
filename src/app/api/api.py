@@ -22,8 +22,9 @@ from app.api.analytics.analytics import (
     StatType,
     ValidationStatsResponse,
 )
-from app.api.analytics.background_task import background_router, global_storage
+from app.api.analytics.background_task import background_router
 from app.api.analytics.stats import overall_stats, stats_latest
+from app.api.analytics.storage import global_storage
 from app.api.collections.counts import (
     AggregationMappings,
     CollectionTreeCount,

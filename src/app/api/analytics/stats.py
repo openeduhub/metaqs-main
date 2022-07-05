@@ -8,8 +8,10 @@ from elasticsearch_dsl.aggs import Agg
 from elasticsearch_dsl.query import Q, Query
 from elasticsearch_dsl.response import AggResponse, Response
 from glom import merge
+from pydantic import BaseModel
 
 from app.api.analytics.analytics import StatsNotFoundException, StatsResponse, StatType
+from app.api.analytics.storage import _COLLECTION_COUNT, _COLLECTIONS, global_storage
 from app.api.collections.descendants import aterms
 from app.api.collections.missing_materials import base_filter
 from app.api.collections.models import CollectionNode
@@ -143,7 +145,7 @@ async def get_ids_to_iterate(node_id: UUID):
     return [Row(id=row[0], title=row[1]) for row in flatten_list(nodes(tree))]
 
 
-def query_material_types(node_id):
+def query_material_types(node_id: UUID):
     """TODO Based on the following query from MetaQS Prod:
     with collections as (
 
@@ -176,6 +178,52 @@ def query_material_types(node_id):
         join staging.material_counts mc on mc.collection_id = c.id
         left join agg on agg.collection_id = c.id
     """
+
+    """
+    get collections with parent id equal to node_id
+
+    portal_id == node_id
+    """
+    print(global_storage)
+    collections = global_storage[_COLLECTIONS]
+    filtered_collections = [
+        collection
+        for collection in collections
+        if str(node_id) in collection.doc["path"]
+    ]
+    print(len(filtered_collections))
+
+    """get counts with ?!?!?
+    collection id - learning_resource_type - counts
+
+    Basically, I get here learning_resource_type: counts
+
+    Join filtered collections and filtered counts into one, now
+    """
+
+    counts = global_storage[_COLLECTION_COUNT]
+    print("counts: ", counts)
+    filtered_counts = [
+        count for count in counts if str(node_id) == str(count.noderef_id)
+    ]
+    print(len(filtered_counts))
+
+    class temporary_collection(BaseModel):
+        collection_id: str
+        counts: dict[str, int]
+
+    output = []
+    for collection in filtered_collections:
+        for count in filtered_counts:
+            if str(collection.id) == str(count.noderef_id):
+                print("found match", collection, count)
+                data: dict = count["counts"]
+                data.update(count["total"])
+                output.append(
+                    temporary_collection(collection_id=str(collection.id), counts=data)
+                )
+
+    # get agg with ???!??
     return []
 
 
@@ -197,10 +245,12 @@ async def stats_latest(stat_type: StatType, node_id: UUID) -> list[StatsResponse
 
 
 async def overall_stats(node_id):
-    search_stats = await stats_latest(stat_type=StatType.SEARCH, node_id=node_id)
+    if False:
+        search_stats = await stats_latest(stat_type=StatType.SEARCH, node_id=node_id)
 
-    if not search_stats:
-        raise StatsNotFoundException
+        if not search_stats:
+            raise StatsNotFoundException
+    search_stats = []
 
     material_types_stats = await stats_latest(
         stat_type=StatType.MATERIAL_TYPES, node_id=node_id

@@ -9,8 +9,16 @@ from fastapi_utils.tasks import repeat_every
 from starlette.background import BackgroundTasks
 from starlette.status import HTTP_202_ACCEPTED
 
+import app.api.analytics.storage
 from app.api.analytics.models import Collection
 from app.api.analytics.stats import get_ids_to_iterate, search_hits_by_material_type
+from app.api.analytics.storage import (
+    _COLLECTION_COUNT,
+    _COLLECTIONS,
+    _MATERIALS,
+    _SEARCH,
+)
+from app.api.collections.counts import AggregationMappings, collection_counts
 from app.api.collections.missing_materials import base_filter
 from app.api.score.models import LearningMaterialAttribute
 from app.core.constants import COLLECTION_ROOT_ID
@@ -21,18 +29,6 @@ from app.elastic.search import Search
 from app.models import CollectionAttribute
 
 background_router = APIRouter()
-
-_COLLECTIONS = "collections"
-_MATERIALS = "materials"
-_SEARCH = "search"
-"""
-A quick fix for a global storage
-"""
-global_storage = {
-    _COLLECTIONS: [],
-    _MATERIALS: [],
-    _SEARCH: {},
-}  # TODO: Refactor me ASAP
 
 
 @background_router.post(
@@ -89,8 +85,7 @@ def import_collections(derived_at: datetime):
                 derived_at=derived_at,
             )
         )
-    global global_storage
-    global_storage[_COLLECTIONS] = collections
+    app.api.analytics.storage.global_storage[_COLLECTIONS] = collections
 
 
 def query_materials(ancestor_id: UUID = None) -> Query:
@@ -126,8 +121,7 @@ def import_materials(derived_at: datetime):
                 derived_at=derived_at,
             )
         )
-    global global_storage
-    global_storage[_MATERIALS] = collections
+    app.api.analytics.storage.global_storage[_MATERIALS] = collections
 
 
 async def run():
@@ -136,20 +130,24 @@ async def run():
     logger.info(f"{os.getpid()}: Starting analytics import at: {derived_at}")
     print(f"{os.getpid()}: Starting analytics import at: {derived_at}")
 
-    # import_collections(derived_at=derived_at)
+    import_collections(derived_at=derived_at)
     print("Collections done in background.")
     # import_materials(derived_at=derived_at)
     print("Materials done in background")
 
+    app.api.analytics.storage.global_storage[
+        _COLLECTION_COUNT
+    ] = await collection_counts(COLLECTION_ROOT_ID, AggregationMappings.lrt)
+    print("Counts done in background")
+
     all_collections = await get_ids_to_iterate(node_id=COLLECTION_ROOT_ID)
     print("Tree ready to iterate")
 
-    global global_storage
     for i, row in enumerate(all_collections):
         # Search with shotgun approach through a number of properties if the title of the collection is there
         print(i, row)
         stats = search_hits_by_material_type(row.title)
-        global_storage[_SEARCH].update({row.id: stats})
+        app.api.analytics.storage.global_storage[_SEARCH].update({row.id: stats})
 
         if i > 20:
             break

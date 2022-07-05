@@ -1,6 +1,16 @@
+import json
+import uuid
+from unittest import mock
+
 import pytest
 
-from app.api.analytics.stats import build_material_search, overall_stats
+from app.api.analytics.models import Collection
+from app.api.analytics.stats import (
+    build_material_search,
+    overall_stats,
+    query_material_types,
+)
+from app.api.collections.counts import CollectionTreeCount
 from app.elastic.utils import connect_to_elastic
 
 expected_output_particle_model = {
@@ -101,3 +111,41 @@ def test_build_material_search():
             }
         },
     }
+
+
+def test_query_material_types():
+    directory = "tests/unit_tests/resources"
+
+    with open(f"{directory}/global_response.json") as file:
+        global_response = json.load(file)
+
+    dummy_node = uuid.UUID("9eff0a6c-0f5b-4f92-ac66-3a4f082ac705")
+    with mock.patch("app.api.analytics.stats.global_storage") as mocked_global:
+
+        def _get_item(_, key):
+            if key == "collections":
+                return [
+                    Collection(
+                        id=entry["id"],
+                        doc=json.dumps(entry["doc"]),
+                        derived_at=entry["derived_at"],
+                    )
+                    for entry in global_response[key]
+                ]
+            if key == "counts":
+                return [
+                    CollectionTreeCount(
+                        noderef_id=entry["noderef_id"],
+                        total=entry["total"],
+                        counts=entry["counts"],
+                    )
+                    for entry in global_response[key]
+                ]
+            return global_response[key]
+
+        mocked_global.__getitem__ = _get_item
+
+        result = query_material_types(dummy_node)
+
+    print(result)
+    assert result != []
