@@ -147,5 +147,4 @@ def test_query_material_types():
 
         result = query_material_types(dummy_node)
 
-    print(result)
     assert result != []
