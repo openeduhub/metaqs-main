@@ -29,6 +29,7 @@ Sphinx = "^4.5.0"
 sphinxcontrib-confluencebuilder = "^1.8.0"
 pytest-cov = "^3.0.0"
 sphinxcontrib-mermaid = "^0.7.1"
+deepdiff = "^5.8.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

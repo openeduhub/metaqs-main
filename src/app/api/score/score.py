@@ -7,12 +7,7 @@ from fastapi import Path
 import app.core.constants
 from app.api.score.models import LearningMaterialAttribute
 from app.elastic.dsl import afilter, amissing
-from app.elastic.elastic import (
-    ResourceType,
-    query_collections,
-    query_materials,
-    query_missing_material_license,
-)
+from app.elastic.elastic import ResourceType, query_missing_material_license
 from app.elastic.search import Search
 from app.models import CollectionAttribute, ElasticResourceAttribute
 
@@ -53,14 +48,17 @@ def calc_weighted_score(collection_scores: dict, material_scores: dict) -> int:
 
 
 def get_score_search(noderef_id: UUID, resource_type: ResourceType) -> Search:
-    query, aggs = None, None
     if resource_type is ResourceType.COLLECTION:
-        query, aggs = query_collections, aggs_collection_validation
+        s = Search().base_filters().collection(id=noderef_id)
+        for name, agg in aggs_collection_validation.items():
+            s.aggs.bucket(name, agg)
     elif resource_type is ResourceType.MATERIAL:
-        query, aggs = query_materials, aggs_material_validation
-    s = Search().base_filters().query(query(ancestor_id=noderef_id))
-    for name, _agg in aggs.items():
-        s.aggs.bucket(name, _agg)
+        s = Search().base_filters().material(id=noderef_id)
+        for name, agg in aggs_material_validation.items():
+            s.aggs.bucket(name, agg)
+    else:
+        raise ValueError(f"invalid resource_type {resource_type}")
+
     return s
 
 

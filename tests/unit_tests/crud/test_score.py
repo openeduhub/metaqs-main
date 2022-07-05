@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock
 
 import pytest
+from deepdiff import DeepDiff
 from elasticsearch_dsl.response import Response
 
 from app.api.score.score import (
@@ -147,7 +148,8 @@ def test_score_search_material():
             }
         },
     }
-    assert search.to_dict() == expected_search
+    diff = DeepDiff(search.to_dict(), expected_search)
+    assert len(diff) == 0, diff
 
 
 def test_score_search_collection():
