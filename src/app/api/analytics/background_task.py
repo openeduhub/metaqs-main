@@ -132,7 +132,7 @@ async def run():
 
     import_collections(derived_at=derived_at)
     print("Collections done in background.")
-    # import_materials(derived_at=derived_at)
+    import_materials(derived_at=derived_at)
     print("Materials done in background")
 
     app.api.analytics.storage.global_storage[
@@ -142,12 +142,12 @@ async def run():
 
     all_collections = await get_ids_to_iterate(node_id=COLLECTION_ROOT_ID)
     print("Tree ready to iterate")
+    print("Tree length: ", len(all_collections))
 
     for i, row in enumerate(all_collections):
         # Search with shotgun approach through a number of properties if the title of the collection is there
-        print(i, row)
         stats = search_hits_by_material_type(row.title)
         app.api.analytics.storage.global_storage[_SEARCH].update({row.id: stats})
-
         if i > 20:
             break
+    print("Background task done")

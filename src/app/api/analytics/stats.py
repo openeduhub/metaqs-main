@@ -9,7 +9,6 @@ from elasticsearch_dsl.aggs import Agg
 from elasticsearch_dsl.query import Q, Query
 from elasticsearch_dsl.response import AggResponse, Response
 from glom import merge
-from pydantic import BaseModel
 
 from app.api.analytics.analytics import StatsNotFoundException, StatsResponse, StatType
 from app.api.analytics.storage import _COLLECTION_COUNT, _COLLECTIONS, global_storage
@@ -34,7 +33,6 @@ def qsimplequerystring(
         (qfield.path if isinstance(qfield, ElasticField) else qfield)
         for qfield in qfields
     ]
-    print("kwargs:", kwargs)
     return Q("simple_query_string", **kwargs)
 
 
@@ -93,7 +91,6 @@ def merge_agg_response(
 
 
 def search_hits_by_material_type(query_string: str) -> dict:
-    print(query_string)
     s = build_material_search(query_string)
     response: Response = s[:0].execute()
 
@@ -104,7 +101,6 @@ def search_hits_by_material_type(query_string: str) -> dict:
 
 
 def build_material_search(query_string: str):
-    print(query_string)
     s = Search().query(query_materials()).query(search_materials(query_string))
     s.aggs.bucket("material_types", agg_material_types())
     return s
@@ -147,39 +143,6 @@ async def get_ids_to_iterate(node_id: UUID):
 
 
 def query_material_types(node_id: UUID) -> list[StatsResponse]:
-    """TODO Based on the following query from MetaQS Prod:
-    with collections as (
-
-        select id
-        from staging.collections
-        where portal_id = $1
-
-    ), counts as (
-
-        select counts.*
-        from staging.material_counts_by_learning_resource_type counts
-                 join collections c on c.id =  counts.collection_id
-
-    ), agg as (
-
-        select counts.collection_id
-             , jsonb_object_agg(counts.learning_resource_type::text, counts.count) counts
-        from counts
-        group by counts.collection_id
-
-    )
-
-    select c.id collection_id
-         , case
-                when agg.counts is not null
-                    then jsonb_set(agg.counts, '{total}', to_jsonb(mc.total))
-                else jsonb_build_object('total', mc.total)
-           end counts
-    from collections c
-        join staging.material_counts mc on mc.collection_id = c.id
-        left join agg on agg.collection_id = c.id
-    """
-
     """
     get collections with parent id equal to node_id
 
@@ -191,61 +154,42 @@ def query_material_types(node_id: UUID) -> list[StatsResponse]:
         for collection in collections
         if str(node_id) in collection.doc["path"]
     ]
-    print("filtered_collections: ", len(filtered_collections))
 
-    """get counts with ?!?!?
+    """
     collection id - learning_resource_type - counts
-
-    Basically, I get here learning_resource_type: counts
-
     Join filtered collections and filtered counts into one, now
     """
-
-    class temporary_collection(BaseModel):
-        collection_id: str
-        counts: dict[str, int]
-
-    output = []
     stats = []
 
     counts = global_storage[_COLLECTION_COUNT]
     for collection in filtered_collections:
         for count in counts:
             if str(collection.id) == str(count.noderef_id):
-                print("found match", collection.id, count)
-                data: dict = count.counts
-                data.update({"total": count.total})
-                output.append(
-                    temporary_collection(collection_id=str(collection.id), counts=data)
-                )
                 stats_value = {
                     str(collection.id): {
                         "material_types": {"total": count.total, **count.counts}
                     }
                 }
-                print(stats_value)
                 stats.append(
                     StatsResponse(derived_at=datetime.datetime.now(), stats=stats_value)
                 )
 
-    print("output: ", len(output))
-    print("output: ", len(stats))
-    # get agg with ???!??
     return stats
 
 
 async def stats_latest(stat_type: StatType, node_id: UUID) -> list[StatsResponse]:
     results = []
-
-    results = [dict(record) for record in results]
-
     all_collection_nodes = await get_ids_to_iterate(node_id)
-    print("all_collection_nodes: ", len(all_collection_nodes))
+
     if stat_type is StatType.SEARCH:
         for i, row in enumerate(all_collection_nodes):
             # TODO: What is the title? What is it used for?
             stats = search_hits_by_material_type(row.title)
-            results.append({"stats": stats, "collection_id": row.id})
+            print("Search stats:", stats)
+            stats_value = {str(row.id): {"search": stats}}
+            results.append(
+                StatsResponse(derived_at=datetime.datetime.now(), stats=stats_value)
+            )
     elif stat_type is StatType.MATERIAL_TYPES:
         results = query_material_types(node_id)
     return results
@@ -262,11 +206,13 @@ async def overall_stats(node_id):
     )
 
     if not material_types_stats:
-        pass
-        # raise StatsNotFoundException
+        raise StatsNotFoundException
+
     stats = defaultdict(dict)
+    # TODO: Howto deep merge these two dictionaries? Basically, materials overwrites search
     for stat in search_stats:
-        stats[str(stat["collection_id"])]["search"] = stat["stats"]
+        # stats[str(stat["collection_id"])]["search"] = stat["stats"]
+        stats.update(**stat.stats)
     for stat in material_types_stats:
-        stats[str(stat["collection_id"])]["material_types"] = stat["counts"]
+        stats.update(**stat.stats)
     return stats
