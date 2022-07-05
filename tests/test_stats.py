@@ -119,7 +119,7 @@ def test_query_material_types():
     with open(f"{directory}/global_response.json") as file:
         global_response = json.load(file)
 
-    dummy_node = uuid.UUID("9eff0a6c-0f5b-4f92-ac66-3a4f082ac705")
+    dummy_node = uuid.UUID("77caf20c-36cc-481e-a842-67fc7c56697a")
     with mock.patch("app.api.analytics.stats.global_storage") as mocked_global:
 
         def _get_item(_, key):

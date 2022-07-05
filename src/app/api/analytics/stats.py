@@ -1,3 +1,4 @@
+import datetime
 import uuid
 from collections import defaultdict
 from dataclasses import dataclass
@@ -145,7 +146,7 @@ async def get_ids_to_iterate(node_id: UUID):
     return [Row(id=row[0], title=row[1]) for row in flatten_list(nodes(tree))]
 
 
-def query_material_types(node_id: UUID):
+def query_material_types(node_id: UUID) -> list[StatsResponse]:
     """TODO Based on the following query from MetaQS Prod:
     with collections as (
 
@@ -184,14 +185,13 @@ def query_material_types(node_id: UUID):
 
     portal_id == node_id
     """
-    print(global_storage)
     collections = global_storage[_COLLECTIONS]
     filtered_collections = [
         collection
         for collection in collections
         if str(node_id) in collection.doc["path"]
     ]
-    print(len(filtered_collections))
+    print("filtered_collections: ", len(filtered_collections))
 
     """get counts with ?!?!?
     collection id - learning_resource_type - counts
@@ -201,30 +201,37 @@ def query_material_types(node_id: UUID):
     Join filtered collections and filtered counts into one, now
     """
 
-    counts = global_storage[_COLLECTION_COUNT]
-    print("counts: ", counts)
-    filtered_counts = [
-        count for count in counts if str(node_id) == str(count.noderef_id)
-    ]
-    print(len(filtered_counts))
-
     class temporary_collection(BaseModel):
         collection_id: str
         counts: dict[str, int]
 
     output = []
+    stats = []
+
+    counts = global_storage[_COLLECTION_COUNT]
     for collection in filtered_collections:
-        for count in filtered_counts:
+        for count in counts:
             if str(collection.id) == str(count.noderef_id):
-                print("found match", collection, count)
-                data: dict = count["counts"]
-                data.update(count["total"])
+                print("found match", collection.id, count)
+                data: dict = count.counts
+                data.update({"total": count.total})
                 output.append(
                     temporary_collection(collection_id=str(collection.id), counts=data)
                 )
+                stats_value = {
+                    str(collection.id): {
+                        "material_types": {"total": count.total, **count.counts}
+                    }
+                }
+                print(stats_value)
+                stats.append(
+                    StatsResponse(derived_at=datetime.datetime.now(), stats=stats_value)
+                )
 
+    print("output: ", len(output))
+    print("output: ", len(stats))
     # get agg with ???!??
-    return []
+    return stats
 
 
 async def stats_latest(stat_type: StatType, node_id: UUID) -> list[StatsResponse]:
@@ -245,12 +252,10 @@ async def stats_latest(stat_type: StatType, node_id: UUID) -> list[StatsResponse
 
 
 async def overall_stats(node_id):
-    if False:
-        search_stats = await stats_latest(stat_type=StatType.SEARCH, node_id=node_id)
+    search_stats = await stats_latest(stat_type=StatType.SEARCH, node_id=node_id)
 
-        if not search_stats:
-            raise StatsNotFoundException
-    search_stats = []
+    if not search_stats:
+        raise StatsNotFoundException
 
     material_types_stats = await stats_latest(
         stat_type=StatType.MATERIAL_TYPES, node_id=node_id
