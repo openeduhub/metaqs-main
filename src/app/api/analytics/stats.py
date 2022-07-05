@@ -90,6 +90,7 @@ def merge_agg_response(
 
 
 def search_hits_by_material_type(query_string: str) -> dict:
+    print(query_string)
     s = build_material_search(query_string)
     response: Response = s[:0].execute()
 
@@ -182,7 +183,7 @@ async def stats_latest(stat_type: StatType, node_id: UUID) -> list[StatsResponse
     results = []
 
     results = [dict(record) for record in results]
-    # TODO: Hypothesis: this goes through the complete collection tree, starting from node_id
+
     all_collection_nodes = await get_ids_to_iterate(node_id)
     print("all_collection_nodes: ", len(all_collection_nodes))
     if stat_type is StatType.SEARCH:
@@ -209,7 +210,6 @@ async def overall_stats(node_id):
         pass
         # raise StatsNotFoundException
     stats = defaultdict(dict)
-    print(search_stats)
     for stat in search_stats:
         stats[str(stat["collection_id"])]["search"] = stat["stats"]
     for stat in material_types_stats:

@@ -47,12 +47,15 @@ expected_output_particle_model = {
 @pytest.mark.asyncio
 async def test_overall_stats():
     await connect_to_elastic()
-    # TODO continue here
-    chemistry_node = (
-        "5e3526e1-f943-49e6-8408-e496738665ad"  # "4940d5da-9b21-4ec0-8824-d16e0409e629"
-    )
-    stats = await overall_stats(chemistry_node)
-    assert stats == expected_output_particle_model
+
+    test_node = "9eff0a6c-0f5b-4f92-ac66-3a4f082ac705"  # Biology, cell types
+    stats = await overall_stats(test_node)
+    assert len(stats) == 3
+    first_key_values = stats[list(stats.keys())[0]]
+
+    # assert correct structure
+    assert list(first_key_values.keys()) == ["search", "material_types"]
+    assert list(first_key_values["search"].keys()) == ["total"]
 
 
 def test_build_material_search():
