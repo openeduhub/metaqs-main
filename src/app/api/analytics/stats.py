@@ -210,9 +210,13 @@ async def overall_stats(node_id):
 
     stats = defaultdict(dict)
     # TODO: Howto deep merge these two dictionaries? Basically, materials overwrites search
-    for stat in search_stats:
+    seen_ids = []
+    for stat in search_stats + material_types_stats:
         # stats[str(stat["collection_id"])]["search"] = stat["stats"]
+        print(stat.stats.keys())
+        seen_ids.append(list(stat.stats.keys()))
         stats.update(**stat.stats)
-    for stat in material_types_stats:
-        stats.update(**stat.stats)
+    # for stat in material_types_stats:
+    #     stats.update(**stat.stats)
+    print(seen_ids)
     return stats
