@@ -26,7 +26,7 @@ from app.models import CollectionAttribute
 
 
 def qsimplequerystring(
-    query: str, qfields: list[Union[ElasticField, str]], **kwargs
+        query: str, qfields: list[Union[ElasticField, str]], **kwargs
 ) -> Query:
     kwargs["query"] = query
     kwargs["fields"] = [
@@ -82,7 +82,7 @@ def agg_material_types(size: int = ELASTIC_TOTAL_SIZE) -> Agg:
 
 
 def merge_agg_response(
-    agg: AggResponse, key: str = "key", result_field: str = "doc_count"
+        agg: AggResponse, key: str = "key", result_field: str = "doc_count"
 ) -> dict:
     def op(carry: dict, bucket: dict):
         carry[bucket[key]] = bucket[result_field]
@@ -162,6 +162,8 @@ def query_material_types(node_id: UUID) -> list[StatsResponse]:
     stats = []
 
     counts = global_storage[_COLLECTION_COUNT]
+
+    print("lengths: ", len(counts), len(filtered_collections))
     for collection in filtered_collections:
         for count in counts:
             if str(collection.id) == str(count.noderef_id):
@@ -190,6 +192,7 @@ async def stats_latest(stat_type: StatType, node_id: UUID) -> list[StatsResponse
             results.append(
                 StatsResponse(derived_at=datetime.datetime.now(), stats=stats_value)
             )
+            break
     elif stat_type is StatType.MATERIAL_TYPES:
         results = query_material_types(node_id)
     return results
@@ -208,15 +211,26 @@ async def overall_stats(node_id):
     if not material_types_stats:
         raise StatsNotFoundException
 
-    stats = defaultdict(dict)
     # TODO: Howto deep merge these two dictionaries? Basically, materials overwrites search
     seen_ids = []
+    stats = defaultdict(dict)
+    print("search_stats: ", len(search_stats))
+    print("material_types_stats: ", len(material_types_stats))
+    print("search_stats + material_types_stats: ", len(search_stats + material_types_stats))
     for stat in search_stats + material_types_stats:
         # stats[str(stat["collection_id"])]["search"] = stat["stats"]
-        print(stat.stats.keys())
-        seen_ids.append(list(stat.stats.keys()))
-        stats.update(**stat.stats)
+        stat_id = list(stat.stats.keys())[0]
+        print("stat_id: ", stat_id)
+        if stat_id not in seen_ids:
+            seen_ids.append(stat_id)
+            stats.update(**stat.stats)
+        else:
+            print("stat_id found: ", stat_id)
+            print(stat.stats[stat_id])
+            stats[stat_id].update(stat.stats[stat_id])
+
+        # stats.update(**stat.stats)
     # for stat in material_types_stats:
     #     stats.update(**stat.stats)
-    print(seen_ids)
+    print("seen_ids:", seen_ids)
     return stats

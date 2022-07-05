@@ -58,7 +58,7 @@ expected_output_particle_model = {
 async def test_overall_stats():
     await connect_to_elastic()
 
-    test_node = "9eff0a6c-0f5b-4f92-ac66-3a4f082ac705"  # Biology, cell types
+    test_node = "4940d5da-9b21-4ec0-8824-d16e0409e629"  # Biology, cell types
     stats = await overall_stats(test_node)
     assert len(stats) == 3
     first_key_values = stats[list(stats.keys())[0]]
@@ -147,5 +147,5 @@ def test_query_material_types():
 
         result = query_material_types(dummy_node)
 
-    print(result)
-    assert result != []
+    print(len(result))
+    assert result == []
