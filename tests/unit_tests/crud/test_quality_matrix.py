@@ -34,7 +34,7 @@ async def test_get_properties():
     assert "ccm:author_freetext" in data
     assert len(data) > 150
     data = get_properties(True)
-    assert "cclom:general_title" in data
+    assert "cclom:title" in data
     assert len(data) == 9
 
 
