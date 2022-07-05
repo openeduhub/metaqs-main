@@ -19,6 +19,7 @@ Launch `index.html` in `build` directory
 ## For confluence
 
 WIP: Currently not possible to automatically push to confluence.
+Add token from JIRA.
 
 ```bash
 ./build_confluence.sh
