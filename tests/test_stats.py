@@ -8,6 +8,7 @@ from app.api.analytics.models import Collection
 from app.api.analytics.stats import (
     Row,
     build_material_search,
+    collections_with_missing_properties,
     overall_stats,
     query_material_types,
 )
@@ -151,3 +152,47 @@ def test_query_material_types():
     assert len(result) == 1
     first_value = result[list(result.keys())[0]]
     assert "total" in first_value.keys()
+
+
+def test_collections_with_missing_properties():
+    directory = "tests/unit_tests/resources"
+
+    with open(f"{directory}/test_global.json") as file:
+        global_response = json.load(file)
+
+    dummy_node = uuid.UUID("11bdb8a0-a9f5-4028-becc-cbf8e328dd4b")
+    with mock.patch("app.api.analytics.stats.global_storage") as mocked_global:
+
+        def _get_item(_, key):
+            if key == "collections":
+                return [
+                    Collection(
+                        id=entry["id"],
+                        doc=entry["doc"],
+                        derived_at=entry["derived_at"],
+                    )
+                    for entry in global_response[key]
+                ]
+            if key == "counts":
+                return [
+                    CollectionTreeCount(
+                        noderef_id=entry["noderef_id"],
+                        total=entry["total"],
+                        counts=entry["counts"],
+                    )
+                    for entry in global_response[key]
+                ]
+            return global_response[key]
+
+        mocked_global.__getitem__ = _get_item
+
+        result = collections_with_missing_properties(dummy_node)
+
+    assert len(result) == 1
+    assert result[0].noderef_id == uuid.UUID("f3dc9ea1-d608-4b4e-a78c-98063a3e8461")
+    assert result[0].validation_stats == {
+        "title": ["missing"],
+        "keywords": ["missing"],
+        "description": ["missing"],
+        "edu_context": None,
+    }
