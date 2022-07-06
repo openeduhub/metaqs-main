@@ -4,7 +4,6 @@ from unittest import mock
 
 import pytest
 
-from app.api.analytics.analytics import Statistics
 from app.api.analytics.models import Collection
 from app.api.analytics.stats import (
     build_material_search,
@@ -60,14 +59,45 @@ async def test_overall_stats():
     await connect_to_elastic()
 
     test_node = "4940d5da-9b21-4ec0-8824-d16e0409e629"  # Biology, cell types
-    stats = await overall_stats(test_node)
-    assert len(stats.stats) == 185
-    print(list(stats.stats.keys()))
+
+    directory = "tests/unit_tests/resources"
+    with open(f"{directory}/global_response.json") as file:
+        global_response = json.load(file)
+
+    # TODO: Refactor with wrapper/fixture/decorator
+    with mock.patch("app.api.analytics.stats.global_storage") as mocked_global:
+
+        def _get_item(_, key):
+            if key == "collections":
+                return [
+                    Collection(
+                        id=entry["id"],
+                        doc=json.dumps(entry["doc"]),
+                        derived_at=entry["derived_at"],
+                    )
+                    for entry in global_response[key]
+                ]
+            if key == "counts":
+                return [
+                    CollectionTreeCount(
+                        noderef_id=entry["noderef_id"],
+                        total=entry["total"],
+                        counts=entry["counts"],
+                    )
+                    for entry in global_response[key]
+                ]
+            return global_response[key]
+
+        mocked_global.__getitem__ = _get_item
+
+        stats = await overall_stats(test_node)
+
+    assert len(stats.stats) == 225
     first_key_values = stats.stats[list(stats.stats.keys())[0]]
 
     # assert correct structure
     assert list(first_key_values.keys()) == ["search", "material_types"]
-    #     assert list(first_key_values["search"].keys()) == ["total"]
+    assert "total" in list(first_key_values["search"].keys())
 
 
 def test_build_material_search():
@@ -149,5 +179,6 @@ def test_query_material_types():
 
         result = query_material_types(dummy_node)
 
-    print(len(result))
-    assert result == []
+    assert len(result) == 26
+    first_value = result[list(result.keys())[0]]
+    assert "total" in first_value.keys()

@@ -1,6 +1,5 @@
 import datetime
 import uuid
-from collections import defaultdict
 from dataclasses import dataclass
 from typing import Union
 from uuid import UUID
@@ -10,8 +9,12 @@ from elasticsearch_dsl.query import Q, Query
 from elasticsearch_dsl.response import AggResponse, Response
 from glom import merge
 
-from app.api.analytics.analytics import StatsNotFoundException, StatsResponse, StatType, Statistics, \
-    COUNT_STATISTICS_TYPE
+from app.api.analytics.analytics import (
+    COUNT_STATISTICS_TYPE,
+    StatsNotFoundException,
+    StatsResponse,
+    StatType,
+)
 from app.api.analytics.storage import _COLLECTION_COUNT, _COLLECTIONS, global_storage
 from app.api.collections.descendants import aterms
 from app.api.collections.missing_materials import base_filter
@@ -27,7 +30,7 @@ from app.models import CollectionAttribute
 
 
 def qsimplequerystring(
-        query: str, qfields: list[Union[ElasticField, str]], **kwargs
+    query: str, qfields: list[Union[ElasticField, str]], **kwargs
 ) -> Query:
     kwargs["query"] = query
     kwargs["fields"] = [
@@ -83,7 +86,7 @@ def agg_material_types(size: int = ELASTIC_TOTAL_SIZE) -> Agg:
 
 
 def merge_agg_response(
-        agg: AggResponse, key: str = "key", result_field: str = "doc_count"
+    agg: AggResponse, key: str = "key", result_field: str = "doc_count"
 ) -> dict:
     def op(carry: dict, bucket: dict):
         carry[bucket[key]] = bucket[result_field]
@@ -144,7 +147,7 @@ async def get_ids_to_iterate(node_id: UUID):
     return [Row(id=row[0], title=row[1]) for row in flatten_list(nodes(tree))]
 
 
-def query_material_types(node_id: UUID) -> list[StatsResponse]:
+def query_material_types(node_id: UUID) -> dict[str, COUNT_STATISTICS_TYPE]:
     """
     get collections with parent id equal to node_id
 
@@ -161,27 +164,25 @@ def query_material_types(node_id: UUID) -> list[StatsResponse]:
     collection id - learning_resource_type - counts
     Join filtered collections and filtered counts into one, now
     """
-    stats = []
+    stats = {}
 
     counts = global_storage[_COLLECTION_COUNT]
 
     print("lengths: ", len(counts), len(filtered_collections))
+    # TODO: Refactor with filter and dict comprehension
     for collection in filtered_collections:
         for count in counts:
             if str(collection.id) == str(count.noderef_id):
-                stats_value = {
-                    str(collection.id): {
-                        "material_types": {"total": count.total, **count.counts}
-                    }
-                }
-                stats.append(
-                    StatsResponse(derived_at=datetime.datetime.now(), stats=stats_value)
+                stats.update(
+                    {str(collection.id): {"total": count.total, **count.counts}}
                 )
 
     return stats
 
 
-async def stats_latest(stat_type: StatType, node_id: UUID) -> dict[str, COUNT_STATISTICS_TYPE]:
+async def stats_latest(
+    stat_type: StatType, node_id: UUID
+) -> dict[str, COUNT_STATISTICS_TYPE]:
     results = {}
     all_collection_nodes = await get_ids_to_iterate(node_id)
 
@@ -205,33 +206,15 @@ async def overall_stats(node_id) -> StatsResponse:
     )
 
     if not material_types_stats:
-        pass
-        # raise StatsNotFoundException
+        raise StatsNotFoundException
 
-    # TODO: Howto deep merge these two dictionaries? Basically, materials overwrites search
-    seen_ids = []
-    stats = StatsResponse(derived_at=datetime.datetime.now(), stats={})
-    print("search_stats: ", len(search_stats))
-    print("material_types_stats: ", len(material_types_stats))
-    for key, value in search_stats.items():
-        stats.stats.update({key: {"search": value}})
+    stats_output = {key: {"search": value} for key, value in search_stats.items()}
 
-    return stats
-
-    for stat in material_types_stats:
-        # stats[str(stat["collection_id"])]["search"] = stat["stats"]
-        stat_id = list(stat.stats.keys())[0]
-        print("stat_id: ", stat_id)
-        if stat_id not in seen_ids:
-            seen_ids.append(stat_id)
-            stats.update(**stat.stats)
+    for key, value in material_types_stats.items():
+        if key in stats_output.keys():
+            stats_output[key].update({"material_types": value})
         else:
-            print("stat_id found: ", stat_id)
-            print(stat.stats[stat_id])
-            stats[stat_id].update(stat.stats[stat_id])
+            stats_output.update({key: {"material_types": value}})
 
-        # stats.update(**stat.stats)
-    # for stat in material_types_stats:
-    #     stats.update(**stat.stats)
-    print("seen_ids:", seen_ids)
-    return stats
+    output = StatsResponse(derived_at=datetime.datetime.now(), stats=stats_output)
+    return output

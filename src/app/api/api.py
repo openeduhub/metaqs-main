@@ -1,8 +1,6 @@
 import json
 import uuid
-from datetime import datetime
 from typing import Mapping, Optional
-from uuid import UUID
 
 from databases import Database
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
@@ -95,14 +93,14 @@ _TAG_COLLECTIONS = "Collections"
 
 def node_ids_for_major_collections(
     *,
-    node_id: UUID = Path(
+    node_id: uuid.UUID = Path(
         ...,
         examples={
             "Alle Fachportale": {"value": COLLECTION_ROOT_ID},
             **COLLECTION_NAME_TO_ID,
         },
     ),
-) -> UUID:
+) -> uuid.UUID:
     return node_id
 
 
@@ -211,7 +209,7 @@ async def get_timestamps(
       + field_names_used_for_score_calculation(aggs_material_validation)}`.
     """,
 )
-async def score(*, collection_id: UUID = Depends(collection_id_param)):
+async def score(*, collection_id: uuid.UUID = Depends(collection_id_param)):
     collection_stats = await search_score(
         noderef_id=collection_id, resource_type=ResourceType.COLLECTION
     )
@@ -261,7 +259,7 @@ async def ping_api():
     tags=[_TAG_COLLECTIONS],
 )
 async def get_collection_tree(
-    *, node_id: UUID = Depends(node_ids_for_major_collections)
+    *, node_id: uuid.UUID = Depends(node_ids_for_major_collections)
 ):
     return await collection_tree(node_id)
 
@@ -276,7 +274,7 @@ async def get_collection_tree(
 )
 async def get_collection_counts(
     *,
-    node_id: UUID = Depends(node_ids_for_major_collections),
+    node_id: uuid.UUID = Depends(node_ids_for_major_collections),
     facet: AggregationMappings = Param(
         default=AggregationMappings.lrt,
         examples={key: {"value": key} for key in AggregationMappings},
@@ -299,7 +297,7 @@ async def get_collection_counts(
 )
 async def filter_collections_with_missing_attributes(
     *,
-    node_id: UUID = Depends(node_ids_for_major_collections),
+    node_id: uuid.UUID = Depends(node_ids_for_major_collections),
     missing_attribute: str = Path(
         ...,
         examples={
@@ -320,7 +318,7 @@ async def filter_collections_with_missing_attributes(
 )
 async def filter_materials_with_missing_attributes(
     *,
-    node_id: UUID = Depends(node_ids_for_major_collections),
+    node_id: uuid.UUID = Depends(node_ids_for_major_collections),
     missing_attr_filter: MissingAttributeFilter = Depends(materials_filter_params),
     response_fields: Optional[set[LearningMaterialAttribute]] = Depends(
         material_response_fields
@@ -347,7 +345,7 @@ async def filter_materials_with_missing_attributes(
 )
 async def material_counts_tree(
     *,
-    node_id: UUID = Depends(node_ids_for_major_collections),
+    node_id: uuid.UUID = Depends(node_ids_for_major_collections),
     response: Response,
 ):
     descendant_collections = await get_many_descendants(
@@ -404,13 +402,8 @@ async def material_counts_tree(
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=["Analytics"],
 )
-async def read_stats(*, node_id: UUID = Depends(node_ids_for_major_collections)):
-    stats = await overall_stats(node_id)
-
-    return StatsResponse(
-        derived_at=datetime.fromtimestamp(0),
-        stats=stats,
-    )
+async def read_stats(*, node_id: uuid.UUID = Depends(node_ids_for_major_collections)):
+    return await overall_stats(node_id)
 
 
 @router.get(
@@ -423,7 +416,7 @@ async def read_stats(*, node_id: UUID = Depends(node_ids_for_major_collections))
 )
 async def read_stats_validation_collection(
     *,
-    node_id: UUID = Depends(node_ids_for_major_collections),
+    node_id: uuid.UUID = Depends(node_ids_for_major_collections),
 ):
     stats = await stats_latest(
         stat_type=StatType.VALIDATION_COLLECTIONS, node_id=node_id
@@ -459,7 +452,7 @@ async def read_stats_validation_collection(
 )
 async def read_stats_validation(
     *,
-    node_id: UUID = Depends(node_ids_for_major_collections),
+    node_id: uuid.UUID = Depends(node_ids_for_major_collections),
 ):
     # TODO: See if this can be removed, partially needed in unused components in the frontend
     stats = await stats_latest(stat_type=StatType.VALIDATION_MATERIALS, node_id=node_id)

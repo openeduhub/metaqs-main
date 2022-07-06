@@ -110,17 +110,16 @@ def import_materials(derived_at: datetime):
     seen = set()
     collections = []
     for hit in s.scan():
-        if hit.nodeRef["id"] in seen:
-            continue
-
-        seen.add(hit.nodeRef["id"])
-        collections.append(
-            Collection(
-                id=str(hit.nodeRef["id"]),
-                doc=json.dumps(hit.to_dict()),
-                derived_at=derived_at,
+        node_id = hit.nodeRef["id"]
+        if node_id not in seen:
+            seen.add(node_id)
+            collections.append(
+                Collection(
+                    id=str(node_id),
+                    doc=json.dumps(hit.to_dict()),
+                    derived_at=derived_at,
+                )
             )
-        )
     app.api.analytics.storage.global_storage[_MATERIALS] = collections
 
 
