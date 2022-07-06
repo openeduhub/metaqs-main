@@ -69,7 +69,7 @@ def import_collections(derived_at: datetime):
     s = (
         Search()
         .query(query_collections(ancestor_id=COLLECTION_ROOT_ID))
-        .source(includes=["type", "aspects", "properties.*", "nodeRef.*", "path"])
+        .source(includes=["nodeRef.*", "path"])
     )
 
     seen = set()
@@ -99,9 +99,6 @@ def import_materials(derived_at: datetime):
         .query(query_materials(ancestor_id=COLLECTION_ROOT_ID))
         .source(
             includes=[
-                "type",
-                "aspects",
-                "properties.*",
                 "nodeRef.*",
                 "collections.nodeRef.id",
             ]
@@ -126,28 +123,20 @@ def import_materials(derived_at: datetime):
 
 def run():
     derived_at = datetime.now()
-
     logger.info(f"{os.getpid()}: Starting analytics import at: {derived_at}")
-    print(f"{os.getpid()}: Starting analytics import at: {derived_at}")
 
     import_collections(derived_at=derived_at)
-    print("Collections done in background.")
     import_materials(derived_at=derived_at)
-    print("Materials done in background")
 
     app.api.analytics.storage.global_storage[_COLLECTION_COUNT] = asyncio.run(
         collection_counts(COLLECTION_ROOT_ID, AggregationMappings.lrt)
     )
-    print("Counts done in background")
 
     all_collections = asyncio.run(get_ids_to_iterate(node_id=COLLECTION_ROOT_ID))
-    print("Tree ready to iterate")
-    print("Tree length: ", len(all_collections))
+    print("Tree ready to iterate. Length: ", len(all_collections))
 
-    for i, row in enumerate(all_collections):
-        # Search with shotgun approach through a number of properties if the title of the collection is there
-        stats = search_hits_by_material_type(row.title)
-        app.api.analytics.storage.global_storage[_SEARCH].update({row.id: stats})
-        if i > 20:
-            break
+    # TODO Refactor, this is very expensive
+    app.api.analytics.storage.global_storage[_SEARCH] = {
+        row.id: search_hits_by_material_type(row.title) for row in all_collections
+    }
     print("Background task done")

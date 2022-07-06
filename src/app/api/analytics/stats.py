@@ -100,6 +100,7 @@ def search_hits_by_material_type(collection_title: str) -> dict:
     response: Response = s[:0].execute()
 
     if response.success():
+        # TODO: Clear and cleanu p: what does this do?
         stats = merge_agg_response(response.aggregations.material_types)
         stats["total"] = sum(stats.values())
         return stats
