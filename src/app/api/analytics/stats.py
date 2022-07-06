@@ -10,7 +10,8 @@ from elasticsearch_dsl.query import Q, Query
 from elasticsearch_dsl.response import AggResponse, Response
 from glom import merge
 
-from app.api.analytics.analytics import StatsNotFoundException, StatsResponse, StatType
+from app.api.analytics.analytics import StatsNotFoundException, StatsResponse, StatType, Statistics, \
+    COUNT_STATISTICS_TYPE
 from app.api.analytics.storage import _COLLECTION_COUNT, _COLLECTIONS, global_storage
 from app.api.collections.descendants import aterms
 from app.api.collections.missing_materials import base_filter
@@ -90,8 +91,9 @@ def merge_agg_response(
     return merge(agg.buckets, op=op)
 
 
-def search_hits_by_material_type(query_string: str) -> dict:
-    s = build_material_search(query_string)
+def search_hits_by_material_type(collection_title: str) -> dict:
+    """Title used here to shotgun search for any matches with the title of the material"""
+    s = build_material_search(collection_title)
     response: Response = s[:0].execute()
 
     if response.success():
@@ -179,26 +181,20 @@ def query_material_types(node_id: UUID) -> list[StatsResponse]:
     return stats
 
 
-async def stats_latest(stat_type: StatType, node_id: UUID) -> list[StatsResponse]:
-    results = []
+async def stats_latest(stat_type: StatType, node_id: UUID) -> dict[str, COUNT_STATISTICS_TYPE]:
+    results = {}
     all_collection_nodes = await get_ids_to_iterate(node_id)
 
     if stat_type is StatType.SEARCH:
-        for i, row in enumerate(all_collection_nodes):
-            # TODO: What is the title? What is it used for?
+        for row in all_collection_nodes:
             stats = search_hits_by_material_type(row.title)
-            print("Search stats:", stats)
-            stats_value = {str(row.id): {"search": stats}}
-            results.append(
-                StatsResponse(derived_at=datetime.datetime.now(), stats=stats_value)
-            )
-            break
+            results.update({str(row.id): stats})
     elif stat_type is StatType.MATERIAL_TYPES:
         results = query_material_types(node_id)
     return results
 
 
-async def overall_stats(node_id):
+async def overall_stats(node_id) -> StatsResponse:
     search_stats = await stats_latest(stat_type=StatType.SEARCH, node_id=node_id)
 
     if not search_stats:
@@ -209,15 +205,20 @@ async def overall_stats(node_id):
     )
 
     if not material_types_stats:
-        raise StatsNotFoundException
+        pass
+        # raise StatsNotFoundException
 
     # TODO: Howto deep merge these two dictionaries? Basically, materials overwrites search
     seen_ids = []
-    stats = defaultdict(dict)
+    stats = StatsResponse(derived_at=datetime.datetime.now(), stats={})
     print("search_stats: ", len(search_stats))
     print("material_types_stats: ", len(material_types_stats))
-    print("search_stats + material_types_stats: ", len(search_stats + material_types_stats))
-    for stat in search_stats + material_types_stats:
+    for key, value in search_stats.items():
+        stats.stats.update({key: {"search": value}})
+
+    return stats
+
+    for stat in material_types_stats:
         # stats[str(stat["collection_id"])]["search"] = stat["stats"]
         stat_id = list(stat.stats.keys())[0]
         print("stat_id: ", stat_id)

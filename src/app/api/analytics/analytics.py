@@ -45,6 +45,14 @@ class ResponseModel(BaseModel):
         pass
 
 
+COUNT_STATISTICS_TYPE = dict[str, int]
+
+
+class Statistics(ResponseModel):
+    search: COUNT_STATISTICS_TYPE
+    material_types: COUNT_STATISTICS_TYPE
+
+
 class StatsResponse(ResponseModel):
     derived_at: datetime
     stats: dict[str, dict[str, dict[str, int]]]
