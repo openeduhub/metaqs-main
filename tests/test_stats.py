@@ -6,6 +6,7 @@ import pytest
 
 from app.api.analytics.models import Collection
 from app.api.analytics.stats import (
+    Row,
     build_material_search,
     overall_stats,
     query_material_types,
@@ -18,10 +19,10 @@ from app.elastic.utils import connect_to_elastic
 async def test_overall_stats():
     await connect_to_elastic()
 
-    test_node = "4940d5da-9b21-4ec0-8824-d16e0409e629"  # Biology, cell types
+    test_node = "11bdb8a0-a9f5-4028-becc-cbf8e328dd4b"  # Spanish
 
     directory = "tests/unit_tests/resources"
-    with open(f"{directory}/global_response.json") as file:
+    with open(f"{directory}/test_global.json") as file:
         global_response = json.load(file)
 
     # TODO: Refactor with wrapper/fixture/decorator
@@ -50,9 +51,20 @@ async def test_overall_stats():
 
         mocked_global.__getitem__ = _get_item
 
-        stats = await overall_stats(test_node)
+        with mock.patch(
+            "app.api.analytics.stats.search_hits_by_material_type"
+        ) as mocked_search:
+            with mock.patch("app.api.analytics.stats.get_ids_to_iterate") as mocked_ids:
+                mocked_search.return_value = {"total": 30}
+                mocked_ids.return_value = [
+                    Row(
+                        id=uuid.UUID("f3dc9ea1-d608-4b4e-a78c-98063a3e8461"),
+                        title="test_title",
+                    )
+                ]
+                stats = await overall_stats(test_node)
 
-    assert len(stats.stats) == 225
+    assert len(stats.stats) == 1
     first_key_values = stats.stats[list(stats.stats.keys())[0]]
 
     # assert correct structure
@@ -108,10 +120,10 @@ def test_build_material_search():
 def test_query_material_types():
     directory = "tests/unit_tests/resources"
 
-    with open(f"{directory}/global_response.json") as file:
+    with open(f"{directory}/test_global.json") as file:
         global_response = json.load(file)
 
-    dummy_node = uuid.UUID("77caf20c-36cc-481e-a842-67fc7c56697a")
+    dummy_node = uuid.UUID("11bdb8a0-a9f5-4028-becc-cbf8e328dd4b")
     with mock.patch("app.api.analytics.stats.global_storage") as mocked_global:
 
         def _get_item(_, key):
@@ -139,6 +151,6 @@ def test_query_material_types():
 
         result = query_material_types(dummy_node)
 
-    assert len(result) == 26
+    assert len(result) == 1
     first_value = result[list(result.keys())[0]]
     assert "total" in first_value.keys()

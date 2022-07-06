@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 from datetime import datetime
@@ -41,8 +42,8 @@ async def run_analytics(*, background_tasks: BackgroundTasks):
 
 
 @repeat_every(seconds=60 * 10, logger=logger)
-async def background_task():
-    await run()
+def background_task():
+    run()
 
 
 def query_many(resource_type: ResourceType, ancestor_id: UUID = None) -> Query:
@@ -123,7 +124,7 @@ def import_materials(derived_at: datetime):
     app.api.analytics.storage.global_storage[_MATERIALS] = collections
 
 
-async def run():
+def run():
     derived_at = datetime.now()
 
     logger.info(f"{os.getpid()}: Starting analytics import at: {derived_at}")
@@ -134,12 +135,12 @@ async def run():
     import_materials(derived_at=derived_at)
     print("Materials done in background")
 
-    app.api.analytics.storage.global_storage[
-        _COLLECTION_COUNT
-    ] = await collection_counts(COLLECTION_ROOT_ID, AggregationMappings.lrt)
+    app.api.analytics.storage.global_storage[_COLLECTION_COUNT] = asyncio.run(
+        collection_counts(COLLECTION_ROOT_ID, AggregationMappings.lrt)
+    )
     print("Counts done in background")
 
-    all_collections = await get_ids_to_iterate(node_id=COLLECTION_ROOT_ID)
+    all_collections = asyncio.run(get_ids_to_iterate(node_id=COLLECTION_ROOT_ID))
     print("Tree ready to iterate")
     print("Tree length: ", len(all_collections))
 

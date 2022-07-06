@@ -168,7 +168,6 @@ def query_material_types(node_id: UUID) -> dict[str, COUNT_STATISTICS_TYPE]:
 
     counts = global_storage[_COLLECTION_COUNT]
 
-    print("lengths: ", len(counts), len(filtered_collections))
     # TODO: Refactor with filter and dict comprehension
     for collection in filtered_collections:
         for count in counts:
@@ -176,7 +175,6 @@ def query_material_types(node_id: UUID) -> dict[str, COUNT_STATISTICS_TYPE]:
                 stats.update(
                     {str(collection.id): {"total": count.total, **count.counts}}
                 )
-
     return stats
 
 
