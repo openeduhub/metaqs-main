@@ -12,13 +12,10 @@ from app.api.analytics.stats import (
     query_material_types,
 )
 from app.api.collections.counts import CollectionTreeCount
-from app.elastic.utils import connect_to_elastic
 
 
 @pytest.mark.asyncio
 async def test_overall_stats():
-    await connect_to_elastic()
-
     test_node = "11bdb8a0-a9f5-4028-becc-cbf8e328dd4b"  # Spanish
 
     directory = "tests/unit_tests/resources"
