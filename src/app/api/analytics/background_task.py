@@ -1,5 +1,4 @@
 import asyncio
-import json
 import os
 from datetime import datetime
 from uuid import UUID
@@ -21,7 +20,10 @@ from app.api.analytics.storage import (
 )
 from app.api.collections.counts import AggregationMappings, collection_counts
 from app.api.collections.missing_materials import base_filter
-from app.api.score.models import LearningMaterialAttribute
+from app.api.score.models import (
+    LearningMaterialAttribute,
+    required_collection_properties,
+)
 from app.core.constants import COLLECTION_ROOT_ID
 from app.core.logging import logger
 from app.elastic.dsl import qbool, qterm
@@ -69,7 +71,9 @@ def import_collections(derived_at: datetime):
     s = (
         Search()
         .query(query_collections(ancestor_id=COLLECTION_ROOT_ID))
-        .source(includes=["nodeRef.*", "path"])
+        .source(
+            includes=["nodeRef.*", "path", *list(required_collection_properties.keys())]
+        )
     )
 
     seen = set()
@@ -82,7 +86,7 @@ def import_collections(derived_at: datetime):
         collections.append(
             Collection(
                 id=str(hit.nodeRef["id"]),
-                doc=json.dumps(hit.to_dict()),
+                doc=hit.to_dict(),
                 derived_at=derived_at,
             )
         )
@@ -114,7 +118,7 @@ def import_materials(derived_at: datetime):
             collections.append(
                 Collection(
                     id=str(node_id),
-                    doc=json.dumps(hit.to_dict()),
+                    doc=hit.to_dict(),
                     derived_at=derived_at,
                 )
             )
@@ -126,6 +130,7 @@ def run():
     logger.info(f"{os.getpid()}: Starting analytics import at: {derived_at}")
 
     import_collections(derived_at=derived_at)
+
     import_materials(derived_at=derived_at)
 
     app.api.analytics.storage.global_storage[_COLLECTION_COUNT] = asyncio.run(

@@ -30,7 +30,7 @@ async def test_overall_stats():
                 return [
                     Collection(
                         id=entry["id"],
-                        doc=json.dumps(entry["doc"]),
+                        doc=entry["doc"],
                         derived_at=entry["derived_at"],
                     )
                     for entry in global_response[key]
@@ -128,7 +128,7 @@ def test_query_material_types():
                 return [
                     Collection(
                         id=entry["id"],
-                        doc=json.dumps(entry["doc"]),
+                        doc=entry["doc"],
                         derived_at=entry["derived_at"],
                     )
                     for entry in global_response[key]

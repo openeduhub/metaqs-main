@@ -11,16 +11,22 @@ from glom import merge
 
 from app.api.analytics.analytics import (
     COUNT_STATISTICS_TYPE,
+    CollectionValidationStats,
     StatsNotFoundException,
     StatsResponse,
     StatType,
+    ValidationStatsResponse,
 )
+from app.api.analytics.models import Collection
 from app.api.analytics.storage import _COLLECTION_COUNT, _COLLECTIONS, global_storage
 from app.api.collections.descendants import aterms
 from app.api.collections.missing_materials import base_filter
 from app.api.collections.models import CollectionNode
 from app.api.collections.tree import collection_tree
-from app.api.score.models import LearningMaterialAttribute
+from app.api.score.models import (
+    LearningMaterialAttribute,
+    required_collection_properties,
+)
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.elastic.dsl import qbool, qterm
 from app.elastic.elastic import ResourceType, type_filter
@@ -155,11 +161,7 @@ def query_material_types(node_id: UUID) -> dict[str, COUNT_STATISTICS_TYPE]:
     portal_id == node_id
     """
     collections = global_storage[_COLLECTIONS]
-    filtered_collections = [
-        collection
-        for collection in collections
-        if str(node_id) in collection.doc["path"]
-    ]
+    collections = filtered_collections(collections, node_id)
 
     """
     collection id - learning_resource_type - counts
@@ -170,7 +172,7 @@ def query_material_types(node_id: UUID) -> dict[str, COUNT_STATISTICS_TYPE]:
     counts = global_storage[_COLLECTION_COUNT]
 
     # TODO: Refactor with filter and dict comprehension
-    for collection in filtered_collections:
+    for collection in collections:
         for count in counts:
             if str(collection.id) == str(count.noderef_id):
                 stats.update(
@@ -179,13 +181,21 @@ def query_material_types(node_id: UUID) -> dict[str, COUNT_STATISTICS_TYPE]:
     return stats
 
 
+def filtered_collections(collections: list[Collection], node_id: uuid.UUID):
+    return [
+        collection
+        for collection in collections
+        if str(node_id) in collection.doc["path"]
+    ]
+
+
 async def stats_latest(
     stat_type: StatType, node_id: UUID
 ) -> dict[str, COUNT_STATISTICS_TYPE]:
     results = {}
-    all_collection_nodes = await get_ids_to_iterate(node_id)
 
     if stat_type is StatType.SEARCH:
+        all_collection_nodes = await get_ids_to_iterate(node_id)
         for row in all_collection_nodes:
             stats = search_hits_by_material_type(row.title)
             results.update({str(row.id): stats})
@@ -217,3 +227,38 @@ async def overall_stats(node_id) -> StatsResponse:
 
     output = StatsResponse(derived_at=datetime.datetime.now(), stats=stats_output)
     return output
+
+
+def collections_with_missing_properties(
+    node_id: uuid.UUID,
+) -> list[ValidationStatsResponse[CollectionValidationStats]]:
+    """
+    Check whether any of the following are missing:
+    title, description, keywords, license, taxon_id, edu_context, learning_resource_type, ads_qualifier, object_type
+
+    """
+
+    collections = global_storage[_COLLECTIONS]
+    collections = filtered_collections(collections, node_id)
+
+    missing_properties = {}
+    for collection in collections:
+        missing_properties.update({collection.id: {}})
+        for entry in required_collection_properties.keys():
+            value = {required_collection_properties[entry]: ["missing"]}
+            if (
+                "properties" not in collection.doc.keys()
+                or entry.split(".")[-1] not in collection.doc["properties"].keys()
+            ):
+                missing_properties[collection.id].update(value)
+
+    if not missing_properties:
+        raise StatsNotFoundException
+
+    return [
+        ValidationStatsResponse[CollectionValidationStats](
+            noderef_id=uuid.UUID(key),
+            validation_stats=CollectionValidationStats(**value),
+        )
+        for key, value in missing_properties.items()
+    ]

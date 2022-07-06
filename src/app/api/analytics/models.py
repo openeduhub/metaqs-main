@@ -1,9 +1,9 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Json
+from pydantic import BaseModel
 
 
 class Collection(BaseModel):
     id: str
-    doc: Json
+    doc: dict
     derived_at: datetime

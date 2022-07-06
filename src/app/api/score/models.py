@@ -114,3 +114,16 @@ class ScoreOutput(BaseModel):
     materials: MissingMaterialProperties = Field(
         description="Score for specific material properties"
     )
+
+
+required_collection_properties = {
+    "properties.cclom:title": "title",
+    "properties.cclom:general_description": "description",
+    "properties.cclom:general_keyword": "keywords",
+    "properties.ccm:taxonid": "taxon_id",
+    "properties.ccm:educationalcontext": "license",
+    "properties.ccm:commonlicense_key": "license",
+    "properties.ccm:objecttype": "object_type",
+    "properties.ccm:containsAdvertisement": "ads_qualifier",
+    "properties.cclom:oeh_lrt_aggregated": "learning_resource_type",
+}

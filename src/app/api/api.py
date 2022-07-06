@@ -15,13 +15,16 @@ from app.api.analytics.analytics import (
     CollectionValidationStats,
     MaterialFieldValidation,
     MaterialValidationStats,
-    OehValidationError,
     StatsResponse,
     StatType,
     ValidationStatsResponse,
 )
 from app.api.analytics.background_task import background_router
-from app.api.analytics.stats import overall_stats, stats_latest
+from app.api.analytics.stats import (
+    collections_with_missing_properties,
+    overall_stats,
+    stats_latest,
+)
 from app.api.analytics.storage import global_storage
 from app.api.collections.counts import (
     AggregationMappings,
@@ -418,28 +421,7 @@ async def read_stats_validation_collection(
     *,
     node_id: uuid.UUID = Depends(node_ids_for_major_collections),
 ):
-    stats = await stats_latest(
-        stat_type=StatType.VALIDATION_COLLECTIONS, node_id=node_id
-    )
-
-    if not stats:
-        pass
-        # raise StatsNotFoundException
-
-    response = [
-        ValidationStatsResponse[CollectionValidationStats](
-            noderef_id=stat["collection_id"],
-            validation_stats=CollectionValidationStats(
-                **{
-                    k.lower(): [OehValidationError.MISSING]
-                    for k in stat["missing_fields"]
-                }
-            ),
-        )
-        for stat in stats
-    ]
-
-    return response
+    return collections_with_missing_properties(node_id)
 
 
 @router.get(
