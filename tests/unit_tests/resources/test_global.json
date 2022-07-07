@@ -23,6 +23,9 @@
             "protocol": "workspace"
           },
           "id": "f3dc9ea1-d608-4b4e-a78c-98063a3e8461"
+        },
+        "properties": {
+          "cclom:title": "dummy_title"
         }
       },
       "derived_at": "2022-07-05T16:50:18.789156"

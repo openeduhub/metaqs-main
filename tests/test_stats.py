@@ -191,7 +191,7 @@ def test_collections_with_missing_properties():
     assert len(result) == 1
     assert result[0].noderef_id == uuid.UUID("f3dc9ea1-d608-4b4e-a78c-98063a3e8461")
     assert result[0].validation_stats == {
-        "title": ["missing"],
+        "title": None,
         "keywords": ["missing"],
         "description": ["missing"],
         "edu_context": None,
