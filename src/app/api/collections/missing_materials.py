@@ -1,4 +1,4 @@
-from typing import ClassVar, Optional, Type, TypeVar, Union
+from typing import ClassVar, Optional, Type, TypeVar
 from uuid import UUID
 
 from elasticsearch_dsl import Q
@@ -17,7 +17,7 @@ from app.elastic.elastic import (
 )
 from app.elastic.fields import ElasticField
 from app.elastic.search import Search
-from app.models import _ELASTIC_RESOURCE, CollectionAttribute, ElasticResourceAttribute
+from app.models import _ELASTIC_RESOURCE, ElasticResourceAttribute
 
 _LEARNING_MATERIAL = TypeVar("_LEARNING_MATERIAL")
 
@@ -175,22 +175,8 @@ MissingMaterialField = ElasticField(
 )
 
 
-def qwildcard(qfield: Union[ElasticField, str], value: str) -> Query:
-    if isinstance(qfield, ElasticField):
-        qfield = qfield.path
-    return Q("wildcard", **{qfield: {"value": value}})
-
-
 class MissingAttributeFilter(BaseModel):
     attr: MissingMaterialField
-
-    def __call__(self, query_dict: dict):
-        if self.attr == LearningMaterialAttribute.LICENSES:
-            query_dict["filter"].append(query_missing_material_license())
-        else:
-            query_dict["must_not"] = qwildcard(qfield=self.attr, value="*")
-
-        return query_dict
 
 
 def materials_filter_params(
@@ -209,6 +195,12 @@ base_filter = [
 def missing_attributes_search(
     noderef_id: UUID, missing_attribute: str, max_hits: int
 ) -> Search:
+    if missing_attribute == LearningMaterialAttribute.LICENSES.path:
+        missing_attribute_query = {"filter": query_missing_material_license()}
+    else:
+        missing_attribute_query = {
+            "must_not": Q("wildcard", **{missing_attribute: {"value": "*"}})
+        }
     query = {
         "filter": [*type_filter[ResourceType.MATERIAL]],
         "minimum_should_match": 1,
@@ -216,7 +208,7 @@ def missing_attributes_search(
             qmatch(**{"path": noderef_id}),
             qmatch(**{"nodeRef.id": noderef_id}),
         ],
-        "must_not": Q("wildcard", **{missing_attribute: {"value": "*"}}),
+        **missing_attribute_query,
     }
 
     return (
@@ -227,18 +219,6 @@ def missing_attributes_search(
             :max_hits
         ]
     )
-
-
-all_source_fields: list = [
-    ElasticResourceAttribute.NODEREF_ID,
-    ElasticResourceAttribute.TYPE,
-    ElasticResourceAttribute.NAME,
-    CollectionAttribute.TITLE,
-    ElasticResourceAttribute.KEYWORDS,
-    CollectionAttribute.DESCRIPTION,
-    CollectionAttribute.PATH,
-    CollectionAttribute.PARENT_ID,
-]
 
 
 async def get_many(

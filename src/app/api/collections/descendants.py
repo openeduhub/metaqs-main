@@ -1,3 +1,4 @@
+import uuid
 from itertools import chain
 from typing import Optional, Type, TypeVar, Union
 from uuid import UUID
@@ -12,9 +13,9 @@ from app.api.collections.missing_materials import (
     ElasticResource,
     EmptyStrToNone,
     LearningMaterialAttribute,
-    MissingAttributeFilter,
     base_filter,
 )
+from app.api.collections.utils import all_source_fields
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.elastic.dsl import qbool, qmatch, qterm
 from app.elastic.elastic import ResourceType, type_filter
@@ -211,49 +212,33 @@ class Collection(ResponseModel, CollectionBase):
     pass
 
 
-async def get_many_descendants(
-    ancestor_id: Optional[UUID] = None,
-    missing_attr_filter: Optional[MissingAttributeFilter] = None,
-    max_hits: Optional[int] = ELASTIC_TOTAL_SIZE,
-    source_fields: Optional[set[CollectionAttribute]] = None,
-) -> list[Collection]:
-    search = descendants_search(
-        ancestor_id, max_hits, missing_attr_filter, source_fields
+def descendants_search(node_id: uuid.UUID, max_hits):
+    query = {
+        "filter": [*type_filter[ResourceType.COLLECTION]],
+        "minimum_should_match": 1,
+        "should": [
+            qmatch(**{"path": node_id}),
+            qmatch(**{"nodeRef.id": node_id}),
+        ],
+    }
+    return (
+        Search()
+        .base_filters()
+        .query(qbool(**query))
+        .source(includes=[source.path for source in all_source_fields])[:max_hits]
     )
+
+
+async def get_many_descendants(
+    node_id: Optional[UUID] = None,
+    max_hits: Optional[int] = ELASTIC_TOTAL_SIZE,
+) -> list[Collection]:
+    search = descendants_search(node_id, max_hits)
 
     response = search.execute()
 
     if response.success():
         return [Collection.parse_elastic_hit(hit) for hit in response]
-
-
-def get_many_base_query(
-    resource_type: ResourceType,
-    ancestor_id: Optional[UUID] = None,
-) -> dict:
-    query_dict = {"filter": [*base_filter, *type_filter[resource_type]]}
-
-    if ancestor_id:
-        prefix = "collections." if resource_type == ResourceType.MATERIAL else ""
-        query_dict["should"] = [
-            qmatch(**{f"{prefix}path": ancestor_id}),
-            qmatch(**{f"{prefix}nodeRef.id": ancestor_id}),
-        ]
-        query_dict["minimum_should_match"] = 1
-
-    return query_dict
-
-
-def descendants_search(ancestor_id, max_hits, missing_attr_filter, source_fields):
-    query_dict = get_many_base_query(
-        resource_type=ResourceType.COLLECTION,
-        ancestor_id=ancestor_id,
-    )
-    if missing_attr_filter:
-        query_dict = missing_attr_filter.__call__(query_dict=query_dict)
-    s = Search().query(qbool(**query_dict))
-    search = s.source([source.path for source in source_fields])[:max_hits]
-    return search
 
 
 async def get_material_count_tree(node_id) -> list[CollectionMaterialsCount]:
@@ -264,7 +249,7 @@ async def get_material_count_tree(node_id) -> list[CollectionMaterialsCount]:
     :return:
     """
     descendant_collections = await get_many_descendants(
-        ancestor_id=node_id,
+        node_id=node_id,
         source_fields={
             CollectionAttribute.NODE_ID,
             CollectionAttribute.PATH,

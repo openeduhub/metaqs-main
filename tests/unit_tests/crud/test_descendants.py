@@ -6,10 +6,21 @@ from app.api.collections.descendants import descendants_search
 def test_descendants_search():
     dummy_node = uuid.UUID("f3dc9ea1-d608-4b4e-a78c-98063a3e8461")
     dummy_maximum_hits = 30
-    search = descendants_search(dummy_node, dummy_maximum_hits, "", "")
+    search = descendants_search(dummy_node, dummy_maximum_hits)
 
     assert search.to_dict() == {
-        "_source": [],
+        "_source": {
+            "includes": [
+                "nodeRef.id",
+                "type",
+                "properties.cm:name",
+                "properties.cm:title",
+                "properties.cclom:general_keyword",
+                "properties.cm:description",
+                "path",
+                "parentRef.id",
+            ]
+        },
         "from": 0,
         "query": {
             "bool": {
