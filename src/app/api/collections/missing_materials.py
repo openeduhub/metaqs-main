@@ -222,31 +222,15 @@ def missing_attributes_search(
 
 
 async def get_many(
-    ancestor_id: Optional[UUID] = None,
+    noderef_id: Optional[UUID] = None,
     missing_attr_filter: Optional[MissingAttributeFilter] = None,
-    source_fields: Optional[set[LearningMaterialAttribute]] = None,
-    max_hits: Optional[int] = ELASTIC_TOTAL_SIZE,
 ) -> list[LearningMaterial]:
     search = missing_attributes_search(
-        ancestor_id, missing_attr_filter.attr.value, max_hits
+        noderef_id, missing_attr_filter.attr.value, ELASTIC_TOTAL_SIZE
     )
     response = search.execute()
     if response.success():
         return [LearningMaterial.parse_elastic_hit(hit) for hit in response]
-
-
-async def get_child_materials_with_missing_attributes(
-    noderef_id: UUID,
-    missing_attr_filter: MissingAttributeFilter,
-    source_fields: Optional[set[LearningMaterialAttribute]],
-    max_hits: Optional[int] = ELASTIC_TOTAL_SIZE,
-) -> list[LearningMaterial]:
-    return await get_many(
-        ancestor_id=noderef_id,
-        missing_attr_filter=missing_attr_filter,
-        source_fields=source_fields,
-        max_hits=max_hits,
-    )
 
 
 def filter_response_fields(
@@ -264,9 +248,8 @@ async def get_materials_with_missing_attributes(
 ):
     if response_fields:
         response_fields.add(LearningMaterialAttribute.NODEREF_ID)
-    materials = await get_child_materials_with_missing_attributes(
+    materials = await get_many(
         noderef_id=node_id,
         missing_attr_filter=missing_attr_filter,
-        source_fields=response_fields,
     )
     return filter_response_fields(materials, response_fields=response_fields)
