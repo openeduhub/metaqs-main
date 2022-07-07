@@ -93,6 +93,9 @@
             "protocol": "workspace"
           },
           "id": "263afc5b-6445-4a5a-b014-a77f1db473b9"
+        },
+        "properties": {
+          "ccm:objecttype": "dummy_object_type"
         }
       },
       "derived_at": "2022-07-07T08:51:25.636346"

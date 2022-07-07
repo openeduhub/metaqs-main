@@ -235,29 +235,6 @@ def test_materials_with_missing_properties():
 
     assert len(result) == 1
     assert result[0].noderef_id == uuid.UUID("f3dc9ea1-d608-4b4e-a78c-98063a3e8461")
-    assert result[0].validation_stats == {
-        "title": None,
-        "keywords": None,
-        "description": None,
-        "edu_context": None,
-        "subjects": None,
-        "license": None,
-        "ads_qualifier": ["missing"],
-        "material_type": None,
-        "object_type": None,
-    }
-
-    """
-    MaterialValidationStats(title=MaterialFieldValidation(missing=[UUID('263afc5b-6445-4a5a-b014-a77f1db473b9')],
-    too_short=None, too_few=None, lacks_clarity=None, invalid_spelling=None),
-    keywords=MaterialFieldValidation(missing=[UUID('263afc5b-6445-4a5a-b014-a77f1db473b9')], too_short=None,
-    too_few=None, lacks_clarity=None, invalid_spelling=None),
-    description=MaterialFieldValidation(missing=[UUID('263afc5b-6445-4a5a-b014-a77f1db473b9')], too_short=None,
-    too_few=None, lacks_clarity=None, invalid_spelling=None), edu_context=None, subjects=None,
-    license=MaterialFieldValidation(missing=[UUID('263afc5b-6445-4a5a-b014-a77f1db473b9'),
-    UUID('263afc5b-6445-4a5a-b014-a77f1db473b9')], too_short=None, too_few=None, lacks_clarity=None,
-    invalid_spelling=None), ads_qualifier=MaterialFieldValidation(missing=[UUID('263afc5b-6445-4a5a-b014-a77f1db473b9')]
-    , too_short=None, too_few=None, lacks_clarity=None, invalid_spelling=None), material_type=None,
-    object_type=MaterialFieldValidation(missing=[UUID('263afc5b-6445-4a5a-b014-a77f1db473b9')],
-    too_short=None, too_few=None, lacks_clarity=None, invalid_spelling=None))
-    """
+    dummy_material_node = uuid.UUID("263afc5b-6445-4a5a-b014-a77f1db473b9")
+    assert result[0].validation_stats.ads_qualifier.missing == [dummy_material_node]
+    assert result[0].validation_stats.object_type is None
