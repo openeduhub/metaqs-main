@@ -85,7 +85,7 @@ QUALITY_MATRIX_DESCRIPTION = """Calculation of the quality matrix.
     The user chooses the node id in the editorial environment (german: Redaktionsumgebung) in the "Fach" selection.
     """
 
-TAG_STATISTICS = "Statistics"
+_TAG_STATISTICS = "Statistics"
 _TAG_COLLECTIONS = "Collections"
 
 
@@ -107,7 +107,7 @@ def node_ids_for_major_collections(
     status_code=HTTP_200_OK,
     response_model=list[ColumnOutputModel],
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
-    tags=[TAG_STATISTICS],
+    tags=[_TAG_STATISTICS],
     description=QUALITY_MATRIX_DESCRIPTION,
 )
 async def get_quality(
@@ -146,7 +146,7 @@ async def get_quality(
     status_code=HTTP_200_OK,
     response_model=list[ColumnOutputModel],
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
-    tags=[TAG_STATISTICS],
+    tags=[_TAG_STATISTICS],
     description="""An unix timestamp in integer seconds since epoch yields the quality matrix at the respective date.""",
 )
 async def get_past_quality_matrix(
@@ -175,7 +175,7 @@ async def get_past_quality_matrix(
             "description": "Timestamps of old quality matrix results not determinable"
         }
     },
-    tags=[TAG_STATISTICS],
+    tags=[_TAG_STATISTICS],
     description="""Return timestamps in seconds since epoch of past calculations of the quality matrix.
     Additional parameters:
         form: The desired form of quality. This is used to query only the relevant type of data.""",
@@ -313,7 +313,7 @@ async def filter_collections_with_missing_attributes(
     response_model_exclude_unset=True,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=[TAG_STATISTICS],
+    tags=[_TAG_COLLECTIONS],
     description="""A list of missing entries for different types of materials by subcollection.
     Searches for materials with one of the following properties being empty or missing: """
     + f"{', '.join([entry.value for entry in missing_attribute_filter])}.",
@@ -336,7 +336,7 @@ async def filter_materials_with_missing_attributes(
     response_model=list[CollectionMaterialsCount],
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=[TAG_STATISTICS],
+    tags=[_TAG_STATISTICS],
     description="""Returns the number of materials connected to all collections
     below this 'node_id' as a flat list.""",
 )
@@ -351,7 +351,7 @@ async def material_counts_tree(
     response_model=StatsResponse,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=[TAG_STATISTICS],
+    tags=[_TAG_STATISTICS],
     description=f"""
     Returns the number of materials found connected to the this collection's 'node_id' and its sub
     collections as well as materials containing the name of the respective collection, e.g., in the title.
@@ -369,7 +369,7 @@ async def read_stats(*, node_id: uuid.UUID = Depends(node_ids_for_major_collecti
     response_model_exclude_unset=True,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=[TAG_STATISTICS],
+    tags=[_TAG_STATISTICS],
     description=f"""
     Returns the number of collections missing certain properties for this collection's 'node_id' and its sub
     collections. It relies on background data and is read every {BACKGROUND_TASK_TIME_INTERVAL}s.
@@ -388,7 +388,7 @@ async def read_stats_validation_collection(
     response_model_exclude_unset=True,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=[TAG_STATISTICS],
+    tags=[_TAG_STATISTICS],
     description="""
     Returns the number of materials missing certain properties for this collection's 'node_id' and its sub collections.
 

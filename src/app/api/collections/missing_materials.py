@@ -206,23 +206,6 @@ base_filter = [
 ]
 
 
-def get_many_base_query(
-    resource_type: ResourceType,
-    ancestor_id: Optional[UUID] = None,
-) -> dict:
-    query_dict = {"filter": [*base_filter, *type_filter[resource_type]]}
-
-    if ancestor_id:
-        prefix = "collections." if resource_type == ResourceType.MATERIAL else ""
-        query_dict["should"] = [
-            qmatch(**{f"{prefix}path": ancestor_id}),
-            qmatch(**{f"{prefix}nodeRef.id": ancestor_id}),
-        ]
-        query_dict["minimum_should_match"] = 1
-
-    return query_dict
-
-
 def missing_attributes_search(
     noderef_id: UUID, missing_attribute: str, max_hits: int
 ) -> Search:
@@ -258,58 +241,12 @@ all_source_fields: list = [
 ]
 
 
-def missing_materials_search(
-    noderef_id: UUID,
-    missing_attr_filter: Optional[MissingAttributeFilter],
-    max_hits: Optional[int] = ELASTIC_TOTAL_SIZE,
-):
-    print(missing_attr_filter)
-    print(missing_attr_filter.attr)
-    # # TODO: Why is there collections. in the match?
-    # query = {
-    #     "filter": [*type_filter[ResourceType.MATERIAL]],
-    #     "minimum_should_match": 1,
-    #     "should": [
-    #         qmatch(**{"collections.path": noderef_id}),
-    #         qmatch(**{"collections.nodeRef.id": noderef_id}),
-    #     ],
-    #     "must_not": Q("wildcard", **{missing_attr_filter.attr: {"value": "*"}}),
-    # }
-    #
-    # return (
-    #     Search()
-    #     .base_filters()
-    #     .query(qbool(**query))
-    #     .source(includes=[source.path for source in all_source_fields])[:max_hits]
-    # )
-    query_dict = get_many_base_query(
-        resource_type=ResourceType.MATERIAL,
-        ancestor_id=noderef_id,
-    )
-    if missing_attr_filter:
-        query_dict = missing_attr_filter.__call__(query_dict=query_dict)
-    s = Search().query(qbool(**query_dict))
-    all_source_fields_old = [
-        (field.path if isinstance(field, ElasticField) else field)
-        for field in LearningMaterial.source_fields
-    ]
-    search = s.source(all_source_fields_old)[:max_hits]
-    return search
-
-
 async def get_many(
     ancestor_id: Optional[UUID] = None,
     missing_attr_filter: Optional[MissingAttributeFilter] = None,
     source_fields: Optional[set[LearningMaterialAttribute]] = None,
     max_hits: Optional[int] = ELASTIC_TOTAL_SIZE,
 ) -> list[LearningMaterial]:
-    search = missing_materials_search(
-        ancestor_id, missing_attr_filter, max_hits=max_hits
-    )
-
-    print(search.to_dict())
-    response = search.execute()
-    print(response)
     search = missing_attributes_search(
         ancestor_id, missing_attr_filter.attr.value, max_hits
     )
