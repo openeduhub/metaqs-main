@@ -8,7 +8,6 @@ from fastapi.params import Param
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from starlette.requests import Request
-from starlette.responses import Response
 from starlette.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
 from app.api.analytics.analytics import (
@@ -31,8 +30,7 @@ from app.api.collections.counts import (
 )
 from app.api.collections.descendants import (
     CollectionMaterialsCount,
-    get_many_descendants,
-    material_counts_by_descendant,
+    get_material_count_tree,
 )
 from app.api.collections.missing_attributes import (
     collections_with_missing_attributes,
@@ -41,8 +39,7 @@ from app.api.collections.missing_attributes import (
 from app.api.collections.missing_materials import (
     LearningMaterial,
     MissingAttributeFilter,
-    filter_response_fields,
-    get_child_materials_with_missing_attributes,
+    get_materials_with_missing_attributes,
     material_response_fields,
     materials_filter_params,
 )
@@ -63,10 +60,9 @@ from app.api.score.score import (
     field_names_used_for_score_calculation,
     search_score,
 )
-from app.core.config import BACKGROUND_TASK_TIME_INTERVAL
+from app.core.config import API_DEBUG, BACKGROUND_TASK_TIME_INTERVAL
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.elastic.elastic import ResourceType
-from app.models import CollectionAttribute
 
 
 def get_database(request: Request) -> Database:
@@ -259,6 +255,7 @@ async def ping_api():
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=[_TAG_COLLECTIONS],
+    description="Returns the tree of collections.",
 )
 async def get_collection_tree(
     *, node_id: uuid.UUID = Depends(node_ids_for_major_collections)
@@ -316,7 +313,10 @@ async def filter_collections_with_missing_attributes(
     response_model_exclude_unset=True,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=["Materials"],
+    tags=[TAG_STATISTICS],
+    description="""A list of missing entries for different types of materials by subcollection.
+    Searches for materials with one of the following properties being empty or missing: """
+    + f"{', '.join([entry.value for entry in missing_attribute_filter])}.",
 )
 async def filter_materials_with_missing_attributes(
     *,
@@ -326,16 +326,9 @@ async def filter_materials_with_missing_attributes(
         material_response_fields
     ),
 ):
-    if response_fields:
-        response_fields.add(LearningMaterialAttribute.NODEREF_ID)
-
-    materials = await get_child_materials_with_missing_attributes(
-        noderef_id=node_id,
-        missing_attr_filter=missing_attr_filter,
-        source_fields=response_fields,
+    return await get_materials_with_missing_attributes(
+        missing_attr_filter, node_id, response_fields
     )
-
-    return filter_response_fields(materials, response_fields=response_fields)
 
 
 @router.get(
@@ -343,58 +336,14 @@ async def filter_materials_with_missing_attributes(
     response_model=list[CollectionMaterialsCount],
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=["Statistics"],
+    tags=[TAG_STATISTICS],
+    description="""Returns the number of materials connected to all collections
+    below this 'node_id' as a flat list.""",
 )
 async def material_counts_tree(
-    *,
-    node_id: uuid.UUID = Depends(node_ids_for_major_collections),
-    response: Response,
+    *, node_id: uuid.UUID = Depends(node_ids_for_major_collections)
 ):
-    descendant_collections = await get_many_descendants(
-        ancestor_id=node_id,
-        source_fields={
-            CollectionAttribute.NODE_ID,
-            CollectionAttribute.PATH,
-            CollectionAttribute.TITLE,
-        },
-    )
-    materials_counts = await material_counts_by_descendant(
-        ancestor_id=node_id,
-    )
-
-    descendant_collections = {
-        collection.noderef_id: collection.title for collection in descendant_collections
-    }
-    stats = []
-    errors = []
-    for record in materials_counts.results:
-        try:
-            title = descendant_collections.pop(record.noderef_id)
-        except KeyError:
-            errors.append(record.noderef_id)
-            continue
-
-        stats.append(
-            CollectionMaterialsCount(
-                noderef_id=record.noderef_id,
-                title=title,
-                materials_count=record.materials_count,
-            )
-        )
-
-    stats = [
-        *[
-            CollectionMaterialsCount(
-                noderef_id=noderef_id,
-                title=title,
-                materials_count=0,
-            )
-            for (noderef_id, title) in descendant_collections.items()
-        ],
-        *stats,
-    ]
-
-    return stats
+    return await get_material_count_tree(node_id)
 
 
 @router.get(
@@ -402,7 +351,7 @@ async def material_counts_tree(
     response_model=StatsResponse,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=["Analytics"],
+    tags=[TAG_STATISTICS],
     description=f"""
     Returns the number of materials found connected to the this collection's 'node_id' and its sub
     collections as well as materials containing the name of the respective collection, e.g., in the title.
@@ -420,7 +369,7 @@ async def read_stats(*, node_id: uuid.UUID = Depends(node_ids_for_major_collecti
     response_model_exclude_unset=True,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=["Analytics"],
+    tags=[TAG_STATISTICS],
     description=f"""
     Returns the number of collections missing certain properties for this collection's 'node_id' and its sub
     collections. It relies on background data and is read every {BACKGROUND_TASK_TIME_INTERVAL}s.
@@ -439,14 +388,14 @@ async def read_stats_validation_collection(
     response_model_exclude_unset=True,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=["Analytics"],
-    description=f"""
+    tags=[TAG_STATISTICS],
+    description="""
     Returns the number of materials missing certain properties for this collection's 'node_id' and its sub collections.
 
     This endpoint is similar to '/analytics/node_id/validation/collections', but instead of showing missing
-    properties in collections, it counts the materials inside each collection that are missing that property.
-    It relies on background data and is read every {BACKGROUND_TASK_TIME_INTERVAL}s.
-    This is the granularity of the data.""",
+    properties in collections, it counts the materials inside each collection that are missing that property."""
+    + f"It relies on background data and is read every {BACKGROUND_TASK_TIME_INTERVAL}s. "
+    + "This is the granularity of the data.",
 )
 async def read_stats_validation(
     *,
@@ -455,8 +404,11 @@ async def read_stats_validation(
     return materials_with_missing_properties(node_id)
 
 
-@router.get(
-    "/global",
-)
-async def get_global():
-    return global_storage
+if API_DEBUG:
+
+    @router.get(
+        "/global",
+        description="""A debug endpoint to access the data stored inside the global storage.""",
+    )
+    async def get_global():
+        return global_storage

@@ -25,6 +25,24 @@ from app.elastic.utils import handle_text_field
 from app.models import ElasticResourceAttribute
 
 
+class _CollectionAttribute(ElasticField):
+    TITLE = ("properties.cm:title", ElasticFieldType.TEXT)
+    DESCRIPTION = ("properties.cm:description", ElasticFieldType.TEXT)
+    PATH = ("path", ElasticFieldType.KEYWORD)
+    PARENT_ID = ("parentRef.id", ElasticFieldType.KEYWORD)
+    NODE_ID = ("nodeRef.id", ElasticFieldType.KEYWORD)
+
+
+# TODO Remove duplicate
+CollectionAttribute = ElasticField(
+    "CollectionAttribute",
+    [
+        (f.name, (f.value, f.field_type))
+        for f in chain(ElasticResourceAttribute, _CollectionAttribute)
+    ],
+)
+
+
 class ResponseConfig:
     allow_population_by_field_name = True
     extra = Extra.ignore
@@ -133,21 +151,6 @@ async def material_counts_by_descendant(
         return DescendantCollectionsMaterialsCounts.parse_elastic_response(response)
 
 
-class _CollectionAttribute(ElasticField):
-    TITLE = ("properties.cm:title", ElasticFieldType.TEXT)
-    DESCRIPTION = ("properties.cm:description", ElasticFieldType.TEXT)
-    PATH = ("path", ElasticFieldType.KEYWORD)
-    PARENT_ID = ("parentRef.id", ElasticFieldType.KEYWORD)
-
-
-CollectionAttribute = ElasticField(
-    "CollectionAttribute",
-    [
-        (f.name, (f.value, f.field_type))
-        for f in chain(ElasticResourceAttribute, _CollectionAttribute)
-    ],
-)
-
 _COLLECTION = TypeVar("_COLLECTION")
 
 
@@ -229,3 +232,52 @@ async def get_many_descendants(
 
     if response.success():
         return [Collection.parse_elastic_hit(hit) for hit in response]
+
+
+async def get_material_count_tree(node_id) -> list[CollectionMaterialsCount]:
+    """
+    TODO: Refactor this function, it is very unclear to me
+
+    :param node_id:
+    :return:
+    """
+    descendant_collections = await get_many_descendants(
+        ancestor_id=node_id,
+        source_fields={
+            CollectionAttribute.NODE_ID,
+            CollectionAttribute.PATH,
+            CollectionAttribute.TITLE,
+        },
+    )
+    materials_counts = await material_counts_by_descendant(
+        ancestor_id=node_id,
+    )
+    descendant_collections = {
+        collection.noderef_id: collection.title for collection in descendant_collections
+    }
+    stats = []
+    for record in materials_counts.results:
+        try:
+            title = descendant_collections.pop(record.noderef_id)
+        except KeyError:
+            continue
+
+        stats.append(
+            CollectionMaterialsCount(
+                noderef_id=record.noderef_id,
+                title=title,
+                materials_count=record.materials_count,
+            )
+        )
+    stats = [
+        *[
+            CollectionMaterialsCount(
+                noderef_id=noderef_id,
+                title=title,
+                materials_count=0,
+            )
+            for (noderef_id, title) in descendant_collections.items()
+        ],
+        *stats,
+    ]
+    return stats

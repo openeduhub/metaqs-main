@@ -32,14 +32,10 @@ from app.elastic.elastic import ResourceType, type_filter
 from app.elastic.search import Search
 from app.models import CollectionAttribute
 
-background_router = APIRouter()
+background_router = APIRouter(tags=["Background"])
 
 
-@background_router.post(
-    "/run-analytics",
-    status_code=HTTP_202_ACCEPTED,
-    tags=["Background Tasks", "Authenticated"],
-)
+@background_router.post("/run-analytics", status_code=HTTP_202_ACCEPTED)
 async def run_analytics(*, background_tasks: BackgroundTasks):
     background_tasks.add_task(run)
 

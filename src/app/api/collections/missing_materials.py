@@ -1,4 +1,3 @@
-from itertools import chain
 from typing import ClassVar, Optional, Type, TypeVar, Union
 from uuid import UUID
 
@@ -8,6 +7,7 @@ from glom import Coalesce, Iter, glom
 from pydantic import BaseModel, Extra
 from pydantic.validators import str_validator
 
+from app.api.score.models import LearningMaterialAttribute
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.elastic.dsl import qbool, qmatch, qterm
 from app.elastic.elastic import (
@@ -15,46 +15,11 @@ from app.elastic.elastic import (
     query_missing_material_license,
     type_filter,
 )
-from app.elastic.fields import ElasticField, ElasticFieldType
+from app.elastic.fields import ElasticField
 from app.elastic.search import Search
 from app.models import _ELASTIC_RESOURCE, CollectionAttribute, ElasticResourceAttribute
 
 _LEARNING_MATERIAL = TypeVar("_LEARNING_MATERIAL")
-
-
-class _LearningMaterialAttribute(ElasticField):
-    TITLE = ("properties.cclom:title", ElasticFieldType.TEXT)
-    SUBJECTS = ("properties.ccm:taxonid", ElasticFieldType.TEXT)
-    SUBJECTS_DE = ("i18n.de_DE.ccm:taxonid", ElasticFieldType.TEXT)
-    WWW_URL = ("properties.ccm:wwwurl", ElasticFieldType.TEXT)
-    DESCRIPTION = ("properties.cclom:general_description", ElasticFieldType.TEXT)
-    LICENSES = ("properties.ccm:commonlicense_key", ElasticFieldType.TEXT)
-    COLLECTION_NODEREF_ID = ("collections.nodeRef.id", ElasticFieldType.TEXT)
-    COLLECTION_PATH = ("collections.path", ElasticFieldType.TEXT)
-    CONTENT_FULLTEXT = ("content.fulltext", ElasticFieldType.TEXT)
-    LEARNINGRESOURCE_TYPE = (
-        "properties.ccm:oeh_lrt_aggregated",
-        ElasticFieldType.TEXT,
-    )
-    LEARNINGRESOURCE_TYPE_DE = (
-        "i18n.de_DE.ccm:oeh_lrt_aggregated",
-        ElasticFieldType.TEXT,
-    )
-    EDUENDUSERROLE_DE = (
-        "i18n.de_DE.ccm:educationalintendedenduserrole",
-        ElasticFieldType.TEXT,
-    )
-    CONTAINS_ADS = ("properties.ccm:containsAdvertisement", ElasticFieldType.TEXT)
-    OBJECT_TYPE = ("properties.ccm:objecttype", ElasticFieldType.TEXT)
-
-
-LearningMaterialAttribute = ElasticField(
-    "LearningMaterialAttribute",
-    [
-        (f.name, (f.value, f.field_type))
-        for f in chain(ElasticResourceAttribute, _LearningMaterialAttribute)
-    ],
-)
 
 
 def empty_to_none(v: str) -> Optional[str]:
@@ -375,3 +340,16 @@ def filter_response_fields(
             i.copy(include={f.name.lower() for f in response_fields}) for i in items
         ]
     return items
+
+
+async def get_materials_with_missing_attributes(
+    missing_attr_filter, node_id, response_fields
+):
+    if response_fields:
+        response_fields.add(LearningMaterialAttribute.NODEREF_ID)
+    materials = await get_child_materials_with_missing_attributes(
+        noderef_id=node_id,
+        missing_attr_filter=missing_attr_filter,
+        source_fields=response_fields,
+    )
+    return filter_response_fields(materials, response_fields=response_fields)
