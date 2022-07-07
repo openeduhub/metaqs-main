@@ -63,6 +63,7 @@ from app.api.score.score import (
     field_names_used_for_score_calculation,
     search_score,
 )
+from app.core.config import BACKGROUND_TASK_TIME_INTERVAL
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.elastic.elastic import ResourceType
 from app.models import CollectionAttribute
@@ -402,6 +403,12 @@ async def material_counts_tree(
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=["Analytics"],
+    description=f"""
+    Returns the number of materials found connected to the this collection's 'node_id' and its sub
+    collections as well as materials containing the name of the respective collection, e.g., in the title.
+    It is therefore an overview of materials, which could be added to a collection in the future.
+    It relies on background data and is read every {BACKGROUND_TASK_TIME_INTERVAL}s.
+    This is the granularity of the data.""",
 )
 async def read_stats(*, node_id: uuid.UUID = Depends(node_ids_for_major_collections)):
     return await overall_stats(node_id)
@@ -414,6 +421,10 @@ async def read_stats(*, node_id: uuid.UUID = Depends(node_ids_for_major_collecti
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=["Analytics"],
+    description=f"""
+    Returns the number of collections missing certain properties for this collection's 'node_id' and its sub
+    collections. It relies on background data and is read every {BACKGROUND_TASK_TIME_INTERVAL}s.
+    This is the granularity of the data.""",
 )
 async def read_stats_validation_collection(
     *,
@@ -429,6 +440,13 @@ async def read_stats_validation_collection(
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=["Analytics"],
+    description=f"""
+    Returns the number of materials missing certain properties for this collection's 'node_id' and its sub collections.
+
+    This endpoint is similar to '/analytics/node_id/validation/collections', but instead of showing missing
+    properties in collections, it counts the materials inside each collection that are missing that property.
+    It relies on background data and is read every {BACKGROUND_TASK_TIME_INTERVAL}s.
+    This is the granularity of the data.""",
 )
 async def read_stats_validation(
     *,

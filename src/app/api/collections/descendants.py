@@ -222,9 +222,9 @@ async def get_many_descendants(
     if missing_attr_filter:
         query_dict = missing_attr_filter.__call__(query_dict=query_dict)
     s = Search().query(qbool(**query_dict))
-    print(source_fields)
+
     search = s.source([source.path for source in source_fields])[:max_hits]
-    print(search.to_dict())
+
     response = search.execute()
 
     if response.success():

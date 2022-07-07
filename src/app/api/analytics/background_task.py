@@ -24,6 +24,7 @@ from app.api.score.models import (
     LearningMaterialAttribute,
     required_collection_properties,
 )
+from app.core.config import BACKGROUND_TASK_TIME_INTERVAL
 from app.core.constants import COLLECTION_ROOT_ID
 from app.core.logging import logger
 from app.elastic.dsl import qbool, qterm
@@ -43,7 +44,7 @@ async def run_analytics(*, background_tasks: BackgroundTasks):
     background_tasks.add_task(run)
 
 
-@repeat_every(seconds=60 * 10, logger=logger)
+@repeat_every(seconds=BACKGROUND_TASK_TIME_INTERVAL, logger=logger)
 def background_task():
     run()
 

@@ -17,3 +17,5 @@ MIN_CONNECTIONS_COUNT = int(os.getenv("MIN_CONNECTIONS_COUNT", 10))
 ELASTIC_INDEX = "workspace"
 ELASTIC_TOTAL_SIZE = 500_000  # Maximum number of entries elasticsearch queries, very large to query all entries
 ELASTICSEARCH_TIMEOUT = int(os.getenv("ELASTICSEARCH_TIMEOUT", 20))
+
+BACKGROUND_TASK_TIME_INTERVAL = 10 * 60  # Time between consecutive background calls
