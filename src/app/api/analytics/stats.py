@@ -12,13 +12,19 @@ from glom import merge
 from app.api.analytics.analytics import (
     COUNT_STATISTICS_TYPE,
     CollectionValidationStats,
+    MaterialValidationStats,
     StatsNotFoundException,
     StatsResponse,
     StatType,
     ValidationStatsResponse,
 )
 from app.api.analytics.models import Collection
-from app.api.analytics.storage import _COLLECTION_COUNT, _COLLECTIONS, global_storage
+from app.api.analytics.storage import (
+    _COLLECTION_COUNT,
+    _COLLECTIONS,
+    _MATERIALS,
+    global_storage,
+)
 from app.api.collections.descendants import aterms
 from app.api.collections.missing_materials import base_filter
 from app.api.collections.models import CollectionNode
@@ -259,6 +265,60 @@ def collections_with_missing_properties(
         ValidationStatsResponse[CollectionValidationStats](
             noderef_id=uuid.UUID(key),
             validation_stats=CollectionValidationStats(**value),
+        )
+        for key, value in missing_properties.items()
+    ]
+
+
+def materials_with_missing_properties(
+    node_id,
+) -> list[ValidationStatsResponse[MaterialValidationStats]]:
+    """
+    Returns the number of materials missing certain properties for this collection node_id and its sub collections
+
+    Similar to collections_with_missing_properties, but counting the underlying materials missing that property
+
+    :param node_id:
+    :return:
+    """
+
+    collections: list[Collection] = global_storage[_COLLECTIONS]
+    collections = filtered_collections(collections, node_id)
+
+    materials: list[Collection] = global_storage[_MATERIALS]
+    # find materials belonging to each collection
+    # check whether they are missing the required properties
+    # if so, add them as a list to validation stats
+    # materials = filtered_collections(collections, node_id)
+    missing_properties = {}
+    for collection in collections:
+        missing_properties.update({collection.id: {}})
+        for material in materials:
+            if material.doc["collections"][0]["nodeRef"]["id"] == collection.id:
+                # check if property is present
+                # if not, add the respective material id to the "missing" field of this property
+                for entry in required_collection_properties.keys():
+                    if (
+                        "properties" not in material.doc.keys()
+                        or entry.split(".")[-1] not in material.doc["properties"].keys()
+                    ):
+                        entry_key = required_collection_properties[entry]
+                        if entry_key not in missing_properties[collection.id].keys():
+                            missing_properties[collection.id].update(
+                                {entry_key: {"missing": []}}
+                            )
+
+                        missing_properties[collection.id][entry_key]["missing"].append(
+                            material.id
+                        )
+
+    if not missing_properties:
+        raise StatsNotFoundException
+
+    return [
+        ValidationStatsResponse[MaterialValidationStats](
+            noderef_id=uuid.UUID(key),
+            validation_stats=MaterialValidationStats(**value),
         )
         for key, value in missing_properties.items()
     ]

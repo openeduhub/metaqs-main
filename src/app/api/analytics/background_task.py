@@ -105,6 +105,7 @@ def import_materials(derived_at: datetime):
             includes=[
                 "nodeRef.*",
                 "collections.nodeRef.id",
+                *list(required_collection_properties.keys()),
             ]
         )
     )
@@ -132,6 +133,8 @@ def run():
     import_collections(derived_at=derived_at)
 
     import_materials(derived_at=derived_at)
+
+    print("Collection and materials imported")
 
     app.api.analytics.storage.global_storage[_COLLECTION_COUNT] = asyncio.run(
         collection_counts(COLLECTION_ROOT_ID, AggregationMappings.lrt)
