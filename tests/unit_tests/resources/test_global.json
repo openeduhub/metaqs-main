@@ -75,5 +75,27 @@
         "http://w3id.org/openeduhub/vocabs/new_lrt_aggregated/d0c115e4-848d-4aea-8e31-23869e9add3e": 1
       }
     }
+  ],
+  "materials": [
+    {
+      "id": "263afc5b-6445-4a5a-b014-a77f1db473b9",
+      "doc": {
+        "collections": [
+          {
+            "nodeRef": {
+              "id": "f3dc9ea1-d608-4b4e-a78c-98063a3e8461"
+            }
+          }
+        ],
+        "nodeRef": {
+          "storeRef": {
+            "identifier": "SpacesStore",
+            "protocol": "workspace"
+          },
+          "id": "263afc5b-6445-4a5a-b014-a77f1db473b9"
+        }
+      },
+      "derived_at": "2022-07-07T08:51:25.636346"
+    }
   ]
 }
