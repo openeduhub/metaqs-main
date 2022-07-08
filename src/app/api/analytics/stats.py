@@ -26,7 +26,6 @@ from app.api.analytics.storage import (
     global_storage,
 )
 from app.api.collections.descendants import aterms
-from app.api.collections.missing_materials import base_filter
 from app.api.collections.models import CollectionNode
 from app.api.collections.tree import collection_tree
 from app.api.score.models import (
@@ -34,11 +33,9 @@ from app.api.score.models import (
     required_collection_properties,
 )
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.elastic.dsl import qbool, qterm
-from app.elastic.elastic import ResourceType, type_filter
+from app.elastic.elastic import query_materials
 from app.elastic.fields import ElasticField
 from app.elastic.search import Search
-from app.models import CollectionAttribute
 
 
 def qsimplequerystring(
@@ -67,25 +64,6 @@ def search_materials(query_str: str) -> Query:
         ],
         default_operator="and",
     )
-
-
-def query_many(resource_type: ResourceType, ancestor_id: UUID = None) -> Query:
-    qfilter = [*base_filter, *type_filter[resource_type]]
-    if ancestor_id:
-        if resource_type is ResourceType.COLLECTION:
-            qfilter.append(qterm(qfield=CollectionAttribute.PATH, value=ancestor_id))
-        elif resource_type is ResourceType.MATERIAL:
-            qfilter.append(
-                qterm(
-                    qfield=LearningMaterialAttribute.COLLECTION_PATH, value=ancestor_id
-                )
-            )
-
-    return qbool(filter=qfilter)
-
-
-def query_materials(ancestor_id: UUID = None) -> Query:
-    return query_many(ResourceType.MATERIAL, ancestor_id=ancestor_id)
 
 
 def agg_material_types(size: int = ELASTIC_TOTAL_SIZE) -> Agg:
@@ -119,7 +97,12 @@ def search_hits_by_material_type(collection_title: str) -> dict:
 
 
 def build_material_search(query_string: str):
-    s = Search().query(query_materials()).query(search_materials(query_string))
+    s = (
+        Search()
+        .base_filters()
+        .query(query_materials())
+        .query(search_materials(query_string))
+    )
     s.aggs.bucket("material_types", agg_material_types())
     return s
 

@@ -1,9 +1,7 @@
 import asyncio
 import os
 from datetime import datetime
-from uuid import UUID
 
-from elasticsearch_dsl.query import Query
 from fastapi import APIRouter
 from fastapi_utils.tasks import repeat_every
 from starlette.background import BackgroundTasks
@@ -19,18 +17,12 @@ from app.api.analytics.storage import (
     _SEARCH,
 )
 from app.api.collections.counts import AggregationMappings, collection_counts
-from app.api.collections.missing_materials import base_filter
-from app.api.score.models import (
-    LearningMaterialAttribute,
-    required_collection_properties,
-)
+from app.api.score.models import required_collection_properties
 from app.core.config import BACKGROUND_TASK_TIME_INTERVAL
 from app.core.constants import COLLECTION_ROOT_ID
 from app.core.logging import logger
-from app.elastic.dsl import qbool, qterm
-from app.elastic.elastic import ResourceType, type_filter
+from app.elastic.elastic import query_collections, query_materials
 from app.elastic.search import Search
-from app.models import CollectionAttribute
 
 background_router = APIRouter(tags=["Background"])
 
@@ -45,29 +37,10 @@ def background_task():
     run()
 
 
-def query_many(resource_type: ResourceType, ancestor_id: UUID = None) -> Query:
-    qfilter = [*base_filter, *type_filter[resource_type]]
-    if ancestor_id:
-        if resource_type is ResourceType.COLLECTION:
-            qfilter.append(qterm(qfield=CollectionAttribute.PATH, value=ancestor_id))
-        elif resource_type is ResourceType.MATERIAL:
-            qfilter.append(
-                qterm(
-                    qfield=LearningMaterialAttribute.COLLECTION_PATH, value=ancestor_id
-                )
-            )
-
-    return qbool(filter=qfilter)
-
-
-def query_collections(ancestor_id: UUID = None) -> Query:
-    return query_many(ResourceType.COLLECTION, ancestor_id=ancestor_id)
-
-
 def import_collections(derived_at: datetime):
     s = (
         Search()
-        .query(query_collections(ancestor_id=COLLECTION_ROOT_ID))
+        .query(query_collections(node_id=COLLECTION_ROOT_ID))
         .source(
             includes=["nodeRef.*", "path", *list(required_collection_properties.keys())]
         )
@@ -90,14 +63,10 @@ def import_collections(derived_at: datetime):
     app.api.analytics.storage.global_storage[_COLLECTIONS] = collections
 
 
-def query_materials(ancestor_id: UUID = None) -> Query:
-    return query_many(ResourceType.MATERIAL, ancestor_id=ancestor_id)
-
-
 def import_materials(derived_at: datetime):
     s = (
         Search()
-        .query(query_materials(ancestor_id=COLLECTION_ROOT_ID))
+        .query(query_materials(node_id=COLLECTION_ROOT_ID))
         .source(
             includes=[
                 "nodeRef.*",

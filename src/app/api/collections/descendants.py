@@ -13,12 +13,11 @@ from app.api.collections.missing_materials import (
     ElasticResource,
     EmptyStrToNone,
     LearningMaterialAttribute,
-    base_filter,
 )
 from app.api.collections.utils import all_source_fields
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.elastic.dsl import qbool, qmatch, qterm
-from app.elastic.elastic import ResourceType, type_filter
+from app.elastic.dsl import qbool, qmatch
+from app.elastic.elastic import ResourceType, query_materials, type_filter
 from app.elastic.fields import ElasticField, ElasticFieldType
 from app.elastic.search import Search
 from app.elastic.utils import handle_text_field
@@ -33,6 +32,7 @@ class _CollectionAttribute(ElasticField):
     NODE_ID = ("nodeRef.id", ElasticFieldType.KEYWORD)
 
 
+_COLLECTION = TypeVar("_COLLECTION")
 # TODO Remove duplicate
 CollectionAttribute = ElasticField(
     "CollectionAttribute",
@@ -64,6 +64,7 @@ _DESCENDANT_COLLECTIONS_MATERIALS_COUNTS = TypeVar(
 )
 
 
+# TODO: Refactor
 class DescendantCollectionsMaterialsCounts(BaseModel):
     results: list[CollectionMaterialsCount]
 
@@ -89,25 +90,6 @@ class DescendantCollectionsMaterialsCounts(BaseModel):
                 CollectionMaterialsCount.construct(**record) for record in results
             ],
         )
-
-
-def query_many(resource_type: ResourceType, ancestor_id: UUID = None) -> Query:
-    qfilter = [*base_filter, *type_filter[resource_type]]
-    if ancestor_id:
-        if resource_type is ResourceType.COLLECTION:
-            qfilter.append(qterm(qfield=CollectionAttribute.PATH, value=ancestor_id))
-        elif resource_type is ResourceType.MATERIAL:
-            qfilter.append(
-                qterm(
-                    qfield=LearningMaterialAttribute.COLLECTION_PATH, value=ancestor_id
-                )
-            )
-
-    return qbool(filter=qfilter)
-
-
-def query_materials(ancestor_id: UUID = None) -> Query:
-    return query_many(ResourceType.MATERIAL, ancestor_id=ancestor_id)
 
 
 def aterms(qfield: Union[ElasticField, str], **kwargs) -> Agg:
@@ -136,22 +118,23 @@ def abucketsort(sort: list[Union[Query, dict]], **kwargs) -> Agg:
     return A("bucket_sort", sort=sort, **kwargs)
 
 
-async def material_counts_by_descendant(
-    ancestor_id: UUID,
+def material_counts_by_descendant(
+    node_id: uuid.UUID,
 ) -> DescendantCollectionsMaterialsCounts:
-    s = Search().query(query_materials(ancestor_id=ancestor_id))
-    s.aggs.bucket("grouped_by_collection", agg_materials_by_collection()).pipeline(
-        "sorted_by_count",
-        abucketsort(sort=[{"_count": {"order": "asc"}}]),
-    )
-
-    response: Response = s[:0].execute()
+    search = material_counts_search(node_id)
+    response: Response = search.execute()
 
     if response.success():
         return DescendantCollectionsMaterialsCounts.parse_elastic_response(response)
 
 
-_COLLECTION = TypeVar("_COLLECTION")
+def material_counts_search(node_id: uuid.UUID):
+    s = Search().base_filters().query(query_materials(node_id=node_id))
+    s.aggs.bucket("grouped_by_collection", agg_materials_by_collection()).pipeline(
+        "sorted_by_count",
+        abucketsort(sort=[{"_count": {"order": "asc"}}]),
+    )
+    return s
 
 
 class CollectionBase(ElasticResource):
@@ -229,7 +212,7 @@ def descendants_search(node_id: uuid.UUID, max_hits):
     )
 
 
-async def get_many_descendants(
+def get_many_descendants(
     node_id: Optional[UUID] = None,
     max_hits: Optional[int] = ELASTIC_TOTAL_SIZE,
 ) -> list[Collection]:
@@ -248,16 +231,9 @@ async def get_material_count_tree(node_id) -> list[CollectionMaterialsCount]:
     :param node_id:
     :return:
     """
-    descendant_collections = await get_many_descendants(
+    descendant_collections = get_many_descendants(node_id=node_id)
+    materials_counts = material_counts_by_descendant(
         node_id=node_id,
-        source_fields={
-            CollectionAttribute.NODE_ID,
-            CollectionAttribute.PATH,
-            CollectionAttribute.TITLE,
-        },
-    )
-    materials_counts = await material_counts_by_descendant(
-        ancestor_id=node_id,
     )
     descendant_collections = {
         collection.noderef_id: collection.title for collection in descendant_collections

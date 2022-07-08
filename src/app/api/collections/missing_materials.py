@@ -1,5 +1,5 @@
+import uuid
 from typing import ClassVar, Optional, Type, TypeVar
-from uuid import UUID
 
 from elasticsearch_dsl import Q
 from fastapi.params import Path, Query
@@ -41,7 +41,7 @@ class ElasticConfig:
 
 
 class ElasticResource(BaseModel):
-    noderef_id: UUID
+    noderef_id: uuid.UUID
     type: Optional[EmptyStrToNone] = None
     name: Optional[EmptyStrToNone] = None
 
@@ -193,7 +193,7 @@ base_filter = [
 
 
 def missing_attributes_search(
-    noderef_id: UUID, missing_attribute: str, max_hits: int
+    node_id: uuid.UUID, missing_attribute: str, max_hits: int
 ) -> Search:
     if missing_attribute == LearningMaterialAttribute.LICENSES.path:
         missing_attribute_query = {"filter": query_missing_material_license()}
@@ -205,8 +205,8 @@ def missing_attributes_search(
         "filter": [*type_filter[ResourceType.MATERIAL]],
         "minimum_should_match": 1,
         "should": [
-            qmatch(**{"path": noderef_id}),
-            qmatch(**{"nodeRef.id": noderef_id}),
+            qmatch(**{"path": node_id}),
+            qmatch(**{"nodeRef.id": node_id}),
         ],
         **missing_attribute_query,
     }
@@ -222,11 +222,11 @@ def missing_attributes_search(
 
 
 async def get_many(
-    noderef_id: Optional[UUID] = None,
+    node_id: Optional[uuid.UUID] = None,
     missing_attr_filter: Optional[MissingAttributeFilter] = None,
 ) -> list[LearningMaterial]:
     search = missing_attributes_search(
-        noderef_id, missing_attr_filter.attr.value, ELASTIC_TOTAL_SIZE
+        node_id, missing_attr_filter.attr.value, ELASTIC_TOTAL_SIZE
     )
     response = search.execute()
     if response.success():
@@ -249,7 +249,7 @@ async def get_materials_with_missing_attributes(
     if response_fields:
         response_fields.add(LearningMaterialAttribute.NODEREF_ID)
     materials = await get_many(
-        noderef_id=node_id,
+        node_id=node_id,
         missing_attr_filter=missing_attr_filter,
     )
     return filter_response_fields(materials, response_fields=response_fields)

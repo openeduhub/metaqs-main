@@ -34,7 +34,7 @@ class AggregationMappings(str, Enum):
 
 
 def collection_counts_search(node_id: UUID, facet: AggregationMappings) -> Search:
-    s = Search().base_filters().query(query_materials(ancestor_id=node_id))
+    s = Search().base_filters().query(query_materials(node_id=node_id))
     material_agg = A(
         "terms", field="collections.nodeRef.id.keyword", size=ELASTIC_TOTAL_SIZE
     )

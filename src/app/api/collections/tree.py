@@ -13,14 +13,14 @@ from app.elastic.search import Search
 from app.models import CollectionAttribute, ElasticResourceAttribute
 
 
-def build_portal_tree(collections: list, root_noderef_id: UUID) -> list[CollectionNode]:
-    tree_hierarchy = {str(root_noderef_id): []}
+def build_portal_tree(collections: list, root_id: UUID) -> list[CollectionNode]:
+    tree_hierarchy = {str(root_id): []}
 
     for collection in collections:
         if collection.title:
             tree_hierarchy.update(build_hierarchy(collection, tree_hierarchy))
 
-    return tree_hierarchy[str(root_noderef_id)]
+    return tree_hierarchy[str(root_id)]
 
 
 def build_hierarchy(

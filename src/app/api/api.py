@@ -209,13 +209,13 @@ async def get_timestamps(
 )
 async def score(*, collection_id: uuid.UUID = Depends(collection_id_param)):
     collection_stats = await search_score(
-        noderef_id=collection_id, resource_type=ResourceType.COLLECTION
+        node_id=collection_id, resource_type=ResourceType.COLLECTION
     )
 
     collection_scores = calc_scores(stats=collection_stats)
 
     material_stats = await search_score(
-        noderef_id=collection_id, resource_type=ResourceType.MATERIAL
+        node_id=collection_id, resource_type=ResourceType.MATERIAL
     )
 
     material_scores = calc_scores(stats=material_stats)
