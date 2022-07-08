@@ -21,7 +21,7 @@ def queried_collections(node_id: uuid.UUID = COLLECTION_ROOT_ID) -> dict[str, in
     """
     Query collection ID's and number of entries connected to this node id from Elasticsearch.
 
-    :param node_id: Parent node ID, from which to search childrens.
+    param node_id: Parent node ID, from which to search childrens.
     :return: Dictionary of node_id: total count of entries connected to this node id
     """
     aggregation_name = "unique_collections"

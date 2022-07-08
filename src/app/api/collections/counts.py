@@ -13,7 +13,8 @@ from app.models import CollectionAttribute, ElasticResourceAttribute
 
 class CollectionTreeCount(BaseModel):
     """
-    A preliminary model to yield the total number of collections as well as counts for specific metrics, e.g. OER licence
+    A preliminary model to yield the total number of collections as well as counts for specific metrics,
+    e.g. OER licence
     """
 
     noderef_id: UUID

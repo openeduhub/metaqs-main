@@ -261,7 +261,7 @@ def materials_with_missing_properties(
 
     Similar to collections_with_missing_properties, but counting the underlying materials missing that property
 
-    :param node_id:
+    param node_id:
     :return:
     """
 

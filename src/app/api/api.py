@@ -147,7 +147,8 @@ async def get_quality(
     response_model=list[ColumnOutputModel],
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[_TAG_STATISTICS],
-    description="""An unix timestamp in integer seconds since epoch yields the quality matrix at the respective date.""",
+    description="""An unix timestamp in integer seconds since epoch yields the
+    quality matrix at the respective date.""",
 )
 async def get_past_quality_matrix(
     *, timestamp: int, database: Database = Depends(get_database)

@@ -20,7 +20,7 @@ class MissingMaterials(CollectionNode):
     A model containing information about entries which miss, e.g, a description.
     By returning this model the editors know enough about the entry to find and correct it
 
-    :param
+    param
         description: a free text description of the context
         path: the complete id path, i.e., from parent node id up to the root id of elastic search
         type: Indicates the type of content, must be ccm:map in the current implementation
