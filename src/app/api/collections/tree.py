@@ -1,4 +1,4 @@
-from uuid import UUID
+import uuid
 
 from aiohttp import ClientSession
 from elasticsearch_dsl.response import Response
@@ -13,7 +13,7 @@ from app.elastic.search import Search
 from app.models import CollectionAttribute, ElasticResourceAttribute
 
 
-def build_portal_tree(collections: list, root_id: UUID) -> list[CollectionNode]:
+def build_portal_tree(collections: list, root_id: uuid.UUID) -> list[CollectionNode]:
     tree_hierarchy = {str(root_id): []}
 
     for collection in collections:
@@ -40,7 +40,7 @@ def build_hierarchy(
     return tree_hierarchy
 
 
-def tree_search(node_id: UUID) -> Search:
+def tree_search(node_id: uuid.UUID) -> Search:
     s = Search().base_filters().query(qbool(filter=qterm(qfield="path", value=node_id)))
     s = s.source(
         ["nodeRef.id", "properties.cm:title", "collections.path", "parentRef.id"]
@@ -65,7 +65,7 @@ collection_spec = {
 }
 
 
-def tree_from_elastic(node_id: UUID) -> list[CollectionNode]:
+def tree_from_elastic(node_id: uuid.UUID) -> list[CollectionNode]:
     response: Response = tree_search(node_id).execute()
 
     if response.success():
@@ -76,7 +76,7 @@ def tree_from_elastic(node_id: UUID) -> list[CollectionNode]:
 
 
 async def collection_tree(
-    node_id: UUID, use_vocabs: bool = False
+    node_id: uuid.UUID, use_vocabs: bool = False
 ) -> list[CollectionNode]:
     if use_vocabs:
         async with ClientSession() as session:

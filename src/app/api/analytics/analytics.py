@@ -1,7 +1,7 @@
+import uuid
 from datetime import datetime
 from enum import Enum
 from typing import ClassVar, Generic, Optional, TypeVar
-from uuid import UUID
 
 from pydantic import BaseModel, Extra, Field, validator
 from pydantic.generics import GenericModel
@@ -57,7 +57,7 @@ ValidationStatsT = TypeVar("ValidationStatsT")
 
 
 class ValidationStatsResponse(GenericModel, Generic[ValidationStatsT]):
-    noderef_id: UUID
+    noderef_id: uuid.UUID
     derived_at: datetime = Field(default_factory=datetime.now)
     validation_stats: ValidationStatsT
 
@@ -93,11 +93,11 @@ def none_to_empty_list(v: list) -> Optional[list]:
 
 
 class MaterialFieldValidation(BaseModel):
-    missing: Optional[list[UUID]]
-    too_short: Optional[list[UUID]]
-    too_few: Optional[list[UUID]]
-    lacks_clarity: Optional[list[UUID]]
-    invalid_spelling: Optional[list[UUID]]
+    missing: Optional[list[uuid.UUID]]
+    too_short: Optional[list[uuid.UUID]]
+    too_few: Optional[list[uuid.UUID]]
+    lacks_clarity: Optional[list[uuid.UUID]]
+    invalid_spelling: Optional[list[uuid.UUID]]
 
     # validators
     _none_to_empty_list = validator("*", pre=True, allow_reuse=True)(none_to_empty_list)

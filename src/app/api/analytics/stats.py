@@ -2,7 +2,6 @@ import datetime
 import uuid
 from dataclasses import dataclass
 from typing import Union
-from uuid import UUID
 
 from elasticsearch_dsl.aggs import Agg
 from elasticsearch_dsl.query import Q, Query
@@ -113,7 +112,7 @@ class Row:
     title: str
 
 
-async def get_ids_to_iterate(node_id: UUID):
+async def get_ids_to_iterate(node_id: uuid.UUID):
     """
     Contains the collection id's to iterate over.
 
@@ -143,7 +142,7 @@ async def get_ids_to_iterate(node_id: UUID):
     return [Row(id=row[0], title=row[1]) for row in flatten_list(nodes(tree))]
 
 
-def query_material_types(node_id: UUID) -> dict[str, COUNT_STATISTICS_TYPE]:
+def query_material_types(node_id: uuid.UUID) -> dict[str, COUNT_STATISTICS_TYPE]:
     """
     get collections with parent id equal to node_id
 
@@ -179,7 +178,7 @@ def filtered_collections(collections: list[Collection], node_id: uuid.UUID):
 
 
 async def stats_latest(
-    stat_type: StatType, node_id: UUID
+    stat_type: StatType, node_id: uuid.UUID
 ) -> dict[str, COUNT_STATISTICS_TYPE]:
     results = {}
 

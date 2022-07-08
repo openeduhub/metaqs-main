@@ -1,7 +1,6 @@
 import uuid
 from itertools import chain
 from typing import Optional, Type, TypeVar, Union
-from uuid import UUID
 
 from elasticsearch_dsl.aggs import A, Agg
 from elasticsearch_dsl.query import Query
@@ -54,7 +53,7 @@ class ResponseModel(BaseModel):
 
 
 class CollectionMaterialsCount(ResponseModel):
-    noderef_id: UUID
+    noderef_id: uuid.UUID
     title: str
     materials_count: int
 
@@ -141,8 +140,8 @@ class CollectionBase(ElasticResource):
     title: Optional[EmptyStrToNone] = None
     keywords: Optional[list[str]] = None
     description: Optional[EmptyStrToNone] = None
-    path: Optional[list[UUID]] = None
-    parent_id: Optional[UUID] = None
+    path: Optional[list[uuid.UUID]] = None
+    parent_id: Optional[uuid.UUID] = None
 
     source_fields = {
         CollectionAttribute.NODEREF_ID,
@@ -191,6 +190,7 @@ class CollectionBase(ElasticResource):
         return collection
 
 
+# TODO: Double naming with collection in types
 class Collection(ResponseModel, CollectionBase):
     pass
 
@@ -213,7 +213,7 @@ def descendants_search(node_id: uuid.UUID, max_hits):
 
 
 def get_many_descendants(
-    node_id: Optional[UUID] = None,
+    node_id: Optional[uuid.UUID] = None,
     max_hits: Optional[int] = ELASTIC_TOTAL_SIZE,
 ) -> list[Collection]:
     search = descendants_search(node_id, max_hits)

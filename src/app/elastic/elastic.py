@@ -1,5 +1,5 @@
+import uuid
 from enum import Enum
-from uuid import UUID
 
 from elasticsearch_dsl.query import Query
 
@@ -23,7 +23,7 @@ type_filter = {
 }
 
 
-def query_many(resource_type: ResourceType, node_id: UUID = None) -> Query:
+def query_many(resource_type: ResourceType, node_id: uuid.UUID = None) -> Query:
     qfilter = [*type_filter[resource_type]]
     if node_id:
         if resource_type is ResourceType.COLLECTION:
@@ -36,11 +36,11 @@ def query_many(resource_type: ResourceType, node_id: UUID = None) -> Query:
     return qbool(filter=qfilter)
 
 
-def query_collections(node_id: UUID = None) -> Query:
+def query_collections(node_id: uuid.UUID = None) -> Query:
     return query_many(ResourceType.COLLECTION, node_id=node_id)
 
 
-def query_materials(node_id: UUID = None) -> Query:
+def query_materials(node_id: uuid.UUID = None) -> Query:
     return query_many(ResourceType.MATERIAL, node_id=node_id)
 
 

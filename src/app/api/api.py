@@ -193,7 +193,7 @@ async def get_timestamps(
 
 
 @router.get(
-    "/collections/{collection_id}/stats/score",
+    "/collections/{node_id}/stats/score",
     response_model=ScoreOutput,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
@@ -208,16 +208,14 @@ async def get_timestamps(
       + field_names_used_for_score_calculation(aggs_material_validation)}`.
     """,
 )
-async def score(*, collection_id: uuid.UUID = Depends(collection_id_param)):
-    collection_stats = await search_score(
-        node_id=collection_id, resource_type=ResourceType.COLLECTION
+async def score(*, node_id: uuid.UUID = Depends(collection_id_param)):
+    collection_stats = search_score(
+        node_id=node_id, resource_type=ResourceType.COLLECTION
     )
 
     collection_scores = calc_scores(stats=collection_stats)
 
-    material_stats = await search_score(
-        node_id=collection_id, resource_type=ResourceType.MATERIAL
-    )
+    material_stats = search_score(node_id=node_id, resource_type=ResourceType.MATERIAL)
 
     material_scores = calc_scores(stats=material_stats)
 

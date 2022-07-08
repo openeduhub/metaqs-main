@@ -1,4 +1,4 @@
-from uuid import UUID
+import uuid
 
 from aiohttp import ClientSession
 
@@ -7,7 +7,7 @@ from app.core.constants import COLLECTION_ROOT_ID
 
 
 async def tree_from_vocabs(
-    session: ClientSession, node_id: UUID
+    session: ClientSession, node_id: uuid.UUID
 ) -> list[CollectionNode]:
     url = f"https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/oeh-topics/{node_id}.json"
     response = await session.get(url=url)

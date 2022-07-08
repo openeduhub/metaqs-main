@@ -71,7 +71,7 @@ def score(response: Response) -> dict:
     }
 
 
-async def search_score(node_id: uuid.UUID, resource_type: ResourceType) -> dict:
+def search_score(node_id: uuid.UUID, resource_type: ResourceType) -> dict:
     s = get_score_search(node_id, resource_type)
 
     response: Response = s.execute()

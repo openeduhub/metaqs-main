@@ -1,6 +1,6 @@
+import uuid
 from datetime import datetime
 from typing import Union
-from uuid import UUID
 
 import sqlalchemy
 from databases import Database
@@ -77,7 +77,7 @@ def get_properties(use_required_properties_only: bool = True) -> PROPERTY_TYPE:
 def create_empty_entries_search(
     properties: PROPERTY_TYPE,
     search_keyword: str,
-    node_id: UUID,
+    node_id: uuid.UUID,
     match_keyword: str,
 ) -> Search:
     s = (
@@ -102,7 +102,7 @@ def create_empty_entries_search(
 def queried_missing_properties(
     properties: PROPERTY_TYPE,
     search_keyword: str,
-    node_id: UUID,
+    node_id: uuid.UUID,
     match_keyword: str,
 ) -> Response:
     return create_empty_entries_search(
@@ -148,7 +148,7 @@ async def items_in_response(response: Response) -> dict:
 
 
 async def source_quality(
-    node_id: UUID = COLLECTION_ROOT_ID,
+    node_id: uuid.UUID = COLLECTION_ROOT_ID,
     match_keyword: str = f"{PROPERTIES}.{REPLICATION_SOURCE_ID}",
 ) -> QUALITY_MATRIX_RETURN_TYPE:
     properties = get_properties()
