@@ -9,6 +9,7 @@ from elasticsearch_dsl.response import Response
 
 from app.api.quality_matrix.models import QUALITY_MATRIX_RETURN_TYPE, Forms, Timeline
 from app.api.quality_matrix.utils import default_properties
+from app.api.score.models import required_collection_properties
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import COLLECTION_ROOT_ID, PROPERTIES, REPLICATION_SOURCE_ID
 from app.core.logging import logger
@@ -57,17 +58,7 @@ def create_properties_search() -> Search:
 
 def get_properties(use_required_properties_only: bool = True) -> PROPERTY_TYPE:
     if use_required_properties_only:
-        return [
-            "cclom:title",
-            "ccm:oeh_lrt",
-            "ccm:taxonid",
-            "cclom:general_description",
-            "ccm:educationalintendedenduserrole",
-            "ccm:educationalcontext",
-            "ccm:wwwurl",
-            "ccm:oeh_publisher_combined",
-            "ccm:commonlicense_key",  # Todo: Ignore NONE
-        ]
+        return [entry.split(".")[-1] for entry in required_collection_properties.keys()]
     else:
         s = create_properties_search()
         response = s.execute()
