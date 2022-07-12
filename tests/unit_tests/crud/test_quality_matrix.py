@@ -30,8 +30,12 @@ DUMMY_UUID = uuid.UUID("3bbfbe37-2351-405f-b142-f62bf187b10f")
 )
 async def test_get_properties():
     await connect_to_elastic()
-    data = get_properties()
+    data = get_properties(False)
     assert "ccm:author_freetext" in data
+    assert len(data) > 150
+    data = get_properties(True)
+    assert "cclom:title" in data
+    assert len(data) == 9
 
 
 @pytest.mark.asyncio

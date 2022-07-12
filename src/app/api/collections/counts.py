@@ -1,6 +1,6 @@
+import uuid
 from enum import Enum
 from typing import Optional
-from uuid import UUID
 
 from elasticsearch_dsl import A
 from pydantic import BaseModel
@@ -13,10 +13,11 @@ from app.models import CollectionAttribute, ElasticResourceAttribute
 
 class CollectionTreeCount(BaseModel):
     """
-    A preliminary model to yield the total number of collections as well as counts for specific metrics, e.g. OER licence
+    A preliminary model to yield the total number of collections as well as counts for specific metrics,
+    e.g. OER licence
     """
 
-    noderef_id: UUID
+    noderef_id: uuid.UUID
     total: int
     counts: dict[str, int]
 
@@ -33,8 +34,8 @@ class AggregationMappings(str, Enum):
     license = ("properties.ccm:commonlicense_key.keyword",)
 
 
-def collection_counts_search(node_id: UUID, facet: AggregationMappings) -> Search:
-    s = Search().base_filters().query(query_materials(ancestor_id=node_id))
+def collection_counts_search(node_id: uuid.UUID, facet: AggregationMappings) -> Search:
+    s = Search().base_filters().query(query_materials(node_id=node_id))
     material_agg = A(
         "terms", field="collections.nodeRef.id.keyword", size=ELASTIC_TOTAL_SIZE
     )
@@ -59,7 +60,7 @@ def collection_counts_search(node_id: UUID, facet: AggregationMappings) -> Searc
 
 
 async def collection_counts(
-    node_id: UUID, facet: AggregationMappings
+    node_id: uuid.UUID, facet: AggregationMappings
 ) -> Optional[list[CollectionTreeCount]]:
     response = collection_counts_search(node_id, facet).execute()
     if response.success():

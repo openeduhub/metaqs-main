@@ -1,7 +1,6 @@
 import json
 import uuid
-from typing import Mapping
-from uuid import UUID
+from typing import Mapping, Optional
 
 from databases import Database
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
@@ -11,14 +10,38 @@ from sqlalchemy import select
 from starlette.requests import Request
 from starlette.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
+from app.api.analytics.analytics import (
+    CollectionValidationStats,
+    MaterialValidationStats,
+    StatsResponse,
+    ValidationStatsResponse,
+)
+from app.api.analytics.background_task import background_router
+from app.api.analytics.stats import (
+    collections_with_missing_properties,
+    materials_with_missing_properties,
+    overall_stats,
+)
+from app.api.analytics.storage import global_storage
 from app.api.collections.counts import (
     AggregationMappings,
     CollectionTreeCount,
     collection_counts,
 )
+from app.api.collections.descendants import (
+    CollectionMaterialsCount,
+    get_material_count_tree,
+)
 from app.api.collections.missing_attributes import (
     collections_with_missing_attributes,
     missing_attribute_filter,
+)
+from app.api.collections.missing_materials import (
+    LearningMaterial,
+    MissingAttributeFilter,
+    get_materials_with_missing_attributes,
+    material_response_fields,
+    materials_filter_params,
 )
 from app.api.collections.models import CollectionNode, MissingMaterials
 from app.api.collections.tree import collection_tree
@@ -27,7 +50,7 @@ from app.api.quality_matrix.models import ColumnOutputModel, Forms, Timeline
 from app.api.quality_matrix.quality_matrix import source_quality, store_in_timeline
 from app.api.quality_matrix.timeline import timestamps
 from app.api.quality_matrix.utils import transpose
-from app.api.score.models import ScoreOutput
+from app.api.score.models import LearningMaterialAttribute, ScoreOutput
 from app.api.score.score import (
     aggs_collection_validation,
     aggs_material_validation,
@@ -37,6 +60,7 @@ from app.api.score.score import (
     field_names_used_for_score_calculation,
     search_score,
 )
+from app.core.config import API_DEBUG, BACKGROUND_TASK_TIME_INTERVAL
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.elastic.elastic import ResourceType
 
@@ -46,6 +70,7 @@ def get_database(request: Request) -> Database:
 
 
 router = APIRouter()
+router.include_router(background_router)
 
 QUALITY_MATRIX_DESCRIPTION = """Calculation of the quality matrix.
     Depending on the chosen form the quality matrix returns the ratio of entries which miss this property compared to
@@ -60,20 +85,20 @@ QUALITY_MATRIX_DESCRIPTION = """Calculation of the quality matrix.
     The user chooses the node id in the editorial environment (german: Redaktionsumgebung) in the "Fach" selection.
     """
 
-TAG_STATISTICS = "Statistics"
+_TAG_STATISTICS = "Statistics"
 _TAG_COLLECTIONS = "Collections"
 
 
 def node_ids_for_major_collections(
     *,
-    node_id: UUID = Path(
+    node_id: uuid.UUID = Path(
         ...,
         examples={
             "Alle Fachportale": {"value": COLLECTION_ROOT_ID},
             **COLLECTION_NAME_TO_ID,
         },
     ),
-) -> UUID:
+) -> uuid.UUID:
     return node_id
 
 
@@ -82,7 +107,7 @@ def node_ids_for_major_collections(
     status_code=HTTP_200_OK,
     response_model=list[ColumnOutputModel],
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
-    tags=[TAG_STATISTICS],
+    tags=[_TAG_STATISTICS],
     description=QUALITY_MATRIX_DESCRIPTION,
 )
 async def get_quality(
@@ -121,8 +146,9 @@ async def get_quality(
     status_code=HTTP_200_OK,
     response_model=list[ColumnOutputModel],
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
-    tags=[TAG_STATISTICS],
-    description="""An unix timestamp in integer seconds since epoch yields the quality matrix at the respective date.""",
+    tags=[_TAG_STATISTICS],
+    description="""An unix timestamp in integer seconds since epoch yields the
+    quality matrix at the respective date.""",
 )
 async def get_past_quality_matrix(
     *, timestamp: int, database: Database = Depends(get_database)
@@ -150,7 +176,7 @@ async def get_past_quality_matrix(
             "description": "Timestamps of old quality matrix results not determinable"
         }
     },
-    tags=[TAG_STATISTICS],
+    tags=[_TAG_STATISTICS],
     description="""Return timestamps in seconds since epoch of past calculations of the quality matrix.
     Additional parameters:
         form: The desired form of quality. This is used to query only the relevant type of data.""",
@@ -167,7 +193,7 @@ async def get_timestamps(
 
 
 @router.get(
-    "/collections/{collection_id}/stats/score",
+    "/collections/{node_id}/stats/score",
     response_model=ScoreOutput,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
@@ -182,16 +208,14 @@ async def get_timestamps(
       + field_names_used_for_score_calculation(aggs_material_validation)}`.
     """,
 )
-async def score(*, collection_id: UUID = Depends(collection_id_param)):
-    collection_stats = await search_score(
-        noderef_id=collection_id, resource_type=ResourceType.COLLECTION
+async def score(*, node_id: uuid.UUID = Depends(collection_id_param)):
+    collection_stats = search_score(
+        node_id=node_id, resource_type=ResourceType.COLLECTION
     )
 
     collection_scores = calc_scores(stats=collection_stats)
 
-    material_stats = await search_score(
-        noderef_id=collection_id, resource_type=ResourceType.MATERIAL
-    )
+    material_stats = search_score(node_id=node_id, resource_type=ResourceType.MATERIAL)
 
     material_scores = calc_scores(stats=material_stats)
 
@@ -230,9 +254,10 @@ async def ping_api():
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=[_TAG_COLLECTIONS],
+    description="Returns the tree of collections.",
 )
 async def get_collection_tree(
-    *, node_id: UUID = Depends(node_ids_for_major_collections)
+    *, node_id: uuid.UUID = Depends(node_ids_for_major_collections)
 ):
     return await collection_tree(node_id)
 
@@ -247,7 +272,7 @@ async def get_collection_tree(
 )
 async def get_collection_counts(
     *,
-    node_id: UUID = Depends(node_ids_for_major_collections),
+    node_id: uuid.UUID = Depends(node_ids_for_major_collections),
     facet: AggregationMappings = Param(
         default=AggregationMappings.lrt,
         examples={key: {"value": key} for key in AggregationMappings},
@@ -270,7 +295,7 @@ async def get_collection_counts(
 )
 async def filter_collections_with_missing_attributes(
     *,
-    node_id: UUID = Depends(node_ids_for_major_collections),
+    node_id: uuid.UUID = Depends(node_ids_for_major_collections),
     missing_attribute: str = Path(
         ...,
         examples={
@@ -279,3 +304,110 @@ async def filter_collections_with_missing_attributes(
     ),
 ):
     return await collections_with_missing_attributes(node_id, missing_attribute)
+
+
+@router.get(
+    "/collections/{node_id}/pending-materials/{missing_attr}",
+    response_model=list[LearningMaterial],
+    response_model_exclude_unset=True,
+    status_code=HTTP_200_OK,
+    responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
+    tags=[_TAG_COLLECTIONS],
+    description="""A list of missing entries for different types of materials by subcollection.
+    Searches for materials with one of the following properties being empty or missing: """
+    + f"{', '.join([entry.value for entry in missing_attribute_filter])}.",
+)
+async def filter_materials_with_missing_attributes(
+    *,
+    node_id: uuid.UUID = Depends(node_ids_for_major_collections),
+    missing_attr_filter: MissingAttributeFilter = Depends(materials_filter_params),
+    response_fields: Optional[set[LearningMaterialAttribute]] = Depends(
+        material_response_fields
+    ),
+):
+    return await get_materials_with_missing_attributes(
+        missing_attr_filter, node_id, response_fields
+    )
+
+
+@router.get(
+    "/collections/{node_id}/stats/descendant-collections-materials-counts",
+    response_model=list[CollectionMaterialsCount],
+    status_code=HTTP_200_OK,
+    responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
+    tags=[_TAG_STATISTICS],
+    description="""Returns the number of materials connected to all collections
+    below this 'node_id' as a flat list.""",
+)
+async def material_counts_tree(
+    *, node_id: uuid.UUID = Depends(node_ids_for_major_collections)
+):
+    return await get_material_count_tree(node_id)
+
+
+@router.get(
+    "/analytics/{node_id}",
+    response_model=StatsResponse,
+    status_code=HTTP_200_OK,
+    responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
+    tags=[_TAG_STATISTICS],
+    description=f"""
+    Returns the number of materials found connected to the this collection's 'node_id' and its sub
+    collections as well as materials containing the name of the respective collection, e.g., in the title.
+    It is therefore an overview of materials, which could be added to a collection in the future.
+    It relies on background data and is read every {BACKGROUND_TASK_TIME_INTERVAL}s.
+    This is the granularity of the data.""",
+)
+async def read_stats(*, node_id: uuid.UUID = Depends(node_ids_for_major_collections)):
+    return await overall_stats(node_id)
+
+
+@router.get(
+    "/analytics/{node_id}/validation/collections",
+    response_model=list[ValidationStatsResponse[CollectionValidationStats]],
+    response_model_exclude_unset=True,
+    status_code=HTTP_200_OK,
+    responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
+    tags=[_TAG_STATISTICS],
+    description=f"""
+    Returns the number of collections missing certain properties for this collection's 'node_id' and its sub
+    collections. It relies on background data and is read every {BACKGROUND_TASK_TIME_INTERVAL}s.
+    This is the granularity of the data.""",
+)
+async def read_stats_validation_collection(
+    *,
+    node_id: uuid.UUID = Depends(node_ids_for_major_collections),
+):
+    return collections_with_missing_properties(node_id)
+
+
+@router.get(
+    "/analytics/{node_id}/validation",
+    response_model=list[ValidationStatsResponse[MaterialValidationStats]],
+    response_model_exclude_unset=True,
+    status_code=HTTP_200_OK,
+    responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
+    tags=[_TAG_STATISTICS],
+    description="""
+    Returns the number of materials missing certain properties for this collection's 'node_id' and its sub collections.
+
+    This endpoint is similar to '/analytics/node_id/validation/collections', but instead of showing missing
+    properties in collections, it counts the materials inside each collection that are missing that property."""
+    + f"It relies on background data and is read every {BACKGROUND_TASK_TIME_INTERVAL}s. "
+    + "This is the granularity of the data.",
+)
+async def read_stats_validation(
+    *,
+    node_id: uuid.UUID = Depends(node_ids_for_major_collections),
+):
+    return materials_with_missing_properties(node_id)
+
+
+if API_DEBUG:
+
+    @router.get(
+        "/global",
+        description="""A debug endpoint to access the data stored inside the global storage.""",
+    )
+    async def get_global():
+        return global_storage

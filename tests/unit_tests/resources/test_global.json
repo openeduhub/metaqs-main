@@ -1,0 +1,58 @@
+{
+  "collections": [
+    {
+      "id": "f3dc9ea1-d608-4b4e-a78c-98063a3e8461",
+      "doc": {
+        "path": [
+          "5e40e372-735c-4b17-bbf7-e827a5702b57",
+          "11bdb8a0-a9f5-4028-becc-cbf8e328dd4b"
+        ],
+        "nodeRef": {
+          "storeRef": {
+            "identifier": "SpacesStore",
+            "protocol": "workspace"
+          },
+          "id": "f3dc9ea1-d608-4b4e-a78c-98063a3e8461"
+        },
+        "properties": {
+          "cclom:title": "dummy_title"
+        }
+      },
+      "derived_at": "2022-07-05T16:50:18.789156"
+    }
+  ],
+  "counts": [
+    {
+      "noderef_id": "f3dc9ea1-d608-4b4e-a78c-98063a3e8461",
+      "total": 18025,
+      "counts": {
+        "test_lrt": 3
+      }
+    }
+  ],
+  "materials": [
+    {
+      "id": "263afc5b-6445-4a5a-b014-a77f1db473b9",
+      "doc": {
+        "collections": [
+          {
+            "nodeRef": {
+              "id": "f3dc9ea1-d608-4b4e-a78c-98063a3e8461"
+            }
+          }
+        ],
+        "nodeRef": {
+          "storeRef": {
+            "identifier": "SpacesStore",
+            "protocol": "workspace"
+          },
+          "id": "263afc5b-6445-4a5a-b014-a77f1db473b9"
+        },
+        "properties": {
+          "ccm:objecttype": "dummy_object_type"
+        }
+      },
+      "derived_at": "2022-07-07T08:51:25.636346"
+    }
+  ]
+}

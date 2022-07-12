@@ -1,6 +1,6 @@
+import uuid
 from datetime import datetime
 from typing import Union
-from uuid import UUID
 
 import sqlalchemy
 from databases import Database
@@ -9,6 +9,7 @@ from elasticsearch_dsl.response import Response
 
 from app.api.quality_matrix.models import QUALITY_MATRIX_RETURN_TYPE, Forms, Timeline
 from app.api.quality_matrix.utils import default_properties
+from app.api.score.models import required_collection_properties
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import COLLECTION_ROOT_ID, PROPERTIES, REPLICATION_SOURCE_ID
 from app.core.logging import logger
@@ -55,16 +56,19 @@ def create_properties_search() -> Search:
     return Search().base_filters().source([PROPERTIES])
 
 
-def get_properties() -> PROPERTY_TYPE:
-    s = create_properties_search()
-    response = s.execute()
-    return extract_properties(response.hits)
+def get_properties(use_required_properties_only: bool = True) -> PROPERTY_TYPE:
+    if use_required_properties_only:
+        return [entry.split(".")[-1] for entry in required_collection_properties.keys()]
+    else:
+        s = create_properties_search()
+        response = s.execute()
+        return extract_properties(response.hits)
 
 
 def create_empty_entries_search(
     properties: PROPERTY_TYPE,
     search_keyword: str,
-    node_id: UUID,
+    node_id: uuid.UUID,
     match_keyword: str,
 ) -> Search:
     s = (
@@ -89,7 +93,7 @@ def create_empty_entries_search(
 def queried_missing_properties(
     properties: PROPERTY_TYPE,
     search_keyword: str,
-    node_id: UUID,
+    node_id: uuid.UUID,
     match_keyword: str,
 ) -> Response:
     return create_empty_entries_search(
@@ -135,7 +139,7 @@ async def items_in_response(response: Response) -> dict:
 
 
 async def source_quality(
-    node_id: UUID = COLLECTION_ROOT_ID,
+    node_id: uuid.UUID = COLLECTION_ROOT_ID,
     match_keyword: str = f"{PROPERTIES}.{REPLICATION_SOURCE_ID}",
 ) -> QUALITY_MATRIX_RETURN_TYPE:
     properties = get_properties()

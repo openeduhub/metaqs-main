@@ -1,5 +1,5 @@
+import uuid
 from enum import Enum
-from uuid import UUID
 
 from elasticsearch_dsl.query import Query
 
@@ -23,27 +23,25 @@ type_filter = {
 }
 
 
-def query_many(resource_type: ResourceType, ancestor_id: UUID = None) -> Query:
+def query_many(resource_type: ResourceType, node_id: uuid.UUID = None) -> Query:
     qfilter = [*type_filter[resource_type]]
-    if ancestor_id:
+    if node_id:
         if resource_type is ResourceType.COLLECTION:
-            qfilter.append(qterm(qfield=CollectionAttribute.PATH, value=ancestor_id))
+            qfilter.append(qterm(qfield=CollectionAttribute.PATH, value=node_id))
         elif resource_type is ResourceType.MATERIAL:
             qfilter.append(
-                qterm(
-                    qfield=LearningMaterialAttribute.COLLECTION_PATH, value=ancestor_id
-                )
+                qterm(qfield=LearningMaterialAttribute.COLLECTION_PATH, value=node_id)
             )
 
     return qbool(filter=qfilter)
 
 
-def query_collections(ancestor_id: UUID = None) -> Query:
-    return query_many(ResourceType.COLLECTION, ancestor_id=ancestor_id)
+def query_collections(node_id: uuid.UUID = None) -> Query:
+    return query_many(ResourceType.COLLECTION, node_id=node_id)
 
 
-def query_materials(ancestor_id: UUID = None) -> Query:
-    return query_many(ResourceType.MATERIAL, ancestor_id=ancestor_id)
+def query_materials(node_id: uuid.UUID = None) -> Query:
+    return query_many(ResourceType.MATERIAL, node_id=node_id)
 
 
 def query_missing_material_license() -> Query:

@@ -1,4 +1,4 @@
-from uuid import UUID
+import uuid
 
 from elasticsearch_dsl import Q
 from elasticsearch_dsl.response import Response
@@ -52,13 +52,13 @@ def calc_weighted_score(collection_scores: dict, material_scores: dict) -> int:
     return int((100 * score_sum) / number_of_relevant_terms)
 
 
-def get_score_search(noderef_id: UUID, resource_type: ResourceType) -> Search:
+def get_score_search(node_id: uuid.UUID, resource_type: ResourceType) -> Search:
     query, aggs = None, None
     if resource_type is ResourceType.COLLECTION:
         query, aggs = query_collections, aggs_collection_validation
     elif resource_type is ResourceType.MATERIAL:
         query, aggs = query_materials, aggs_material_validation
-    s = Search().base_filters().query(query(ancestor_id=noderef_id))
+    s = Search().base_filters().query(query(node_id=node_id))
     for name, _agg in aggs.items():
         s.aggs.bucket(name, _agg)
     return s
@@ -71,8 +71,8 @@ def score(response: Response) -> dict:
     }
 
 
-async def search_score(noderef_id: UUID, resource_type: ResourceType) -> dict:
-    s = get_score_search(noderef_id, resource_type)
+def search_score(node_id: uuid.UUID, resource_type: ResourceType) -> dict:
+    s = get_score_search(node_id, resource_type)
 
     response: Response = s.execute()
 
@@ -82,8 +82,10 @@ async def search_score(noderef_id: UUID, resource_type: ResourceType) -> dict:
 
 def collection_id_param(
     *,
-    collection_id: UUID = Path(..., examples=app.core.constants.COLLECTION_NAME_TO_ID),
-) -> UUID:
+    collection_id: uuid.UUID = Path(
+        ..., examples=app.core.constants.COLLECTION_NAME_TO_ID
+    ),
+) -> uuid.UUID:
     return collection_id
 
 

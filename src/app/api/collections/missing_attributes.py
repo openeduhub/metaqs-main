@@ -1,13 +1,13 @@
 from __future__ import annotations
 
+import uuid
 from typing import Optional
-from uuid import UUID
 
 from elasticsearch_dsl.query import Q
 from glom import Coalesce, Iter
 
 from app.api.collections.models import MissingMaterials
-from app.api.collections.utils import map_elastic_response_to_model
+from app.api.collections.utils import all_source_fields, map_elastic_response_to_model
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.elastic.dsl import qbool, qmatch
 from app.elastic.elastic import ResourceType, type_filter
@@ -21,17 +21,6 @@ missing_attribute_filter = [
     CollectionAttribute.DESCRIPTION,
 ]
 
-
-all_source_fields: list = [
-    ElasticResourceAttribute.NODEREF_ID,
-    ElasticResourceAttribute.TYPE,
-    ElasticResourceAttribute.NAME,
-    CollectionAttribute.TITLE,
-    ElasticResourceAttribute.KEYWORDS,
-    CollectionAttribute.DESCRIPTION,
-    CollectionAttribute.PATH,
-    CollectionAttribute.PARENT_ID,
-]
 
 missing_attributes_spec = {
     "title": Coalesce(CollectionAttribute.TITLE.path, default=""),
@@ -53,14 +42,14 @@ missing_attributes_spec = {
 
 
 def missing_attributes_search(
-    noderef_id: UUID, missing_attribute: str, max_hits: int
+    node_id: uuid.UUID, missing_attribute: str, max_hits: int
 ) -> Search:
     query = {
         "filter": [*type_filter[ResourceType.COLLECTION]],
         "minimum_should_match": 1,
         "should": [
-            qmatch(**{"path": noderef_id}),
-            qmatch(**{"nodeRef.id": noderef_id}),
+            qmatch(**{"path": node_id}),
+            qmatch(**{"nodeRef.id": node_id}),
         ],
         "must_not": Q("wildcard", **{missing_attribute: {"value": "*"}}),
     }
@@ -74,11 +63,11 @@ def missing_attributes_search(
 
 
 async def collections_with_missing_attributes(
-    noderef_id: UUID,
+    node_id: uuid.UUID,
     missing_attribute: str,
     max_hits: Optional[int] = ELASTIC_TOTAL_SIZE,
 ) -> list[MissingMaterials]:
-    search = missing_attributes_search(noderef_id, missing_attribute, max_hits)
+    search = missing_attributes_search(node_id, missing_attribute, max_hits)
 
     response = search.execute()
     if response.success():

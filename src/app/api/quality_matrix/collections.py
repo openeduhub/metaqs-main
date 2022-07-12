@@ -1,4 +1,4 @@
-from uuid import UUID
+import uuid
 
 from elasticsearch_dsl import Q
 from elasticsearch_dsl.response import Response
@@ -17,11 +17,11 @@ from app.elastic.search import Search
 _TITLE_PROPERTY = "properties.cm:title"
 
 
-def queried_collections(node_id: UUID = COLLECTION_ROOT_ID) -> dict[str, int]:
+def queried_collections(node_id: uuid.UUID = COLLECTION_ROOT_ID) -> dict[str, int]:
     """
     Query collection ID's and number of entries connected to this node id from Elasticsearch.
 
-    :param node_id: Parent node ID, from which to search childrens.
+    param node_id: Parent node ID, from which to search childrens.
     :return: Dictionary of node_id: total count of entries connected to this node id
     """
     aggregation_name = "unique_collections"
@@ -44,7 +44,7 @@ def queried_collections(node_id: UUID = COLLECTION_ROOT_ID) -> dict[str, int]:
     return extract_sources_from_response(response, aggregation_name)
 
 
-async def id_to_title_mapping(node_id: UUID) -> dict[str, str]:
+async def id_to_title_mapping(node_id: uuid.UUID) -> dict[str, str]:
     s = (
         Search()
         .base_filters()
@@ -65,7 +65,7 @@ async def id_to_title_mapping(node_id: UUID) -> dict[str, str]:
 
 
 async def collection_quality(
-    node_id: UUID, match_keyword: str = "path"
+    node_id: uuid.UUID, match_keyword: str = "path"
 ) -> QUALITY_MATRIX_RETURN_TYPE:
     mapping = await id_to_title_mapping(node_id)
     columns = queried_collections(node_id)
