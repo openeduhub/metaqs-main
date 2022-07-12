@@ -195,7 +195,7 @@ def test_collections_with_missing_properties():
         "title": None,
         "keywords": ["missing"],
         "description": ["missing"],
-        "edu_context": None,
+        "edu_context": ["missing"],
     }
 
 
