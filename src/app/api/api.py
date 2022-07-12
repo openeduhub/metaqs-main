@@ -56,8 +56,8 @@ from app.api.score.score import (
     aggs_material_validation,
     calc_scores,
     calc_weighted_score,
-    collection_id_param,
     field_names_used_for_score_calculation,
+    node_id_param,
     search_score,
 )
 from app.core.config import API_DEBUG, BACKGROUND_TASK_TIME_INTERVAL
@@ -208,7 +208,7 @@ async def get_timestamps(
       + field_names_used_for_score_calculation(aggs_material_validation)}`.
     """,
 )
-async def score(*, node_id: uuid.UUID = Depends(collection_id_param)):
+async def score(*, node_id: uuid.UUID = Depends(node_id_param)):
     collection_stats = search_score(
         node_id=node_id, resource_type=ResourceType.COLLECTION
     )
@@ -335,7 +335,7 @@ async def filter_materials_with_missing_attributes(
     response_model=list[CollectionMaterialsCount],
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=[_TAG_STATISTICS],
+    tags=[_TAG_COLLECTIONS],
     description="""Returns the number of materials connected to all collections
     below this 'node_id' as a flat list.""",
 )

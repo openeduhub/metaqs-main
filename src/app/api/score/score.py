@@ -80,13 +80,11 @@ def search_score(node_id: uuid.UUID, resource_type: ResourceType) -> dict:
         return score(response)
 
 
-def collection_id_param(
+def node_id_param(
     *,
-    collection_id: uuid.UUID = Path(
-        ..., examples=app.core.constants.COLLECTION_NAME_TO_ID
-    ),
+    node_id: uuid.UUID = Path(..., examples=app.core.constants.COLLECTION_NAME_TO_ID),
 ) -> uuid.UUID:
-    return collection_id
+    return node_id
 
 
 def field_names_used_for_score_calculation(properties: dict) -> list[str]:
