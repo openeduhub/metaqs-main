@@ -7,7 +7,7 @@ from app.api.score.score import (
     calc_scores,
     calc_weighted_score,
     get_score_search,
-    score,
+    map_response_to_output,
 )
 from app.elastic.elastic import ResourceType
 
@@ -22,7 +22,7 @@ def test_score_empty_hits():
     mocked_response._hits = MagicMock()
     mocked_response.hits = MagicMock()
     mocked_response.hits.total.value = 0
-    output = score(mocked_response)
+    output = map_response_to_output(mocked_response)
 
     expected_score = {"total": len(dummy_hits["hits"])}
     assert output == expected_score
@@ -58,7 +58,7 @@ def test_score_with_hits():
     mocked_response._hits = MagicMock()
     mocked_response.hits = MagicMock()
     mocked_response.hits.total.value = 0
-    output = score(mocked_response)
+    output = map_response_to_output(mocked_response)
 
     expected_score = {
         "total": 0,

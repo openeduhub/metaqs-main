@@ -3,7 +3,7 @@ from enum import Enum
 
 from elasticsearch_dsl.query import Query
 
-from app.api.score.models import LearningMaterialAttribute
+from app.core.models import LearningMaterialAttribute
 from app.elastic.dsl import qbool, qboolor, qnotexists, qterm, qterms
 from app.models import CollectionAttribute, ElasticResourceAttribute
 

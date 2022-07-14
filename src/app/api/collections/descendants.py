@@ -8,13 +8,10 @@ from elasticsearch_dsl.response import Response
 from glom import Coalesce, Iter, glom
 from pydantic import BaseModel, Extra
 
-from app.api.collections.missing_materials import (
-    ElasticResource,
-    EmptyStrToNone,
-    LearningMaterialAttribute,
-)
+from app.api.collections.missing_materials import ElasticResource, EmptyStrToNone
 from app.api.collections.utils import all_source_fields
 from app.core.config import ELASTIC_TOTAL_SIZE
+from app.core.models import LearningMaterialAttribute
 from app.elastic.dsl import qbool, qmatch
 from app.elastic.elastic import ResourceType, query_materials, type_filter
 from app.elastic.fields import ElasticField, ElasticFieldType

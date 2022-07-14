@@ -50,19 +50,17 @@ from app.api.quality_matrix.models import ColumnOutputModel, Forms, Timeline
 from app.api.quality_matrix.quality_matrix import source_quality, store_in_timeline
 from app.api.quality_matrix.timeline import timestamps
 from app.api.quality_matrix.utils import transpose
-from app.api.score.models import LearningMaterialAttribute, ScoreOutput
+from app.api.score.models import ScoreOutput
 from app.api.score.score import (
     aggs_collection_validation,
     aggs_material_validation,
-    calc_scores,
-    calc_weighted_score,
     field_names_used_for_score_calculation,
+    get_score,
     node_id_param,
-    search_score,
 )
 from app.core.config import API_DEBUG, BACKGROUND_TASK_TIME_INTERVAL
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
-from app.elastic.elastic import ResourceType
+from app.core.models import LearningMaterialAttribute
 
 
 def get_database(request: Request) -> Database:
@@ -193,7 +191,7 @@ async def get_timestamps(
 
 
 @router.get(
-    "/collections/{node_id}/stats/score",
+    "/collections/{node_id}/score",
     response_model=ScoreOutput,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
@@ -209,26 +207,7 @@ async def get_timestamps(
     """,
 )
 async def score(*, node_id: uuid.UUID = Depends(node_id_param)):
-    collection_stats = search_score(
-        node_id=node_id, resource_type=ResourceType.COLLECTION
-    )
-
-    collection_scores = calc_scores(stats=collection_stats)
-
-    material_stats = search_score(node_id=node_id, resource_type=ResourceType.MATERIAL)
-
-    material_scores = calc_scores(stats=material_stats)
-
-    score_ = calc_weighted_score(
-        collection_scores=collection_scores,
-        material_scores=material_scores,
-    )
-
-    return {
-        "score": score_,
-        "collections": {"total": collection_stats["total"], **collection_scores},
-        "materials": {"total": material_stats["total"], **material_scores},
-    }
+    return await get_score(node_id)
 
 
 class Ping(BaseModel):

@@ -7,8 +7,8 @@ from glom import Coalesce, Iter, glom
 from pydantic import BaseModel, Extra
 from pydantic.validators import str_validator
 
-from app.api.score.models import LearningMaterialAttribute
 from app.core.config import ELASTIC_TOTAL_SIZE
+from app.core.models import LearningMaterialAttribute
 from app.elastic.dsl import qbool, qmatch, qterm
 from app.elastic.elastic import (
     ResourceType,
