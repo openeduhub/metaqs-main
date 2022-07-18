@@ -8,8 +8,8 @@ from pydantic import BaseModel, Extra
 from pydantic.validators import str_validator
 
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.models import LearningMaterialAttribute
-from app.elastic.dsl import qbool, qmatch, qterm
+from app.core.models import LearningMaterialAttribute, ResponseModel
+from app.elastic.dsl import qbool, qmatch
 from app.elastic.elastic import (
     ResourceType,
     query_missing_material_license,
@@ -131,16 +131,6 @@ class LearningMaterialBase(ElasticResource):
         }
 
 
-class ResponseConfig:
-    allow_population_by_field_name = True
-    extra = Extra.ignore
-
-
-class ResponseModel(BaseModel):
-    class Config(ResponseConfig):
-        pass
-
-
 class LearningMaterial(ResponseModel, LearningMaterialBase):
     pass
 
@@ -157,12 +147,6 @@ def material_response_fields(
     return response_fields
 
 
-"""
-
-    "properties.ccm:objecttype": "object_type",
-    "properties.ccm:containsAdvertisement": "ads_qualifier",
-    "properties.cclom:oeh_lrt_aggregated": "learning_resource_type",
-"""
 MissingMaterialField = ElasticField(
     "MissingMaterialField",
     [
@@ -193,13 +177,6 @@ def materials_filter_params(
     *, missing_attr: MissingMaterialField = Path(...)
 ) -> MissingAttributeFilter:
     return MissingAttributeFilter(attr=missing_attr)
-
-
-base_filter = [
-    qterm(qfield=ElasticResourceAttribute.PERMISSION_READ, value="GROUP_EVERYONE"),
-    qterm(qfield=ElasticResourceAttribute.EDU_METADATASET, value="mds_oeh"),
-    qterm(qfield=ElasticResourceAttribute.PROTOCOL, value="workspace"),
-]
 
 
 def missing_attributes_search(

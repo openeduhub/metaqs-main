@@ -8,6 +8,8 @@ from pydantic.generics import GenericModel
 from starlette.exceptions import HTTPException
 from starlette.status import HTTP_404_NOT_FOUND
 
+from app.core.models import ResponseModel
+
 
 class StatType(str, Enum):
     # PORTAL_TREE = "portal-tree"  # Currently unused
@@ -32,16 +34,6 @@ class ElasticConfig:
 
 class ElasticModel(BaseModel):
     class Config(ElasticConfig):
-        pass
-
-
-class ResponseConfig:
-    allow_population_by_field_name = True
-    extra = Extra.ignore
-
-
-class ResponseModel(BaseModel):
-    class Config(ResponseConfig):
         pass
 
 

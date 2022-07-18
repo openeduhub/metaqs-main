@@ -49,3 +49,8 @@ def afilter(query: Query) -> Agg:
 
 def amissing(qfield: Union[ElasticField, str]) -> Agg:
     return A("missing", field=handle_text_field(qfield))
+
+
+def aterms(qfield: Union[ElasticField, str], **kwargs) -> Agg:
+    kwargs["field"] = handle_text_field(qfield)
+    return A("terms", **kwargs)

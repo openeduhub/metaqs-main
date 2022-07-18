@@ -1,5 +1,7 @@
 from itertools import chain
 
+from pydantic import BaseModel, Extra
+
 from app.elastic.fields import ElasticField, ElasticFieldType
 from app.models import ElasticResourceAttribute
 
@@ -38,3 +40,13 @@ LearningMaterialAttribute = ElasticField(
         for f in chain(ElasticResourceAttribute, _LearningMaterialAttribute)
     ],
 )
+
+
+class ResponseConfig:
+    allow_population_by_field_name = True
+    extra = Extra.ignore
+
+
+class ResponseModel(BaseModel):
+    class Config(ResponseConfig):
+        pass
