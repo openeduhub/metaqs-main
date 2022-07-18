@@ -1,6 +1,6 @@
 from typing import TypeVar
 
-from app.elastic.fields import ElasticField, ElasticFieldType
+from app.elastic.dsl import ElasticField, ElasticFieldType
 
 _ELASTIC_RESOURCE = TypeVar("_ELASTIC_RESOURCE")
 _DESCENDANT_COLLECTIONS_MATERIALS_COUNTS = TypeVar(
