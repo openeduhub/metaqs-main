@@ -7,15 +7,14 @@ from glom import Coalesce, Iter, glom
 from pydantic import BaseModel, Extra
 from pydantic.validators import str_validator
 
-from app.api.score.models import LearningMaterialAttribute
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.elastic.dsl import qbool, qmatch, qterm
+from app.core.models import LearningMaterialAttribute, ResponseModel
+from app.elastic.dsl import ElasticField, qbool, qmatch
 from app.elastic.elastic import (
     ResourceType,
     query_missing_material_license,
     type_filter,
 )
-from app.elastic.fields import ElasticField
 from app.elastic.search import Search
 from app.models import _ELASTIC_RESOURCE, ElasticResourceAttribute
 
@@ -131,16 +130,6 @@ class LearningMaterialBase(ElasticResource):
         }
 
 
-class ResponseConfig:
-    allow_population_by_field_name = True
-    extra = Extra.ignore
-
-
-class ResponseModel(BaseModel):
-    class Config(ResponseConfig):
-        pass
-
-
 class LearningMaterial(ResponseModel, LearningMaterialBase):
     pass
 
@@ -170,6 +159,10 @@ MissingMaterialField = ElasticField(
             LearningMaterialAttribute.WWW_URL,
             LearningMaterialAttribute.DESCRIPTION,
             LearningMaterialAttribute.LICENSES,
+            LearningMaterialAttribute.OBJECT_TYPE,
+            LearningMaterialAttribute.LEARNINGRESOURCE_TYPE,
+            LearningMaterialAttribute.CONTAINS_ADS,
+            LearningMaterialAttribute.PUBLISHER,
         ]
     ],
 )
@@ -185,31 +178,27 @@ def materials_filter_params(
     return MissingAttributeFilter(attr=missing_attr)
 
 
-base_filter = [
-    qterm(qfield=ElasticResourceAttribute.PERMISSION_READ, value="GROUP_EVERYONE"),
-    qterm(qfield=ElasticResourceAttribute.EDU_METADATASET, value="mds_oeh"),
-    qterm(qfield=ElasticResourceAttribute.PROTOCOL, value="workspace"),
-]
-
-
 def missing_attributes_search(
     node_id: uuid.UUID, missing_attribute: str, max_hits: int
 ) -> Search:
-    if missing_attribute == LearningMaterialAttribute.LICENSES.path:
-        missing_attribute_query = {"filter": query_missing_material_license()}
-    else:
-        missing_attribute_query = {
-            "must_not": Q("wildcard", **{missing_attribute: {"value": "*"}})
-        }
     query = {
-        "filter": [*type_filter[ResourceType.MATERIAL]],
         "minimum_should_match": 1,
         "should": [
-            qmatch(**{"path": node_id}),
-            qmatch(**{"nodeRef.id": node_id}),
+            qmatch(**{"collections.path": node_id}),
+            qmatch(**{"collections.nodeRef.id": node_id}),
         ],
-        **missing_attribute_query,
+        "filter": type_filter[
+            ResourceType.MATERIAL
+        ].copy(),  # copy otherwise appending the query causes mutation
     }
+    if missing_attribute == LearningMaterialAttribute.LICENSES.path:
+        query["filter"].append(query_missing_material_license().to_dict())
+    else:
+        query.update(
+            {
+                "must_not": Q("wildcard", **{missing_attribute: {"value": "*"}}),
+            }
+        )
 
     return (
         Search()

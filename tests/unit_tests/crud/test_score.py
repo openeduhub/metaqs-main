@@ -1,3 +1,4 @@
+import uuid
 from unittest.mock import MagicMock
 
 import pytest
@@ -7,7 +8,7 @@ from app.api.score.score import (
     calc_scores,
     calc_weighted_score,
     get_score_search,
-    score,
+    map_response_to_output,
 )
 from app.elastic.elastic import ResourceType
 
@@ -22,7 +23,7 @@ def test_score_empty_hits():
     mocked_response._hits = MagicMock()
     mocked_response.hits = MagicMock()
     mocked_response.hits.total.value = 0
-    output = score(mocked_response)
+    output = map_response_to_output(mocked_response)
 
     expected_score = {"total": len(dummy_hits["hits"])}
     assert output == expected_score
@@ -58,7 +59,7 @@ def test_score_with_hits():
     mocked_response._hits = MagicMock()
     mocked_response.hits = MagicMock()
     mocked_response.hits.total.value = 0
-    output = score(mocked_response)
+    output = map_response_to_output(mocked_response)
 
     expected_score = {
         "total": 0,
@@ -76,7 +77,7 @@ def test_score_with_hits():
 
 
 def test_score_search_material():
-    noderef_id = "dummy_id"
+    noderef_id = uuid.uuid4()
     assert ResourceType.MATERIAL == "MATERIAL"
     resource_type = ResourceType.MATERIAL
     search = get_score_search(noderef_id, resource_type)
@@ -151,7 +152,7 @@ def test_score_search_material():
 
 
 def test_score_search_collection():
-    noderef_id = "dummy_id"
+    noderef_id = uuid.uuid4()
     assert ResourceType.COLLECTION == "COLLECTION"
     resource_type = ResourceType.COLLECTION
     search = get_score_search(noderef_id, resource_type)
@@ -195,7 +196,7 @@ def test_score_search_collection():
 
 @pytest.mark.skip(reason="Unhandled exception")
 def test_score_search_exception():
-    noderef_id = "123"
+    noderef_id = uuid.uuid4()
     resource_type = ""
     search = get_score_search(noderef_id, resource_type)
     assert search.to_dict() == {}

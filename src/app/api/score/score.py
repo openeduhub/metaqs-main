@@ -5,7 +5,7 @@ from elasticsearch_dsl.response import Response
 from fastapi import Path
 
 import app.core.constants
-from app.api.score.models import LearningMaterialAttribute
+from app.core.models import LearningMaterialAttribute
 from app.elastic.dsl import afilter, amissing
 from app.elastic.elastic import (
     ResourceType,
@@ -64,7 +64,7 @@ def get_score_search(node_id: uuid.UUID, resource_type: ResourceType) -> Search:
     return s
 
 
-def score(response: Response) -> dict:
+def map_response_to_output(response: Response) -> dict:
     return {
         "total": response.hits.total.value,
         **{k: v["doc_count"] for k, v in response.aggregations.to_dict().items()},
@@ -77,7 +77,7 @@ def search_score(node_id: uuid.UUID, resource_type: ResourceType) -> dict:
     response: Response = s.execute()
 
     if response.success():
-        return score(response)
+        return map_response_to_output(response)
 
 
 def node_id_param(
@@ -124,3 +124,21 @@ aggs_collection_validation = {
     ),
     "missing_edu_context": amissing(qfield=ElasticResourceAttribute.EDU_CONTEXT),
 }
+
+
+async def get_score(node_id):
+    collection_stats = search_score(
+        node_id=node_id, resource_type=ResourceType.COLLECTION
+    )
+    collection_scores = calc_scores(stats=collection_stats)
+    material_stats = search_score(node_id=node_id, resource_type=ResourceType.MATERIAL)
+    material_scores = calc_scores(stats=material_stats)
+    score_ = calc_weighted_score(
+        collection_scores=collection_scores,
+        material_scores=material_scores,
+    )
+    return {
+        "score": score_,
+        "collections": {"total": collection_stats["total"], **collection_scores},
+        "materials": {"total": material_stats["total"], **material_scores},
+    }

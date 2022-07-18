@@ -9,6 +9,7 @@ from glom import Coalesce, Iter
 from app.api.collections.models import MissingMaterials
 from app.api.collections.utils import all_source_fields, map_elastic_response_to_model
 from app.core.config import ELASTIC_TOTAL_SIZE
+from app.core.models import LearningMaterialAttribute
 from app.elastic.dsl import qbool, qmatch
 from app.elastic.elastic import ResourceType, type_filter
 from app.elastic.search import Search
@@ -19,6 +20,7 @@ missing_attribute_filter = [
     ElasticResourceAttribute.NAME,
     ElasticResourceAttribute.KEYWORDS,
     CollectionAttribute.DESCRIPTION,
+    LearningMaterialAttribute.LICENSES,
 ]
 
 

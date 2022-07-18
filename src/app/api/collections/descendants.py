@@ -1,35 +1,22 @@
 import uuid
 from itertools import chain
-from typing import Optional, Type, TypeVar, Union
+from typing import Optional, Type, TypeVar
 
 from elasticsearch_dsl.aggs import A, Agg
-from elasticsearch_dsl.query import Query
 from elasticsearch_dsl.response import Response
 from glom import Coalesce, Iter, glom
 from pydantic import BaseModel, Extra
 
-from app.api.collections.missing_materials import (
-    ElasticResource,
-    EmptyStrToNone,
-    LearningMaterialAttribute,
-)
+from app.api.collections.missing_materials import ElasticResource, EmptyStrToNone
 from app.api.collections.utils import all_source_fields
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.elastic.dsl import qbool, qmatch
+from app.core.models import LearningMaterialAttribute, ResponseModel
+from app.elastic.dsl import ElasticField, aterms, qbool, qmatch
 from app.elastic.elastic import ResourceType, query_materials, type_filter
-from app.elastic.fields import ElasticField, ElasticFieldType
 from app.elastic.search import Search
-from app.elastic.utils import handle_text_field
+from app.models import _DESCENDANT_COLLECTIONS_MATERIALS_COUNTS
+from app.models import CollectionAttribute as _CollectionAttribute
 from app.models import ElasticResourceAttribute
-
-
-class _CollectionAttribute(ElasticField):
-    TITLE = ("properties.cm:title", ElasticFieldType.TEXT)
-    DESCRIPTION = ("properties.cm:description", ElasticFieldType.TEXT)
-    PATH = ("path", ElasticFieldType.KEYWORD)
-    PARENT_ID = ("parentRef.id", ElasticFieldType.KEYWORD)
-    NODE_ID = ("nodeRef.id", ElasticFieldType.KEYWORD)
-
 
 _COLLECTION = TypeVar("_COLLECTION")
 # TODO Remove duplicate
@@ -42,25 +29,10 @@ CollectionAttribute = ElasticField(
 )
 
 
-class ResponseConfig:
-    allow_population_by_field_name = True
-    extra = Extra.ignore
-
-
-class ResponseModel(BaseModel):
-    class Config(ResponseConfig):
-        pass
-
-
 class CollectionMaterialsCount(ResponseModel):
     noderef_id: uuid.UUID
     title: str
     materials_count: int
-
-
-_DESCENDANT_COLLECTIONS_MATERIALS_COUNTS = TypeVar(
-    "_DESCENDANT_COLLECTIONS_MATERIALS_COUNTS"
-)
 
 
 # TODO: Refactor
@@ -91,17 +63,9 @@ class DescendantCollectionsMaterialsCounts(BaseModel):
         )
 
 
-def aterms(qfield: Union[ElasticField, str], **kwargs) -> Agg:
-    kwargs["field"] = handle_text_field(qfield)
-    return A("terms", **kwargs)
-
-
-def acomposite(sources: list[Union[Query, dict]], **kwargs) -> Agg:
-    return A("composite", sources=sources, **kwargs)
-
-
 def agg_materials_by_collection(size: int = 65536) -> Agg:
-    return acomposite(
+    return A(
+        "composite",
         sources=[
             {
                 "noderef_id": aterms(
@@ -111,10 +75,6 @@ def agg_materials_by_collection(size: int = 65536) -> Agg:
         ],
         size=size,
     )
-
-
-def abucketsort(sort: list[Union[Query, dict]], **kwargs) -> Agg:
-    return A("bucket_sort", sort=sort, **kwargs)
 
 
 def material_counts_by_descendant(
@@ -131,7 +91,7 @@ def material_counts_search(node_id: uuid.UUID):
     s = Search().base_filters().query(query_materials(node_id=node_id))
     s.aggs.bucket("grouped_by_collection", agg_materials_by_collection()).pipeline(
         "sorted_by_count",
-        abucketsort(sort=[{"_count": {"order": "asc"}}]),
+        A("bucket_sort", sort=[{"_count": {"order": "asc"}}]),
     )
     return s
 
@@ -142,17 +102,6 @@ class CollectionBase(ElasticResource):
     description: Optional[EmptyStrToNone] = None
     path: Optional[list[uuid.UUID]] = None
     parent_id: Optional[uuid.UUID] = None
-
-    source_fields = {
-        CollectionAttribute.NODEREF_ID,
-        CollectionAttribute.TYPE,
-        CollectionAttribute.NAME,
-        CollectionAttribute.TITLE,
-        CollectionAttribute.KEYWORDS,
-        CollectionAttribute.DESCRIPTION,
-        CollectionAttribute.PATH,
-        CollectionAttribute.PARENT_ID,
-    }
 
     @classmethod
     def parse_elastic_hit_to_dict(

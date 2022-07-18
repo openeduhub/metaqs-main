@@ -24,16 +24,13 @@ from app.api.analytics.storage import (
     _MATERIALS,
     global_storage,
 )
-from app.api.collections.descendants import aterms
 from app.api.collections.models import CollectionNode
 from app.api.collections.tree import collection_tree
-from app.api.score.models import (
-    LearningMaterialAttribute,
-    required_collection_properties,
-)
+from app.api.score.models import required_collection_properties
 from app.core.config import ELASTIC_TOTAL_SIZE
+from app.core.models import LearningMaterialAttribute
+from app.elastic.dsl import ElasticField, aterms
 from app.elastic.elastic import query_materials
-from app.elastic.fields import ElasticField
 from app.elastic.search import Search
 
 
