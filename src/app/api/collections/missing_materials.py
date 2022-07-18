@@ -157,6 +157,12 @@ def material_response_fields(
     return response_fields
 
 
+"""
+
+    "properties.ccm:objecttype": "object_type",
+    "properties.ccm:containsAdvertisement": "ads_qualifier",
+    "properties.cclom:oeh_lrt_aggregated": "learning_resource_type",
+"""
 MissingMaterialField = ElasticField(
     "MissingMaterialField",
     [
@@ -170,6 +176,10 @@ MissingMaterialField = ElasticField(
             LearningMaterialAttribute.WWW_URL,
             LearningMaterialAttribute.DESCRIPTION,
             LearningMaterialAttribute.LICENSES,
+            LearningMaterialAttribute.OBJECT_TYPE,
+            LearningMaterialAttribute.LEARNINGRESOURCE_TYPE,
+            LearningMaterialAttribute.CONTAINS_ADS,
+            LearningMaterialAttribute.PUBLISHER,
         ]
     ],
 )

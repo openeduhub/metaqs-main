@@ -28,6 +28,7 @@ class _LearningMaterialAttribute(ElasticField):
     )
     CONTAINS_ADS = ("properties.ccm:containsAdvertisement", ElasticFieldType.TEXT)
     OBJECT_TYPE = ("properties.ccm:objecttype", ElasticFieldType.TEXT)
+    PUBLISHER = ("properties.ccm:oeh_publisher_combined", ElasticFieldType.TEXT)
 
 
 LearningMaterialAttribute = ElasticField(
