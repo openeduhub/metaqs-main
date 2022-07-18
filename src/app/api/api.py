@@ -191,7 +191,7 @@ async def get_timestamps(
 
 
 @router.get(
-    "/collections/{node_id}/score",
+    "/collections/{node_id}/stats/score",
     response_model=ScoreOutput,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
