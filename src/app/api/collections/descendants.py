@@ -14,19 +14,11 @@ from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.models import LearningMaterialAttribute
 from app.elastic.dsl import qbool, qmatch
 from app.elastic.elastic import ResourceType, query_materials, type_filter
-from app.elastic.fields import ElasticField, ElasticFieldType
+from app.elastic.fields import ElasticField
 from app.elastic.search import Search
 from app.elastic.utils import handle_text_field
+from app.models import CollectionAttribute as _CollectionAttribute
 from app.models import ElasticResourceAttribute
-
-
-class _CollectionAttribute(ElasticField):
-    TITLE = ("properties.cm:title", ElasticFieldType.TEXT)
-    DESCRIPTION = ("properties.cm:description", ElasticFieldType.TEXT)
-    PATH = ("path", ElasticFieldType.KEYWORD)
-    PARENT_ID = ("parentRef.id", ElasticFieldType.KEYWORD)
-    NODE_ID = ("nodeRef.id", ElasticFieldType.KEYWORD)
-
 
 _COLLECTION = TypeVar("_COLLECTION")
 # TODO Remove duplicate

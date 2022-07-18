@@ -1,29 +1,19 @@
-"""
-
 import uuid
 
-import pytest
+from app.api.collections.missing_attributes import missing_attribute_filter
+from app.api.collections.missing_materials import missing_attributes_search
 
-from app.api.collections.missing_materials import (
-    LearningMaterialAttribute,
-    MissingAttributeFilter,
-    MissingMaterialField,
-)
 
-# TODO: More tests cases to also enable filtering, see __call__ MissingAttributeFilter
-@pytest.mark.skip(reason="Outdated")
 def test_missing_materials_search():
     dummy_uuid = uuid.uuid4()
-    attribute = LearningMaterialAttribute.KEYWORDS
-    dummy_missing_attribute = MissingAttributeFilter(
-        attr=MissingMaterialField[attribute.name]
-    )
+    dummy_attribute = "properties.cm:title"
+    dummy_missing_attribute = missing_attribute_filter[0].value
     dummy_maximum_size = 3
-    search = missing_materials_search(
+    search = missing_attributes_search(
         dummy_uuid, dummy_missing_attribute, dummy_maximum_size
     )
     actual = search.to_dict()
-    actual_source = actual["_source"]
+    actual_source = actual["_source"]["includes"]
     actual["_source"] = []
     assert actual == {
         "query": {
@@ -39,9 +29,7 @@ def test_missing_materials_search():
                     {"match": {"collections.nodeRef.id": dummy_uuid}},
                 ],
                 "minimum_should_match": 1,
-                "must_not": [
-                    {"wildcard": {dummy_missing_attribute.attr.value: {"value": "*"}}}
-                ],
+                "must_not": [{"wildcard": {dummy_attribute: {"value": "*"}}}],
             }
         },
         "from": 0,
@@ -66,4 +54,35 @@ def test_missing_materials_search():
     source_contains_equal_elements = actual_source == expected_source
     assert source_contains_equal_elements
 
-"""
+
+def test_missing_materials_search_license():
+    dummy_uuid = uuid.uuid4()
+    dummy_attribute = "properties.commonlicense_key"
+    dummy_missing_attribute = missing_attribute_filter[4].value
+    dummy_maximum_size = 3
+    search = missing_attributes_search(
+        dummy_uuid, dummy_missing_attribute, dummy_maximum_size
+    )
+    actual = search.to_dict()
+    actual["_source"] = []
+    assert actual == {
+        "query": {
+            "bool": {
+                "filter": [
+                    {"term": {"permissions.Read.keyword": "GROUP_EVERYONE"}},
+                    {"term": {"properties.cm:edu_metadataset.keyword": "mds_oeh"}},
+                    {"term": {"nodeRef.storeRef.protocol": "workspace"}},
+                    {"term": {"type": "ccm:io"}},
+                ],
+                "should": [
+                    {"match": {"collections.path": dummy_uuid}},
+                    {"match": {"collections.nodeRef.id": dummy_uuid}},
+                ],
+                "minimum_should_match": 1,
+                "must_not": [{"wildcard": {dummy_attribute: {"value": "*"}}}],
+            }
+        },
+        "from": 0,
+        "size": dummy_maximum_size,
+        "_source": [],
+    }
