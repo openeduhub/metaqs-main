@@ -1,3 +1,4 @@
+import uuid
 from unittest.mock import MagicMock
 
 import pytest
@@ -76,7 +77,7 @@ def test_score_with_hits():
 
 
 def test_score_search_material():
-    noderef_id = "dummy_id"
+    noderef_id = uuid.uuid4()
     assert ResourceType.MATERIAL == "MATERIAL"
     resource_type = ResourceType.MATERIAL
     search = get_score_search(noderef_id, resource_type)
@@ -151,7 +152,7 @@ def test_score_search_material():
 
 
 def test_score_search_collection():
-    noderef_id = "dummy_id"
+    noderef_id = uuid.uuid4()
     assert ResourceType.COLLECTION == "COLLECTION"
     resource_type = ResourceType.COLLECTION
     search = get_score_search(noderef_id, resource_type)
@@ -195,7 +196,7 @@ def test_score_search_collection():
 
 @pytest.mark.skip(reason="Unhandled exception")
 def test_score_search_exception():
-    noderef_id = "123"
+    noderef_id = uuid.uuid4()
     resource_type = ""
     search = get_score_search(noderef_id, resource_type)
     assert search.to_dict() == {}

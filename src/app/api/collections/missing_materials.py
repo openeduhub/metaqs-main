@@ -205,31 +205,24 @@ base_filter = [
 def missing_attributes_search(
     node_id: uuid.UUID, missing_attribute: str, max_hits: int
 ) -> Search:
-    missing_attribute_filter = {"filter": type_filter[ResourceType.MATERIAL]}
-
-    should_filter = {
+    query = {
+        "minimum_should_match": 1,
         "should": [
             qmatch(**{"collections.path": node_id}),
             qmatch(**{"collections.nodeRef.id": node_id}),
-        ]
+        ],
+        "filter": type_filter[
+            ResourceType.MATERIAL
+        ].copy(),  # copy otherwise appending the query causes mutation
     }
     if missing_attribute == LearningMaterialAttribute.LICENSES.path:
-        license_query = query_missing_material_license().to_dict()["bool"]
-        should_filter["should"] += [Q(query) for query in license_query["should"]]
-        license_query.pop("should")
-        query = {
-            "minimum_should_match": 1,
-            **should_filter,
-            **license_query,
-            **missing_attribute_filter,
-        }
+        query["filter"].append(query_missing_material_license().to_dict())
     else:
-        query = {
-            "minimum_should_match": 1,
-            **should_filter,
-            "must_not": Q("wildcard", **{missing_attribute: {"value": "*"}}),
-            **missing_attribute_filter,
-        }
+        query.update(
+            {
+                "must_not": Q("wildcard", **{missing_attribute: {"value": "*"}}),
+            }
+        )
 
     return (
         Search()

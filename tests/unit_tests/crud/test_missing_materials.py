@@ -65,6 +65,7 @@ def test_missing_materials_search_license():
     )
     actual = search.to_dict()
     actual["_source"] = []
+
     assert actual == {
         "query": {
             "bool": {
@@ -73,21 +74,34 @@ def test_missing_materials_search_license():
                     {"term": {"properties.cm:edu_metadataset.keyword": "mds_oeh"}},
                     {"term": {"nodeRef.storeRef.protocol": "workspace"}},
                     {"term": {"type": "ccm:io"}},
+                    {
+                        "bool": {
+                            "should": [
+                                {
+                                    "terms": {
+                                        dummy_attribute
+                                        + ".keyword": [
+                                            "UNTERRICHTS_UND_LEHRMEDIEN",
+                                            "NONE",
+                                            "",
+                                        ]
+                                    }
+                                },
+                                {
+                                    "bool": {
+                                        "must_not": [
+                                            {"exists": {"field": dummy_attribute}}
+                                        ]
+                                    }
+                                },
+                            ],
+                            "minimum_should_match": 1,
+                        }
+                    },
                 ],
                 "should": [
                     {"match": {"collections.path": dummy_uuid}},
                     {"match": {"collections.nodeRef.id": dummy_uuid}},
-                    {
-                        "terms": {
-                            dummy_attribute
-                            + ".keyword": [
-                                "UNTERRICHTS_UND_LEHRMEDIEN",
-                                "NONE",
-                                "",
-                            ]
-                        }
-                    },
-                    {"bool": {"must_not": [{"exists": {"field": dummy_attribute}}]}},
                 ],
                 "minimum_should_match": 1,
             }
