@@ -57,7 +57,7 @@ def test_missing_materials_search():
 
 def test_missing_materials_search_license():
     dummy_uuid = uuid.uuid4()
-    dummy_attribute = "properties.commonlicense_key"
+    dummy_attribute = "properties.ccm:commonlicense_key"
     dummy_missing_attribute = missing_attribute_filter[4].value
     dummy_maximum_size = 3
     search = missing_attributes_search(
@@ -77,9 +77,19 @@ def test_missing_materials_search_license():
                 "should": [
                     {"match": {"collections.path": dummy_uuid}},
                     {"match": {"collections.nodeRef.id": dummy_uuid}},
+                    {
+                        "terms": {
+                            dummy_attribute
+                            + ".keyword": [
+                                "UNTERRICHTS_UND_LEHRMEDIEN",
+                                "NONE",
+                                "",
+                            ]
+                        }
+                    },
+                    {"bool": {"must_not": [{"exists": {"field": dummy_attribute}}]}},
                 ],
                 "minimum_should_match": 1,
-                "must_not": [{"wildcard": {dummy_attribute: {"value": "*"}}}],
             }
         },
         "from": 0,

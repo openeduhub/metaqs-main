@@ -207,26 +207,26 @@ def missing_attributes_search(
 ) -> Search:
     missing_attribute_filter = {"filter": type_filter[ResourceType.MATERIAL]}
 
+    should_filter = {
+        "should": [
+            qmatch(**{"collections.path": node_id}),
+            qmatch(**{"collections.nodeRef.id": node_id}),
+        ]
+    }
     if missing_attribute == LearningMaterialAttribute.LICENSES.path:
         license_query = query_missing_material_license().to_dict()["bool"]
-        missing_attribute_filter.update(**license_query)
-
+        should_filter["should"] += [Q(query) for query in license_query["should"]]
+        license_query.pop("should")
         query = {
             "minimum_should_match": 1,
-            "should": [
-                qmatch(**{"path": node_id}),
-                qmatch(**{"nodeRef.id": node_id}),
-                query_missing_material_license(),
-            ],
+            **should_filter,
             **license_query,
+            **missing_attribute_filter,
         }
     else:
         query = {
             "minimum_should_match": 1,
-            "should": [
-                qmatch(**{"collections.path": node_id}),
-                qmatch(**{"collections.nodeRef.id": node_id}),
-            ],
+            **should_filter,
             "must_not": Q("wildcard", **{missing_attribute: {"value": "*"}}),
             **missing_attribute_filter,
         }
