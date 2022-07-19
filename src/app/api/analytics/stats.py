@@ -21,6 +21,7 @@ from app.api.analytics.storage import (
     _COLLECTION_COUNT,
     _COLLECTIONS,
     _MATERIALS,
+    _SEARCH,
     global_storage,
 )
 from app.api.collections.models import CollectionNode
@@ -179,13 +180,45 @@ def filtered_collections(collections: list[Collection], node_id: uuid.UUID):
 async def query_search_statistics(
     node_id: uuid.UUID,
 ) -> dict[str, COUNT_STATISTICS_TYPE]:
-    results = {}
-
-    all_collection_nodes = await get_ids_to_iterate(node_id)
-    for row in all_collection_nodes:
-        stats = search_hits_by_material_type(row.title)
-        results.update({str(row.id): stats})
-    return results
+    search_statistics = global_storage[_SEARCH]
+    """TODO: This will not work, because I need the path for each stats, to find out if it is a child node. This needs some heavy reworking"""
+    print(search_statistics)
+    """
+      File "/home/rcc/.cache/pypoetry/virtualenvs/metaqs-api-DtX2f8lg-py3.9/lib/python3.9/site-packages/starlette_context/middleware/raw_middleware.py", line 96, in __call__
+    await self.app(scope, receive, send_wrapper)
+  File "/home/rcc/.cache/pypoetry/virtualenvs/metaqs-api-DtX2f8lg-py3.9/lib/python3.9/site-packages/starlette/exceptions.py", line 82, in __call__
+    raise exc
+  File "/home/rcc/.cache/pypoetry/virtualenvs/metaqs-api-DtX2f8lg-py3.9/lib/python3.9/site-packages/starlette/exceptions.py", line 71, in __call__
+    await self.app(scope, receive, sender)
+  File "/home/rcc/.cache/pypoetry/virtualenvs/metaqs-api-DtX2f8lg-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 656, in __call__
+    await route.handle(scope, receive, send)
+  File "/home/rcc/.cache/pypoetry/virtualenvs/metaqs-api-DtX2f8lg-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 259, in handle
+    await self.app(scope, receive, send)
+  File "/home/rcc/.cache/pypoetry/virtualenvs/metaqs-api-DtX2f8lg-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 61, in app
+    response = await func(request)
+  File "/home/rcc/.cache/pypoetry/virtualenvs/metaqs-api-DtX2f8lg-py3.9/lib/python3.9/site-packages/fastapi/routing.py", line 226, in app
+    raw_response = await run_endpoint_function(
+  File "/home/rcc/.cache/pypoetry/virtualenvs/metaqs-api-DtX2f8lg-py3.9/lib/python3.9/site-packages/fastapi/routing.py", line 159, in run_endpoint_function
+    return await dependant.call(**values)
+  File "/home/rcc/Projects/WLO/metaqs-main/src/app/api/api.py", line 348, in read_stats
+    output = await overall_stats(node_id, oer_only)
+  File "/home/rcc/Projects/WLO/metaqs-main/src/app/api/analytics/stats.py", line 188, in overall_stats
+    search_stats = await query_search_statistics(node_id=node_id)
+  File "/home/rcc/Projects/WLO/metaqs-main/src/app/api/analytics/stats.py", line 184, in query_search_statistics
+    return filtered_collections(search_statistics, node_id)
+  File "/home/rcc/Projects/WLO/metaqs-main/src/app/api/analytics/stats.py", line 172, in filtered_collections
+    return [
+  File "/home/rcc/Projects/WLO/metaqs-main/src/app/api/analytics/stats.py", line 175, in <listcomp>
+    if str(node_id) in collection.doc["path"]
+AttributeError: 'UUID' object has no attribute 'doc
+    """
+    """
+    return [
+        collection
+        for item_id, stats in search_statistics.items
+        if str(node_id) in collection.doc["path"]
+    ]"""
+    return filtered_collections(search_statistics, node_id)
 
 
 async def overall_stats(node_id, oer_only: bool = False) -> StatsResponse:
