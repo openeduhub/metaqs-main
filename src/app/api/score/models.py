@@ -69,7 +69,7 @@ class MissingMaterialProperties(BaseModel):
 class ScoreOutput(BaseModel):
     score: int = Field(default=0, gt=0, le=100, description="Overall score")
     oer_ratio: int = Field(
-        default=0, gt=0, le=100, description="Overall ratio of OER content"
+        default=0, ge=0, le=100, description="Overall ratio of OER content"
     )
     collections: MissingCollectionProperties = Field(
         description="Score for specific collection properties"

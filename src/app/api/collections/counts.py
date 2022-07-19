@@ -35,7 +35,7 @@ class AggregationMappings(str, Enum):
 
 
 def collection_counts_search(node_id: uuid.UUID, facet: AggregationMappings) -> Search:
-    s = Search().base_filters().query(query_materials(node_id=node_id))
+    search = Search().base_filters().query(query_materials(node_id=node_id))
     material_agg = A(
         "terms", field="collections.nodeRef.id.keyword", size=ELASTIC_TOTAL_SIZE
     )
@@ -47,8 +47,9 @@ def collection_counts_search(node_id: uuid.UUID, facet: AggregationMappings) -> 
             size=ELASTIC_TOTAL_SIZE,
         ),
     )
-    s.aggs.bucket(_AGGREGATION_NAME, material_agg)
-    s = s.source(
+
+    search.aggs.bucket(_AGGREGATION_NAME, material_agg)
+    search = search.source(
         [
             ElasticResourceAttribute.NODEREF_ID.path,
             CollectionAttribute.TITLE.path,
@@ -56,7 +57,7 @@ def collection_counts_search(node_id: uuid.UUID, facet: AggregationMappings) -> 
             CollectionAttribute.PARENT_ID.path,
         ]
     )[:0]
-    return s
+    return search
 
 
 async def collection_counts(

@@ -1,6 +1,3 @@
-REPLICATION_SOURCE_ID = "ccm:replicationsource"
-PROPERTIES = "properties"
-
 COLLECTION_NAME_TO_ID = {
     "Physik": {"value": "94f22c9b-0d3a-4c1c-8987-4c8e83f3a92e"},
     "Mathematik": {"value": "bd8be6d5-0fbe-4534-a4b3-773154ba6abc"},

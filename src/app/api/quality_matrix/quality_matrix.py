@@ -11,7 +11,7 @@ from app.api.quality_matrix.models import QUALITY_MATRIX_RETURN_TYPE, Forms, Tim
 from app.api.quality_matrix.utils import default_properties
 from app.api.score.models import required_collection_properties
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.constants import COLLECTION_ROOT_ID, PROPERTIES, REPLICATION_SOURCE_ID
+from app.core.constants import COLLECTION_ROOT_ID
 from app.core.logging import logger
 from app.elastic.dsl import qbool, qmatch
 from app.elastic.search import Search
@@ -136,6 +136,10 @@ async def store_in_timeline(
 
 async def items_in_response(response: Response) -> dict:
     return response.aggregations.to_dict().items()
+
+
+REPLICATION_SOURCE_ID = "ccm:replicationsource"
+PROPERTIES = "properties"
 
 
 async def source_quality(

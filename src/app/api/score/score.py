@@ -4,7 +4,17 @@ from elasticsearch_dsl import Q
 from elasticsearch_dsl.response import Response
 from fastapi import Path
 
-import app.core.constants
+from app.api.collections.counts import (
+    _AGGREGATION_NAME,
+    AggregationMappings,
+    collection_counts_search,
+)
+from app.api.score.models import (
+    MissingCollectionProperties,
+    MissingMaterialProperties,
+    ScoreOutput,
+)
+from app.core.constants import COLLECTION_NAME_TO_ID
 from app.core.models import LearningMaterialAttribute
 from app.elastic.dsl import afilter, amissing
 from app.elastic.elastic import (
@@ -53,10 +63,9 @@ def calc_weighted_score(collection_scores: dict, material_scores: dict) -> int:
 
 
 def get_score_search(node_id: uuid.UUID, resource_type: ResourceType) -> Search:
-    query, aggs = None, None
     if resource_type is ResourceType.COLLECTION:
         query, aggs = query_collections, aggs_collection_validation
-    elif resource_type is ResourceType.MATERIAL:
+    else:  # ResourceType.MATERIAL
         query, aggs = query_materials, aggs_material_validation
     s = Search().base_filters().query(query(node_id=node_id))
     for name, _agg in aggs.items():
@@ -81,8 +90,7 @@ def search_score(node_id: uuid.UUID, resource_type: ResourceType) -> dict:
 
 
 def node_id_param(
-    *,
-    node_id: uuid.UUID = Path(..., examples=app.core.constants.COLLECTION_NAME_TO_ID),
+    *, node_id: uuid.UUID = Path(..., examples=COLLECTION_NAME_TO_ID)
 ) -> uuid.UUID:
     return node_id
 
@@ -126,19 +134,42 @@ aggs_collection_validation = {
 }
 
 
-async def get_score(node_id):
+async def get_score(node_id: uuid.UUID) -> ScoreOutput:
     collection_stats = search_score(
         node_id=node_id, resource_type=ResourceType.COLLECTION
     )
     collection_scores = calc_scores(stats=collection_stats)
+
     material_stats = search_score(node_id=node_id, resource_type=ResourceType.MATERIAL)
     material_scores = calc_scores(stats=material_stats)
+
     score_ = calc_weighted_score(
-        collection_scores=collection_scores,
-        material_scores=material_scores,
+        collection_scores=collection_scores, material_scores=material_scores
     )
-    return {
-        "score": score_,
-        "collections": {"total": collection_stats["total"], **collection_scores},
-        "materials": {"total": material_stats["total"], **material_scores},
-    }
+
+    oer = oer_ratio(node_id)
+
+    collections = MissingCollectionProperties(
+        total=collection_stats["total"], **collection_scores
+    )
+    materials = MissingMaterialProperties(
+        total=material_stats["total"], **material_scores
+    )
+    return ScoreOutput(
+        score=score_, collections=collections, materials=materials, oer_ratio=oer
+    )
+
+
+def oer_ratio(node_id: uuid.UUID) -> int:
+    oer_statistics = collection_counts_search(node_id, AggregationMappings.license)
+    response = oer_statistics.execute()
+    oer_elements = 0
+    oer_total = 0
+    oer_license = ["CC_0", "PDM", "CC_BY", "CC_BY_SA"]
+    for data in response.aggregations[_AGGREGATION_NAME].buckets:
+        for bucket in data["facet"]["buckets"]:
+            oer_total += bucket["doc_count"]
+            if bucket["key"] in oer_license:
+                oer_elements += bucket["doc_count"]
+
+    return round((oer_elements / oer_total) * 100)
