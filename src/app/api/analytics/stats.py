@@ -14,7 +14,6 @@ from app.api.analytics.analytics import (
     MaterialValidationStats,
     StatsNotFoundException,
     StatsResponse,
-    StatType,
     ValidationStatsResponse,
 )
 from app.api.analytics.models import Collection
@@ -177,33 +176,24 @@ def filtered_collections(collections: list[Collection], node_id: uuid.UUID):
     ]
 
 
-async def stats_latest(
-    stat_type: StatType, node_id: uuid.UUID, oer_only: bool
+async def query_search_statistics(
+    node_id: uuid.UUID,
 ) -> dict[str, COUNT_STATISTICS_TYPE]:
     results = {}
 
-    if stat_type is StatType.SEARCH:
-        all_collection_nodes = await get_ids_to_iterate(node_id)
-        for row in all_collection_nodes:
-            stats = search_hits_by_material_type(row.title)
-            results.update({str(row.id): stats})
-    elif stat_type is StatType.MATERIAL_TYPES:
-        results = query_material_types(node_id, oer_only)
+    all_collection_nodes = await get_ids_to_iterate(node_id)
+    for row in all_collection_nodes:
+        stats = search_hits_by_material_type(row.title)
+        results.update({str(row.id): stats})
     return results
 
 
 async def overall_stats(node_id, oer_only: bool = False) -> StatsResponse:
-    search_stats = await stats_latest(
-        stat_type=StatType.SEARCH, node_id=node_id, oer_only=oer_only
-    )
-
+    search_stats = await query_search_statistics(node_id=node_id)
     if not search_stats:
         raise StatsNotFoundException
 
-    material_types_stats = await stats_latest(
-        stat_type=StatType.MATERIAL_TYPES, node_id=node_id, oer_only=oer_only
-    )
-
+    material_types_stats = query_material_types(node_id, oer_only)
     if not material_types_stats:
         raise StatsNotFoundException
 

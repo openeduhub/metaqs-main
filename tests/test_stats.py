@@ -61,7 +61,12 @@ async def test_overall_stats():
                         title="test_title",
                     )
                 ]
-                stats = await overall_stats(test_node)
+
+                with mock.patch(
+                    "app.api.analytics.stats.oer_ratio"
+                ) as mocked_oer_ratio:
+                    mocked_oer_ratio.return_value = 0
+                    stats = await overall_stats(test_node)
 
     assert len(stats.stats) == 1
     first_key_values = stats.stats[list(stats.stats.keys())[0]]
@@ -148,7 +153,7 @@ def test_query_material_types():
 
         mocked_global.__getitem__ = _get_item
 
-        result = query_material_types(dummy_node)
+        result = query_material_types(dummy_node, False)
 
     assert len(result) == 1
     first_value = result[list(result.keys())[0]]

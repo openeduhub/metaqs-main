@@ -1,4 +1,5 @@
 import json
+import time
 import uuid
 from typing import Mapping, Optional
 
@@ -342,7 +343,11 @@ async def read_stats(
     node_id: uuid.UUID = Depends(node_ids_for_major_collections),
     oer_only: bool = Query(default=False),
 ):
-    return await overall_stats(node_id, oer_only)
+
+    start = time.perf_counter()
+    output = await overall_stats(node_id, oer_only)
+    print("read_stats: ", time.perf_counter() - start)
+    return output
 
 
 @router.get(
