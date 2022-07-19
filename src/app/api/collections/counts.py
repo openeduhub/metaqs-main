@@ -34,7 +34,9 @@ class AggregationMappings(str, Enum):
     license = ("properties.ccm:commonlicense_key.keyword",)
 
 
-def collection_counts_search(node_id: uuid.UUID, facet: AggregationMappings) -> Search:
+def collection_counts_search(
+    node_id: uuid.UUID, facet: AggregationMappings, oer_only: bool = False
+) -> Search:
     search = Search().base_filters().query(query_materials(node_id=node_id))
     material_agg = A(
         "terms", field="collections.nodeRef.id.keyword", size=ELASTIC_TOTAL_SIZE
@@ -61,9 +63,9 @@ def collection_counts_search(node_id: uuid.UUID, facet: AggregationMappings) -> 
 
 
 async def collection_counts(
-    node_id: uuid.UUID, facet: AggregationMappings
+    node_id: uuid.UUID, facet: AggregationMappings, oer_only: bool = False
 ) -> Optional[list[CollectionTreeCount]]:
-    response = collection_counts_search(node_id, facet).execute()
+    response = collection_counts_search(node_id, facet, oer_only).execute()
     if response.success():
         return build_counts(response)
 

@@ -12,6 +12,7 @@ from app.api.analytics.models import Collection
 from app.api.analytics.stats import get_ids_to_iterate, search_hits_by_material_type
 from app.api.analytics.storage import (
     _COLLECTION_COUNT,
+    _COLLECTION_COUNT_OER,
     _COLLECTIONS,
     _MATERIALS,
     _SEARCH,
@@ -104,6 +105,9 @@ def run():
 
     app.api.analytics.storage.global_storage[_COLLECTION_COUNT] = asyncio.run(
         collection_counts(COLLECTION_ROOT_ID, AggregationMappings.lrt)
+    )
+    app.api.analytics.storage.global_storage[_COLLECTION_COUNT_OER] = asyncio.run(
+        collection_counts(COLLECTION_ROOT_ID, AggregationMappings.lrt, oer_only=True)
     )
 
     all_collections = asyncio.run(get_ids_to_iterate(node_id=COLLECTION_ROOT_ID))

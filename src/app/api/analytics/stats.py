@@ -25,6 +25,7 @@ from app.api.analytics.storage import (
     global_storage,
 )
 from app.api.collections.models import CollectionNode
+from app.api.collections.oer import oer_ratio
 from app.api.collections.tree import collection_tree
 from app.api.score.models import required_collection_properties
 from app.core.config import ELASTIC_TOTAL_SIZE
@@ -139,7 +140,9 @@ async def get_ids_to_iterate(node_id: uuid.UUID):
     return [Row(id=row[0], title=row[1]) for row in flatten_list(nodes(tree))]
 
 
-def query_material_types(node_id: uuid.UUID) -> dict[str, COUNT_STATISTICS_TYPE]:
+def query_material_types(
+    node_id: uuid.UUID, oer_only: bool
+) -> dict[str, COUNT_STATISTICS_TYPE]:
     """
     get collections with parent id equal to node_id
 
@@ -175,7 +178,7 @@ def filtered_collections(collections: list[Collection], node_id: uuid.UUID):
 
 
 async def stats_latest(
-    stat_type: StatType, node_id: uuid.UUID
+    stat_type: StatType, node_id: uuid.UUID, oer_only: bool
 ) -> dict[str, COUNT_STATISTICS_TYPE]:
     results = {}
 
@@ -185,18 +188,20 @@ async def stats_latest(
             stats = search_hits_by_material_type(row.title)
             results.update({str(row.id): stats})
     elif stat_type is StatType.MATERIAL_TYPES:
-        results = query_material_types(node_id)
+        results = query_material_types(node_id, oer_only)
     return results
 
 
-async def overall_stats(node_id) -> StatsResponse:
-    search_stats = await stats_latest(stat_type=StatType.SEARCH, node_id=node_id)
+async def overall_stats(node_id, oer_only: bool = False) -> StatsResponse:
+    search_stats = await stats_latest(
+        stat_type=StatType.SEARCH, node_id=node_id, oer_only=oer_only
+    )
 
     if not search_stats:
         raise StatsNotFoundException
 
     material_types_stats = await stats_latest(
-        stat_type=StatType.MATERIAL_TYPES, node_id=node_id
+        stat_type=StatType.MATERIAL_TYPES, node_id=node_id, oer_only=oer_only
     )
 
     if not material_types_stats:
@@ -210,8 +215,10 @@ async def overall_stats(node_id) -> StatsResponse:
         else:
             stats_output.update({key: {"material_types": value}})
 
-    output = StatsResponse(derived_at=datetime.datetime.now(), stats=stats_output)
-    return output
+    oer = oer_ratio(node_id)
+    return StatsResponse(
+        derived_at=datetime.datetime.now(), stats=stats_output, oer_ratio=oer
+    )
 
 
 def collections_with_missing_properties(

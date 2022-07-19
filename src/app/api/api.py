@@ -337,8 +337,12 @@ async def material_counts_tree(
     It relies on background data and is read every {BACKGROUND_TASK_TIME_INTERVAL}s.
     This is the granularity of the data.""",
 )
-async def read_stats(*, node_id: uuid.UUID = Depends(node_ids_for_major_collections)):
-    return await overall_stats(node_id)
+async def read_stats(
+    *,
+    node_id: uuid.UUID = Depends(node_ids_for_major_collections),
+    oer_only: bool = Query(default=False),
+):
+    return await overall_stats(node_id, oer_only)
 
 
 @router.get(

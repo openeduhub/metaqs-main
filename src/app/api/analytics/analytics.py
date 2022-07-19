@@ -43,6 +43,9 @@ COUNT_STATISTICS_TYPE = dict[str, int]
 class StatsResponse(ResponseModel):
     derived_at: datetime
     stats: dict[str, dict[str, COUNT_STATISTICS_TYPE]]
+    oer_ratio: int = Field(
+        default=0, ge=0, le=100, description="Overall ratio of OER content"
+    )
 
 
 ValidationStatsT = TypeVar("ValidationStatsT")

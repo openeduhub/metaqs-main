@@ -19,3 +19,5 @@ ELASTIC_TOTAL_SIZE = 500_000  # Maximum number of entries elasticsearch queries,
 ELASTICSEARCH_TIMEOUT = int(os.getenv("ELASTICSEARCH_TIMEOUT", 20))
 
 BACKGROUND_TASK_TIME_INTERVAL = 10 * 60  # Time between consecutive background calls
+
+ENABLE_DATABASE = True

@@ -8,7 +8,14 @@ from starlette_context.middleware import RawContextMiddleware
 
 from app.api.analytics.background_task import background_task
 from app.api.api import router
-from app.core.config import ALLOWED_HOSTS, API_DEBUG, API_PORT, LOG_LEVEL, ROOT_PATH
+from app.core.config import (
+    ALLOWED_HOSTS,
+    API_DEBUG,
+    API_PORT,
+    ENABLE_DATABASE,
+    LOG_LEVEL,
+    ROOT_PATH,
+)
 from app.core.constants import OPEN_API_VERSION
 from app.core.errors import http_422_error_handler, http_error_handler
 from app.core.logging import logger
@@ -34,9 +41,11 @@ def api() -> FastAPI:
     _api.add_middleware(RawContextMiddleware)
 
     _api.add_event_handler("startup", connect_to_elastic)
-    _api.add_event_handler("startup", create_start_app_handler(_api))
     _api.add_event_handler("startup", background_task)
-    _api.add_event_handler("shutdown", create_stop_app_handler(_api))
+
+    if ENABLE_DATABASE:
+        _api.add_event_handler("startup", create_start_app_handler(_api))
+        _api.add_event_handler("shutdown", create_stop_app_handler(_api))
 
     _api.add_exception_handler(HTTPException, http_error_handler)
     _api.add_exception_handler(HTTP_422_UNPROCESSABLE_ENTITY, http_422_error_handler)
