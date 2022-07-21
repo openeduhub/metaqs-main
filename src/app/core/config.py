@@ -5,7 +5,7 @@ from starlette.datastructures import CommaSeparatedStrings
 API_PORT = 8081
 
 ROOT_PATH = os.getenv("ROOT_PATH", "")
-API_DEBUG = True  # os.getenv("LOG_LEVEL", "").strip().lower() == "debug"
+API_DEBUG = False  # os.getenv("LOG_LEVEL", "").strip().lower() == "debug"
 ALLOWED_HOSTS = CommaSeparatedStrings(os.getenv("ALLOWED_HOSTS", "*"))
 LOG_LEVEL = os.getenv("LOG_LEVEL")
 

@@ -127,16 +127,13 @@ def run():
     for row in all_collections:
         sub_collections: list[Row] = asyncio.run(get_ids_to_iterate(node_id=row.id))
         print("Working on: ", row.title, len(sub_collections))
-        collections = {}
-        for sub in sub_collections:
-            collections.update(
-                {
-                    sub.id: SearchStoreCollection(
-                        node_id=sub.id,
-                        missing_materials=search_hits_by_material_type(sub.title),
-                    )
-                }
+        collections = {
+            sub.id: SearchStoreCollection(
+                node_id=sub.id,
+                missing_materials=search_hits_by_material_type(sub.title),
             )
+            for sub in sub_collections
+        }
 
         search_store.append(SearchStore(node_id=row.id, collections=collections))
 

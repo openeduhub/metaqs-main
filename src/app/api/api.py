@@ -1,7 +1,5 @@
 import json
-import time
 import uuid
-from dataclasses import asdict
 from typing import Mapping, Optional
 
 from databases import Database
@@ -24,7 +22,7 @@ from app.api.analytics.stats import (
     materials_with_missing_properties,
     overall_stats,
 )
-from app.api.analytics.storage import global_storage, global_store
+from app.api.analytics.storage import global_storage
 from app.api.collections.counts import (
     AggregationMappings,
     CollectionTreeCount,
@@ -344,11 +342,7 @@ async def read_stats(
     node_id: uuid.UUID = Depends(node_ids_for_major_collections),
     oer_only: bool = Query(default=False),
 ):
-
-    start = time.perf_counter()
-    output = await overall_stats(node_id, oer_only)
-    print("read_stats: ", time.perf_counter() - start)
-    return output
+    return await overall_stats(node_id, oer_only)
 
 
 @router.get(
@@ -400,10 +394,3 @@ if API_DEBUG:
     )
     async def get_global():
         return global_storage
-
-    @router.get(
-        "/global2",
-        description="""A debug endpoint to access the data stored inside the global storage.""",
-    )
-    async def get_global2():
-        return asdict(global_store)

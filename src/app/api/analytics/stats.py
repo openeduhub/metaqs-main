@@ -180,8 +180,7 @@ def filtered_collections(collections: list[Collection], node_id: uuid.UUID):
 async def query_search_statistics(
     node_id: uuid.UUID,
 ) -> dict[str, COUNT_STATISTICS_TYPE]:
-    search_statistics = global_store.search
-    for stats in search_statistics:
+    for stats in global_store.search:
         if str(node_id) == str(stats.node_id):
             return {
                 str(key): value.missing_materials
