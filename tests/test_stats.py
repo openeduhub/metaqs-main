@@ -4,6 +4,7 @@ from unittest import mock
 
 import pytest
 
+from app.api.analytics.analytics import CollectionValidationStats
 from app.api.analytics.models import Collection
 from app.api.analytics.stats import (
     Row,
@@ -119,7 +120,7 @@ def test_build_material_search():
                                 "properties.cclom:general_description",
                                 "content.fulltext",
                                 "i18n.de_DE.ccm:taxonid",
-                                "i18n.de_DE.ccm:oeh_lrt_aggregated",
+                                "i18n.de_DE.ccm:oeh_lrt",
                                 "i18n.de_DE.ccm:educationalcontext",
                                 "i18n.de_DE.ccm:educationalintendedenduserrole",
                             ],
@@ -133,7 +134,7 @@ def test_build_material_search():
                 "terms": {
                     "missing": "N/A",
                     "size": 500000,
-                    "field": "properties.ccm:oeh_lrt_aggregated.keyword",
+                    "field": "properties.ccm:oeh_lrt.keyword",
                 }
             }
         },
@@ -215,12 +216,9 @@ def test_collections_with_missing_properties():
 
     assert len(result) == 1
     assert result[0].noderef_id == uuid.UUID("f3dc9ea1-d608-4b4e-a78c-98063a3e8461")
-    assert result[0].validation_stats == {
-        "title": None,
-        "keywords": ["missing"],
-        "description": ["missing"],
-        "edu_context": ["missing"],
-    }
+    assert result[0].validation_stats == CollectionValidationStats(
+        title=None, description=["missing"], edu_context=["missing"]
+    )
 
 
 def test_materials_with_missing_properties():
@@ -260,5 +258,6 @@ def test_materials_with_missing_properties():
     assert len(result) == 1
     assert result[0].noderef_id == uuid.UUID("f3dc9ea1-d608-4b4e-a78c-98063a3e8461")
     dummy_material_node = uuid.UUID("263afc5b-6445-4a5a-b014-a77f1db473b9")
-    assert result[0].validation_stats.ads_qualifier.missing == [dummy_material_node]
-    assert result[0].validation_stats.object_type is None
+    print(result[0].validation_stats)
+    assert result[0].validation_stats.publisher.missing == [dummy_material_node]
+    assert result[0].validation_stats.material_type is None
