@@ -1,5 +1,7 @@
 from pydantic import BaseModel, Field
 
+from app.core.models import LearningMaterialAttribute
+
 
 class MissingCollectionProperties(BaseModel):
     total: int = Field(default=0, ge=0, description="Number of entries")
@@ -80,13 +82,13 @@ class ScoreOutput(BaseModel):
 
 
 required_collection_properties = {
-    "properties.cclom:title": "title",
-    "properties.cclom:general_description": "description",
-    "properties.cclom:general_keyword": "keywords",
-    "properties.ccm:taxonid": "taxon_id",
-    "properties.ccm:educationalcontext": "edu_context",
-    "properties.ccm:commonlicense_key": "license",
-    "properties.ccm:objecttype": "object_type",
-    "properties.ccm:containsAdvertisement": "ads_qualifier",
-    "properties.cclom:oeh_lrt_aggregated": "learning_resource_type",
+    LearningMaterialAttribute.TITLE.path: "title",
+    LearningMaterialAttribute.LEARNINGRESOURCE_TYPE.path: "learning_resource_type",
+    LearningMaterialAttribute.SUBJECTS.path: "taxon_id",
+    LearningMaterialAttribute.WWW_URL.path: "url",
+    LearningMaterialAttribute.LICENSES.path: "license",
+    LearningMaterialAttribute.PUBLISHER.path: "publisher",
+    LearningMaterialAttribute.DESCRIPTION.path: "description",
+    LearningMaterialAttribute.EDUENDUSERROLE_DE.path: "intended_end_user_role",
+    LearningMaterialAttribute.EDU_CONTEXT.path: "edu_context",
 }

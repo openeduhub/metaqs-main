@@ -17,11 +17,11 @@ class _LearningMaterialAttribute(ElasticField):
     COLLECTION_PATH = ("collections.path", ElasticFieldType.TEXT)
     CONTENT_FULLTEXT = ("content.fulltext", ElasticFieldType.TEXT)
     LEARNINGRESOURCE_TYPE = (
-        "properties.ccm:oeh_lrt_aggregated",
+        "properties.ccm:oeh_lrt",
         ElasticFieldType.TEXT,
     )
     LEARNINGRESOURCE_TYPE_DE = (
-        "i18n.de_DE.ccm:oeh_lrt_aggregated",
+        "i18n.de_DE.ccm:oeh_lrt",
         ElasticFieldType.TEXT,
     )
     EDUENDUSERROLE_DE = (

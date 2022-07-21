@@ -151,18 +151,15 @@ MissingMaterialField = ElasticField(
     [
         (f.name, (f.value, f.field_type))
         for f in [
-            LearningMaterialAttribute.NAME,
             LearningMaterialAttribute.TITLE,
-            LearningMaterialAttribute.KEYWORDS,
-            LearningMaterialAttribute.EDU_CONTEXT,
-            LearningMaterialAttribute.SUBJECTS,
-            LearningMaterialAttribute.WWW_URL,
-            LearningMaterialAttribute.DESCRIPTION,
-            LearningMaterialAttribute.LICENSES,
-            LearningMaterialAttribute.OBJECT_TYPE,
             LearningMaterialAttribute.LEARNINGRESOURCE_TYPE,
-            LearningMaterialAttribute.CONTAINS_ADS,
+            LearningMaterialAttribute.SUBJECTS,  # TODO: Refactor to TaxonId
+            LearningMaterialAttribute.WWW_URL,
+            LearningMaterialAttribute.LICENSES,
             LearningMaterialAttribute.PUBLISHER,
+            LearningMaterialAttribute.DESCRIPTION,
+            LearningMaterialAttribute.EDUENDUSERROLE_DE,
+            LearningMaterialAttribute.EDU_CONTEXT,
         ]
     ],
 )

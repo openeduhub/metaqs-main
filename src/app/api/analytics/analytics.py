@@ -12,7 +12,6 @@ from app.core.models import ResponseModel
 
 
 class StatType(str, Enum):
-    # PORTAL_TREE = "portal-tree"  # Currently unused
     SEARCH = "search"
     MATERIAL_TYPES = "material-types"
     VALIDATION_COLLECTIONS = "validation-collections"
