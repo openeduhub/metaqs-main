@@ -13,6 +13,7 @@ from app.api.analytics.stats import (
     overall_stats,
     query_material_types,
 )
+from app.api.analytics.storage import SearchStore, SearchStoreCollection
 from app.api.collections.counts import CollectionTreeCount
 
 
@@ -46,27 +47,45 @@ async def test_overall_stats():
                     )
                     for entry in global_response[key]
                 ]
+            if key == "search":
+                return [
+                    SearchStore(
+                        node_id=uuid.UUID(test_node),
+                        collections={
+                            key: SearchStoreCollection(
+                                node_id=key, missing_materials=item["missing_materials"]
+                            )
+                            for key, item in entry["collections"].items()
+                        },
+                    )
+                    for entry in global_response[key]
+                ]
             return global_response[key]
 
         mocked_global.__getitem__ = _get_item
 
-        with mock.patch(
-            "app.api.analytics.stats.search_hits_by_material_type"
-        ) as mocked_search:
-            with mock.patch("app.api.analytics.stats.get_ids_to_iterate") as mocked_ids:
-                mocked_search.return_value = {"total": 30}
-                mocked_ids.return_value = [
-                    Row(
-                        id=uuid.UUID("f3dc9ea1-d608-4b4e-a78c-98063a3e8461"),
-                        title="test_title",
-                    )
-                ]
+        with mock.patch("app.api.analytics.stats.global_store") as mocked_store:
+            mocked_store.search = _get_item(None, "search")
 
+            with mock.patch(
+                "app.api.analytics.stats.search_hits_by_material_type"
+            ) as mocked_search:
                 with mock.patch(
-                    "app.api.analytics.stats.oer_ratio"
-                ) as mocked_oer_ratio:
-                    mocked_oer_ratio.return_value = 0
-                    stats = await overall_stats(test_node)
+                    "app.api.analytics.stats.get_ids_to_iterate"
+                ) as mocked_ids:
+                    mocked_search.return_value = {"total": 30}
+                    mocked_ids.return_value = [
+                        Row(
+                            id=uuid.UUID("f3dc9ea1-d608-4b4e-a78c-98063a3e8461"),
+                            title="test_title",
+                        )
+                    ]
+
+                    with mock.patch(
+                        "app.api.analytics.stats.oer_ratio"
+                    ) as mocked_oer_ratio:
+                        mocked_oer_ratio.return_value = 0
+                        stats = await overall_stats(test_node)
 
     assert len(stats.stats) == 1
     first_key_values = stats.stats[list(stats.stats.keys())[0]]

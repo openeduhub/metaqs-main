@@ -23,6 +23,12 @@ def test_missing_materials_search():
                     {"term": {"properties.cm:edu_metadataset.keyword": "mds_oeh"}},
                     {"term": {"nodeRef.storeRef.protocol": "workspace"}},
                     {"term": {"type": "ccm:io"}},
+                    {
+                        "bool": {
+                            "must_not": [{"term": {"aspects": "ccm:io_childobject"}}]
+                        }
+                    },
+                    {"term": {"content.mimetype.keyword": "text/plain"}},
                 ],
                 "should": [
                     {"match": {"collections.path": dummy_uuid}},
@@ -74,6 +80,12 @@ def test_missing_materials_search_license():
                     {"term": {"properties.cm:edu_metadataset.keyword": "mds_oeh"}},
                     {"term": {"nodeRef.storeRef.protocol": "workspace"}},
                     {"term": {"type": "ccm:io"}},
+                    {
+                        "bool": {
+                            "must_not": [{"term": {"aspects": "ccm:io_childobject"}}]
+                        }
+                    },
+                    {"term": {"content.mimetype.keyword": "text/plain"}},
                     {
                         "bool": {
                             "should": [

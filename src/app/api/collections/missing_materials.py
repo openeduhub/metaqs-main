@@ -191,6 +191,10 @@ def missing_attributes_search(
             ResourceType.MATERIAL
         ].copy(),  # copy otherwise appending the query causes mutation
     }
+    query["filter"].append(
+        Q("bool", **{"must_not": [{"term": {"aspects": "ccm:io_childobject"}}]})
+    )
+    query["filter"].append(Q({"term": {"content.mimetype.keyword": "text/plain"}}))
     if missing_attribute == LearningMaterialAttribute.LICENSES.path:
         query["filter"].append(query_missing_material_license().to_dict())
     else:
@@ -210,7 +214,7 @@ def missing_attributes_search(
     )
 
 
-async def get_many(
+async def search_materials_with_missing_attributes(
     node_id: Optional[uuid.UUID] = None,
     missing_attr_filter: Optional[MissingAttributeFilter] = None,
 ) -> list[LearningMaterial]:
@@ -237,7 +241,7 @@ async def get_materials_with_missing_attributes(
 ):
     if response_fields:
         response_fields.add(LearningMaterialAttribute.NODEREF_ID)
-    materials = await get_many(
+    materials = await search_materials_with_missing_attributes(
         node_id=node_id,
         missing_attr_filter=missing_attr_filter,
     )

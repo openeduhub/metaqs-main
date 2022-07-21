@@ -54,5 +54,24 @@
       },
       "derived_at": "2022-07-07T08:51:25.636346"
     }
+  ],
+  "search": [
+    {
+      "node_id": "11bdb8a0-a9f5-4028-becc-cbf8e328dd4b",
+      "collections": {
+        "f3dc9ea1-d608-4b4e-a78c-98063a3e8461": {
+          "node_id": "f3dc9ea1-d608-4b4e-a78c-98063a3e8461",
+          "missing_materials": {
+            "http://w3id.org/openeduhub/vocabs/new_lrt_aggregated/3927fdb6-0477-422c-9f5a-6285948aeaf4": 6,
+            "http://w3id.org/openeduhub/vocabs/new_lrt_aggregated/05aa0f49-7e1b-498b-a7d5-c5fc8e73b2e2": 4,
+            "http://w3id.org/openeduhub/vocabs/new_lrt_aggregated/37a3ad9c-727f-4b74-bbab-27d59015c695": 4,
+            "http://w3id.org/openeduhub/vocabs/new_lrt_aggregated/38774279-af36-4ec2-8e70-811d5a51a6a1": 4,
+            "http://w3id.org/openeduhub/vocabs/new_lrt_aggregated/f1341358-3f91-449b-b6eb-f58636f756a0": 4,
+            "N/A": 1,
+            "total": 23
+          }
+        }
+      }
+    }
   ]
 }
