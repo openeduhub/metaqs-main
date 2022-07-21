@@ -33,38 +33,38 @@ class MissingCollectionProperties(BaseModel):
 
 class MissingMaterialProperties(BaseModel):
     total: int = Field(default=0, ge=0, description="Number of entries")
-    missing_edu_context: float = Field(
-        default=0.0, ge=0.0, le=1.0, description="Ratio of entries without edu context"
-    )
-    missing_object_type: float = Field(
-        default=0.0, ge=0.0, le=1.0, description="Ratio of entries without object type"
-    )
-    missing_description: float = Field(
-        default=0.0, ge=0.0, le=1.0, description="Ratio of entries without description"
-    )
-    missing_license: float = Field(
-        default=0.0, ge=0.0, le=1.0, description="Ratio of entries with missing license"
-    )
-    missing_keywords: float = Field(
-        default=0.0, ge=0.0, le=1.0, description="Ratio of entries without keywords"
-    )
     missing_title: float = Field(
         default=0.0, ge=0.0, le=1.0, description="Ratio of entries without title"
-    )
-    missing_ads_qualifier: float = Field(
-        default=0.0,
-        ge=0.0,
-        le=1.0,
-        description="Ratio of entries missing advertisement qualifier",
-    )
-    missing_subjects: float = Field(
-        default=0.0, ge=0.0, le=1.0, description="Ratio of entries missing subjects"
     )
     missing_material_type: float = Field(
         default=0.0,
         ge=0.0,
         le=1.0,
         description="Ratio of entries missing material type",
+    )
+    missing_subjects: float = Field(
+        default=0.0, ge=0.0, le=1.0, description="Ratio of entries missing subjects"
+    )
+    missing_url: float = Field(
+        default=0.0, ge=0.0, le=1.0, description="Ratio of entries without url"
+    )
+    missing_license: float = Field(
+        default=0.0, ge=0.0, le=1.0, description="Ratio of entries with missing license"
+    )
+    missing_publisher: float = Field(
+        default=0.0, ge=0.0, le=1.0, description="Ratio of entries without publisher"
+    )
+    missing_description: float = Field(
+        default=0.0, ge=0.0, le=1.0, description="Ratio of entries without description"
+    )
+    missing_intended_end_user_role: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=1.0,
+        description="Ratio of entries without intended end user role",
+    )
+    missing_edu_context: float = Field(
+        default=0.0, ge=0.0, le=1.0, description="Ratio of entries without edu context"
     )
 
 

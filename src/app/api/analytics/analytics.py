@@ -100,6 +100,7 @@ class MaterialFieldValidation(BaseModel):
 class MaterialValidationStats(ElasticValidationStats[MaterialFieldValidation]):
     subjects: Optional[MaterialFieldValidation]
     license: Optional[MaterialFieldValidation]
-    ads_qualifier: Optional[MaterialFieldValidation]
+    url: Optional[MaterialFieldValidation]
+    publisher: Optional[MaterialFieldValidation]
+    intended_end_user_role: Optional[MaterialFieldValidation]
     material_type: Optional[MaterialFieldValidation]
-    object_type: Optional[MaterialFieldValidation]
