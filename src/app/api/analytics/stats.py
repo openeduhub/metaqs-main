@@ -9,8 +9,8 @@ from elasticsearch_dsl.response import AggResponse, Response
 from glom import merge
 
 from app.api.analytics.analytics import (
-    COUNT_STATISTICS_TYPE,
     CollectionValidationStats,
+    CountStatistics,
     MaterialValidationStats,
     StatsNotFoundException,
     StatsResponse,
@@ -142,7 +142,7 @@ async def get_ids_to_iterate(node_id: uuid.UUID) -> list[Row]:
 
 def query_material_types(
     node_id: uuid.UUID, oer_only: bool
-) -> dict[str, COUNT_STATISTICS_TYPE]:
+) -> dict[str, CountStatistics]:
     """
     get collections with parent id equal to node_id
 
@@ -162,7 +162,7 @@ def query_material_types(
     # TODO: Refactor with filter and dict comprehension
     for collection in collections:
         for count in counts:
-            if str(collection.id) == str(count.noderef_id):
+            if collection.id == str(count.noderef_id):
                 stats.update(
                     {str(collection.id): {"total": count.total, **count.counts}}
                 )
@@ -179,7 +179,7 @@ def filtered_collections(collections: list[Collection], node_id: uuid.UUID):
 
 async def query_search_statistics(
     node_id: uuid.UUID,
-) -> dict[str, COUNT_STATISTICS_TYPE]:
+) -> dict[str, CountStatistics]:
     for stats in global_store.search:
         if str(node_id) == str(stats.node_id):
             return {

@@ -1,5 +1,6 @@
 import asyncio
 import os
+import uuid
 from datetime import datetime
 
 from fastapi import APIRouter
@@ -117,7 +118,7 @@ def run():
     )
 
     all_collections = [
-        Row(id=value["value"], title=key)
+        Row(id=uuid.UUID(value["value"]), title=key)
         for key, value in COLLECTION_NAME_TO_ID.items()
     ]
     print("Tree ready to iterate. Length: ", len(all_collections))

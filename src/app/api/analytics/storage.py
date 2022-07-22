@@ -1,6 +1,8 @@
 import uuid
 from dataclasses import dataclass
 
+from app.api.analytics.analytics import CountStatistics
+
 _COLLECTIONS = "collections"
 _MATERIALS = "materials"
 _COLLECTION_COUNT = "counts"
@@ -17,20 +19,20 @@ global_storage = {
 }  # TODO: Refactor me ASAP
 
 
-@dataclass
+@dataclass(frozen=True)
 class SearchStoreCollection:
     node_id: uuid.UUID
-    missing_materials: dict[str, int]
+    missing_materials: CountStatistics
 
 
-@dataclass
+@dataclass(frozen=True)
 class SearchStore:
     __slots__ = "node_id", "collections"
     node_id: uuid.UUID
     collections: dict[uuid.UUID, SearchStoreCollection]
 
 
-@dataclass
+@dataclass(frozen=True)
 class Store:
     __slots__ = "search"
     search: list[SearchStore]

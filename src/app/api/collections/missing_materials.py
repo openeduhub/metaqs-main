@@ -184,14 +184,14 @@ def missing_attributes_search(
             qmatch(**{"collections.path": node_id}),
             qmatch(**{"collections.nodeRef.id": node_id}),
         ],
-        "filter": type_filter[
-            ResourceType.MATERIAL
-        ].copy(),  # copy otherwise appending the query causes mutation
+        "filter": [
+            *type_filter[
+                ResourceType.MATERIAL
+            ].copy(),  # copy otherwise appending the query causes mutation
+            Q("bool", **{"must_not": [{"term": {"aspects": "ccm:io_childobject"}}]}),
+            Q({"term": {"content.mimetype.keyword": "text/plain"}}),
+        ],
     }
-    query["filter"].append(
-        Q("bool", **{"must_not": [{"term": {"aspects": "ccm:io_childobject"}}]})
-    )
-    query["filter"].append(Q({"term": {"content.mimetype.keyword": "text/plain"}}))
     if missing_attribute == LearningMaterialAttribute.LICENSES.path:
         query["filter"].append(query_missing_material_license().to_dict())
     else:
