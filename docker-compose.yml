@@ -85,6 +85,8 @@ services:
       ELASTICSEARCH_TIMEOUT: 20
     networks:
       - backend
+    expose:
+      - 5432
 
 
   yovisto:

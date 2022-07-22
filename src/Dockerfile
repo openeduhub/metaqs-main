@@ -2,24 +2,6 @@
 #  but adapted for Python 3.10
 FROM python:3.10
 
-COPY requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir -r /tmp/requirements.txt
-
-COPY ./start.sh /start.sh
-RUN chmod +x /start.sh
-
-COPY ./gunicorn_conf.py /gunicorn_conf.py
-
-COPY ./start_reload.sh /start_reload.sh
-RUN chmod +x /start_reload.sh
-
-COPY ./app /app
-WORKDIR /app/
-
-ENV PYTHONPATH=/app
-
-
-
 WORKDIR /app
 # Install Poetry
 RUN apt-get update \
@@ -32,3 +14,6 @@ COPY pyproject.toml /app/pyproject.toml
 COPY poetry.lock /app/poetry.lock
 RUN poetry install --no-root
 COPY ./ /app
+ENV PYTHONPATH=/app
+
+CMD ["python", "app/main.py"]
