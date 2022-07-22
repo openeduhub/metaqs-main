@@ -310,7 +310,7 @@ async def filter_materials_with_missing_attributes(
 
 
 @router.get(
-    "/collections/{node_id}/stats/descendant-collections-materials-counts",
+    "/collections/{node_id}/material_counts",
     response_model=list[CollectionMaterialsCount],
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
