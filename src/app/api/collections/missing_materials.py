@@ -86,19 +86,6 @@ class LearningMaterialBase(ElasticResource):
     description: Optional[EmptyStrToNone] = None
     licenses: Optional[EmptyStrToNone] = None
 
-    source_fields: ClassVar[set] = {
-        LearningMaterialAttribute.NODEREF_ID,
-        LearningMaterialAttribute.TYPE,
-        LearningMaterialAttribute.NAME,
-        LearningMaterialAttribute.TITLE,
-        LearningMaterialAttribute.KEYWORDS,
-        LearningMaterialAttribute.EDU_CONTEXT,
-        LearningMaterialAttribute.SUBJECTS,
-        LearningMaterialAttribute.WWW_URL,
-        LearningMaterialAttribute.DESCRIPTION,
-        LearningMaterialAttribute.LICENSES,
-    }
-
     @classmethod
     def parse_elastic_hit_to_dict(
         cls: Type[_LEARNING_MATERIAL],
@@ -179,6 +166,20 @@ def materials_filter_params(
     return MissingAttributeFilter(attr=missing_attr)
 
 
+missing_attributes_source_fields = {
+    LearningMaterialAttribute.NODEREF_ID,
+    LearningMaterialAttribute.TYPE,
+    LearningMaterialAttribute.NAME,
+    LearningMaterialAttribute.TITLE,
+    LearningMaterialAttribute.KEYWORDS,
+    LearningMaterialAttribute.EDU_CONTEXT,
+    LearningMaterialAttribute.SUBJECTS,
+    LearningMaterialAttribute.WWW_URL,
+    LearningMaterialAttribute.DESCRIPTION,
+    LearningMaterialAttribute.LICENSES,
+}
+
+
 def missing_attributes_search(
     node_id: uuid.UUID, missing_attribute: str, max_hits: int
 ) -> Search:
@@ -209,7 +210,7 @@ def missing_attributes_search(
         Search()
         .base_filters()
         .query(qbool(**query))
-        .source(includes=[source.path for source in LearningMaterial.source_fields])[
+        .source(includes=[source.path for source in missing_attributes_source_fields])[
             :max_hits
         ]
     )

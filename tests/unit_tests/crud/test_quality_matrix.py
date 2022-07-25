@@ -49,7 +49,9 @@ async def test_get_quality_matrix_no_sources_no_properties():
         ) as mocked_get_properties:
             mocked_get_properties.return_value = []
             mocked_get_sourced.return_value = {}
-            assert await source_quality() == []
+            quality = await source_quality()
+            assert len(quality) == 9
+            assert quality[0].columns == {}
 
 
 @pytest.mark.asyncio
@@ -62,9 +64,9 @@ async def test_get_quality_matrix_no_sources():
         ) as mocked_get_properties:
             mocked_get_properties.return_value = ["dummy_properties"]
             mocked_get_sourced.return_value = {}
-            assert await source_quality() == [
-                {"metadatum": "dummy_properties", "columns": {}}
-            ]
+            quality = await source_quality()
+            assert len(quality) == 9
+            assert quality[0].columns == {}
 
 
 @pytest.mark.asyncio
@@ -78,22 +80,24 @@ async def test_get_quality_matrix():
             with mock.patch(
                 "app.api.quality_matrix.quality_matrix.queried_missing_properties"
             ) as mocked_all_missing_properties:
-                mocked_get_properties.return_value = ["dummy_properties"]
+                dummy_property = "preview"
+                mocked_get_properties.return_value = [dummy_property]
                 mocked_get_sourced.return_value = {"dummy_source": 10}
                 mocked_response = MagicMock()
                 mocked_response.aggregations.to_dict.return_value = {}
                 mocked_all_missing_properties.return_value = mocked_response
-                assert await source_quality() == [
-                    {"metadatum": "dummy_properties", "columns": {}}
-                ]
+
+                quality = await source_quality()
+                assert len(quality) == 10
+
+                assert quality[0].columns == {}
 
                 mocked_response.aggregations.to_dict.return_value = {
-                    "dummy_properties": {"doc_count": 5}
+                    dummy_property: {"doc_count": 5}
                 }
                 mocked_all_missing_properties.return_value = mocked_response
-                assert await source_quality() == [
-                    {"metadatum": "dummy_properties", "columns": {"dummy_source": 50.0}}
-                ]
+                quality = await source_quality()
+                assert quality[1].columns == {"dummy_source": 50.0}
 
 
 def test_get_empty_entries_dummy_entries():
