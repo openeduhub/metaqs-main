@@ -11,7 +11,7 @@ from app.api.quality_matrix.utils import default_properties
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import COLLECTION_ROOT_ID
 from app.core.logging import logger
-from app.core.models import desired_sorting, required_collection_properties
+from app.core.models import metadata_hierarchy, required_collection_properties
 from app.elastic.dsl import qbool, qmatch
 from app.elastic.search import Search
 
@@ -144,6 +144,7 @@ async def source_quality(
     match_keyword: str = f"{PROPERTIES}.{REPLICATION_SOURCE_ID}",
 ) -> list[QualityOutput]:
     properties = get_properties()
+    print("properties: ", properties)
     columns = all_sources()
     mapping = {key: key for key in columns.keys()}  # identity mapping
     return await _quality_matrix(columns, mapping, match_keyword, node_id, properties)
@@ -151,10 +152,16 @@ async def source_quality(
 
 def sort_output_to_hierarchy(data: list[QualityOutput]) -> list[QualityOutput]:
     output = []
-    for order in desired_sorting:
+    for order in metadata_hierarchy:
         output.append(QualityOutput(metadatum=order.title, level=1, columns={}))
         for node in order.children:
-            row = list(filter(lambda entry: entry.metadatum == node, data))
+            print([entry.metadatum for entry in data])
+            print(order.title, node.path.path.split(".")[-1])
+            row = list(
+                filter(
+                    lambda entry: entry.metadatum == node.path.path.split(".")[-1], data
+                )
+            )
             if len(row) == 1:
                 output.append(row[0])
     return output

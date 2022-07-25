@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import TypeVar
+from typing import Optional, TypeVar
 
 from pydantic import BaseModel, Extra
 
@@ -7,14 +9,24 @@ from app.elastic.dsl import ElasticField, ElasticFieldType
 
 
 class ElasticResourceAttribute(ElasticField):
+    AGE_RANGE = ("properties.ccm:educationaltypicalagerange", ElasticFieldType.TEXT)
+    CLASSIFICATION_KEYWORD = (
+        "properties.cclom:classification_keyword",
+        ElasticFieldType.TEXT,
+    )
     COLLECTION_DESCRIPTION = ("properties.cm:description", ElasticFieldType.TEXT)
     COLLECTION_NODEREF_ID = ("collections.nodeRef.id", ElasticFieldType.TEXT)
     COLLECTION_PATH = ("collections.path", ElasticFieldType.TEXT)
+    COLLECTION_SHORT_TITLE = (
+        "properties.ccm:collectionshorttitle",
+        ElasticFieldType.TEXT,
+    )
     COLLECTION_TITLE = ("properties.cm:title", ElasticFieldType.TEXT)
     CONTAINS_ADS = ("properties.ccm:containsAdvertisement", ElasticFieldType.TEXT)
     CONTENT_FULLTEXT = ("content.fulltext", ElasticFieldType.TEXT)
     COVER = ("preview", ElasticFieldType.TEXT)
     DESCRIPTION = ("properties.cclom:general_description", ElasticFieldType.TEXT)
+    EDITORIAL_FILE_TYPE = ("virtual:editorial_file_type", ElasticFieldType.TEXT)
     EDU_CONTEXT = ("properties.ccm:educationalcontext", ElasticFieldType.TEXT)
     EDU_CONTEXT_DE = ("i18n.de_DE.ccm:educationalcontext", ElasticFieldType.TEXT)
     EDUENDUSERROLE_DE = (
@@ -22,8 +34,10 @@ class ElasticResourceAttribute(ElasticField):
         ElasticFieldType.TEXT,
     )
     EDU_METADATASET = ("properties.cm:edu_metadataset", ElasticFieldType.TEXT)
+    FSK = ("properties.ccm:fskRating", ElasticFieldType.KEYWORD)
     FULLPATH = ("fullpath", ElasticFieldType.KEYWORD)
     KEYWORDS = ("properties.cclom:general_keyword", ElasticFieldType.TEXT)
+    LANGUAGE = ("properties.cclom:general_language", ElasticFieldType.TEXT)
     LEARNINGRESOURCE_TYPE = (
         "properties.ccm:oeh_lrt",
         ElasticFieldType.TEXT,
@@ -33,6 +47,7 @@ class ElasticResourceAttribute(ElasticField):
         ElasticFieldType.TEXT,
     )
     LICENSES = ("properties.ccm:commonlicense_key", ElasticFieldType.TEXT)
+    MIMETYPE = ("mimetype", ElasticFieldType.TEXT)
     NAME = ("properties.cm:name", ElasticFieldType.TEXT)
     NODE_ID = ("nodeRef.id", ElasticFieldType.KEYWORD)
     OBJECT_TYPE = ("properties.ccm:objecttype", ElasticFieldType.TEXT)
@@ -42,6 +57,7 @@ class ElasticResourceAttribute(ElasticField):
     PROTOCOL = ("nodeRef.storeRef.protocol", ElasticFieldType.KEYWORD)
     PUBLISHER = ("properties.ccm:oeh_publisher_combined", ElasticFieldType.TEXT)
     REPLICATION_SOURCE_DE = ("replicationsource", ElasticFieldType.TEXT)
+    STATUS = ("properties.cclom:status", ElasticFieldType.TEXT)
     SUBJECTS = ("properties.ccm:taxonid", ElasticFieldType.TEXT)
     SUBJECTS_DE = ("i18n.de_DE.ccm:taxonid", ElasticFieldType.TEXT)
     TITLE = ("properties.cclom:title", ElasticFieldType.TEXT)
@@ -62,36 +78,78 @@ class ResponseModel(BaseModel):
 @dataclass
 class SortNode:
     title: str
-    children: list[str]
+    path: Optional[ElasticResourceAttribute]
+    children: list[SortNode]
 
 
-desired_sorting: list[SortNode] = [
+metadata_hierarchy: list[SortNode] = [
     SortNode(
         title="Beschreibendes",
         children=[
-            "preview",
-            "ccm:collectionshorttitle",
-            ElasticResourceAttribute.TITLE,
-            "cclom:general_description",
-            "cclom:status",
-            "ccm:wwwurl",
-            "cclom:general_language",
+            SortNode(path=ElasticResourceAttribute.COVER, children=[], title="cover"),
+            SortNode(
+                path=ElasticResourceAttribute.COLLECTION_SHORT_TITLE,
+                children=[],
+                title="short_title",
+            ),
+            SortNode(path=ElasticResourceAttribute.TITLE, children=[], title="title"),
+            SortNode(
+                path=ElasticResourceAttribute.DESCRIPTION,
+                children=[],
+                title="description",
+            ),
+            SortNode(path=ElasticResourceAttribute.STATUS, children=[], title="status"),
+            SortNode(path=ElasticResourceAttribute.WWW_URL, children=[], title="url"),
+            SortNode(
+                path=ElasticResourceAttribute.LANGUAGE, children=[], title="language"
+            ),
         ],
+        path=None,
     ),
     SortNode(
         title="Typisierung",
         children=[
-            "ccm:oeh_lrt",
-            "mimetype",
-            "virtual:editorial_file_type",
-            "ccm:educationalcontext",
-            "ccm:educationaltypicalagerange",
-            "ccm:fskRating",
-            "ccm:taxonid",
-            "cclom:classification_keyword",
-            "cclom:general_keyword",
+            SortNode(
+                path=ElasticResourceAttribute.LEARNINGRESOURCE_TYPE,
+                children=[],
+                title="learning_resource_type",
+            ),
+            SortNode(
+                path=ElasticResourceAttribute.MIMETYPE, children=[], title="mimetype"
+            ),
+            SortNode(
+                path=ElasticResourceAttribute.EDITORIAL_FILE_TYPE,
+                children=[],
+                title="file_type",
+            ),
+            SortNode(
+                path=ElasticResourceAttribute.EDU_CONTEXT,
+                children=[],
+                title="edu_context",
+            ),
+            SortNode(
+                path=ElasticResourceAttribute.AGE_RANGE, children=[], title="age_range"
+            ),
+            SortNode(path=ElasticResourceAttribute.FSK, children=[], title="fsk"),
+            SortNode(
+                path=ElasticResourceAttribute.SUBJECTS, children=[], title="taxon_id"
+            ),
+            SortNode(
+                path=ElasticResourceAttribute.CLASSIFICATION_KEYWORD,
+                children=[],
+                title="classification",
+            ),
+            SortNode(
+                path=ElasticResourceAttribute.KEYWORDS,
+                children=[],
+                title="general_keywords",
+            ),
         ],
+        path=None,
     ),
+]
+"""
+
     SortNode(
         title="Pädagogisch",
         children=[
@@ -167,9 +225,14 @@ desired_sorting: list[SortNode] = [
         children=[
             "feedback_comment",
         ],
-    ),
-]
+    ),"""
 
+
+required_collection_properties = {
+    child.path.path: child.title
+    for node in metadata_hierarchy
+    for child in node.children
+}
 
 required_collection_properties = {
     ElasticResourceAttribute.TITLE.path: "title",
@@ -184,6 +247,7 @@ required_collection_properties = {
     ElasticResourceAttribute.COVER.path: "cover",
 }
 
+print("required_collection_properties: ", required_collection_properties)
 
 _ELASTIC_RESOURCE = TypeVar("_ELASTIC_RESOURCE")
 _DESCENDANT_COLLECTIONS_MATERIALS_COUNTS = TypeVar(
