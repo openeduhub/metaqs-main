@@ -61,6 +61,7 @@ from app.api.score.score import (
 from app.core.config import API_DEBUG, BACKGROUND_TASK_TIME_INTERVAL
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.core.models import LearningMaterialAttribute
+from app.core.utils import create_examples
 
 
 def get_database(request: Request) -> Database:
@@ -93,7 +94,7 @@ def node_ids_for_major_collections(
         ...,
         examples={
             "Alle Fachportale": {"value": COLLECTION_ROOT_ID},
-            **{key: {"value": value} for key, value in COLLECTION_NAME_TO_ID.items()},
+            **create_examples(COLLECTION_NAME_TO_ID),
         },
     ),
 ) -> uuid.UUID:
@@ -115,7 +116,7 @@ async def get_quality(
         default=COLLECTION_ROOT_ID,
         examples={
             "Alle Fachportale": {"value": COLLECTION_ROOT_ID},
-            **{key: {"value": value} for key, value in COLLECTION_NAME_TO_ID.items()},
+            **create_examples(COLLECTION_NAME_TO_ID),
         },
     ),
     store_to_db: bool = Query(default=False),

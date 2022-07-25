@@ -16,6 +16,7 @@ from app.core.models import (
     ElasticResourceAttribute,
     LearningMaterialAttribute,
 )
+from app.core.utils import create_examples
 from app.elastic.dsl import afilter, amissing
 from app.elastic.elastic import (
     ResourceType,
@@ -92,9 +93,7 @@ def node_id_param(
     *,
     node_id: uuid.UUID = Path(
         ...,
-        examples={
-            key: {"value": value} for key, value in COLLECTION_NAME_TO_ID.items()
-        },
+        examples=create_examples(COLLECTION_NAME_TO_ID),
     )
 ) -> uuid.UUID:
     return node_id
