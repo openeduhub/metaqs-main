@@ -8,9 +8,9 @@ from app.api.collections.models import CollectionNode
 from app.api.collections.utils import map_elastic_response_to_model
 from app.api.collections.vocabs import tree_from_vocabs
 from app.core.config import ELASTIC_TOTAL_SIZE
+from app.core.models import CollectionAttribute, ElasticResourceAttribute
 from app.elastic.dsl import qbool, qterm
 from app.elastic.search import Search
-from app.models import CollectionAttribute, ElasticResourceAttribute
 
 
 def build_portal_tree(collections: list, root_id: uuid.UUID) -> list[CollectionNode]:

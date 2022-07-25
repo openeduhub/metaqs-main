@@ -27,9 +27,8 @@ from app.api.analytics.storage import (
 from app.api.collections.models import CollectionNode
 from app.api.collections.oer import oer_ratio
 from app.api.collections.tree import collection_tree
-from app.api.score.models import required_collection_properties
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.models import LearningMaterialAttribute
+from app.core.models import LearningMaterialAttribute, required_collection_properties
 from app.elastic.dsl import ElasticField, aterms
 from app.elastic.elastic import query_materials
 from app.elastic.search import Search

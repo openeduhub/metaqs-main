@@ -8,7 +8,12 @@ from pydantic import BaseModel, Extra
 from pydantic.validators import str_validator
 
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.models import LearningMaterialAttribute, ResponseModel
+from app.core.models import (
+    _ELASTIC_RESOURCE,
+    ElasticResourceAttribute,
+    LearningMaterialAttribute,
+    ResponseModel,
+)
 from app.elastic.dsl import ElasticField, qbool, qmatch
 from app.elastic.elastic import (
     ResourceType,
@@ -16,7 +21,6 @@ from app.elastic.elastic import (
     type_filter,
 )
 from app.elastic.search import Search
-from app.models import _ELASTIC_RESOURCE, ElasticResourceAttribute
 
 _LEARNING_MATERIAL = TypeVar("_LEARNING_MATERIAL")
 

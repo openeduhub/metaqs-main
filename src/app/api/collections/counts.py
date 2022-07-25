@@ -6,9 +6,9 @@ from elasticsearch_dsl import A
 from pydantic import BaseModel
 
 from app.core.config import ELASTIC_TOTAL_SIZE
+from app.core.models import CollectionAttribute, ElasticResourceAttribute
 from app.elastic.elastic import query_materials
 from app.elastic.search import Search
-from app.models import CollectionAttribute, ElasticResourceAttribute
 
 
 class CollectionTreeCount(BaseModel):

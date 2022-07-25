@@ -11,7 +11,11 @@ from app.api.score.models import (
     ScoreOutput,
 )
 from app.core.constants import COLLECTION_NAME_TO_ID
-from app.core.models import LearningMaterialAttribute
+from app.core.models import (
+    CollectionAttribute,
+    ElasticResourceAttribute,
+    LearningMaterialAttribute,
+)
 from app.elastic.dsl import afilter, amissing
 from app.elastic.elastic import (
     ResourceType,
@@ -20,7 +24,6 @@ from app.elastic.elastic import (
     query_missing_material_license,
 )
 from app.elastic.search import Search
-from app.models import CollectionAttribute, ElasticResourceAttribute
 
 material_terms_relevant_for_score = [
     "missing_title",

@@ -4,7 +4,7 @@ from elasticsearch_dsl.response import Response
 from glom import glom
 
 from app.api.collections.models import CollectionNode, MissingMaterials
-from app.models import CollectionAttribute, ElasticResourceAttribute
+from app.core.models import CollectionAttribute, ElasticResourceAttribute
 
 T = TypeVar("T", CollectionNode, MissingMaterials)
 

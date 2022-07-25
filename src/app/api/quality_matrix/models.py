@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Union
+from typing import Optional
 
 from pydantic import BaseModel, Field
 from sqlalchemy import JSON, Column, Integer, Text
@@ -18,7 +18,7 @@ class QualityOutput:
 
 class QualityOutputModel(BaseModel):
     metadatum: str = Field(default="", description="Name of the evaluated metadatum.")
-    level: int = Field(default=0, description="Hierarchy level of this metadatum")
+    level: int = Field(default=1, description="Hierarchy level of this metadatum")
     columns: dict[str, float] = Field(
         description="The ratio of quality for the required columns."
     )
@@ -47,6 +47,3 @@ class Forms(str, Enum):
 
     REPLICATION_SOURCE = "Bezugsquelle"
     COLLECTIONS = "Sammlungen"
-
-
-QUALITY_MATRIX_RETURN_TYPE = list[dict[str, Union[str, dict[str, float]]]]

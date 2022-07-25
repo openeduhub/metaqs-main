@@ -8,10 +8,10 @@ from elasticsearch_dsl.response import Response
 
 from app.api.quality_matrix.models import Forms, QualityOutput, Timeline
 from app.api.quality_matrix.utils import default_properties
-from app.api.score.models import required_collection_properties
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import COLLECTION_ROOT_ID
 from app.core.logging import logger
+from app.core.models import desired_sorting, required_collection_properties
 from app.elastic.dsl import qbool, qmatch
 from app.elastic.search import Search
 
@@ -101,7 +101,7 @@ def queried_missing_properties(
 
 
 def build_quality_output(data: dict, key: str) -> QualityOutput:
-    return QualityOutput(metadatum=key, columns=data, level=0)
+    return QualityOutput(metadatum=key, columns=data, level=2)
 
 
 def api_ready_output(raw_input: dict) -> list[QualityOutput]:
@@ -149,6 +149,17 @@ async def source_quality(
     return await _quality_matrix(columns, mapping, match_keyword, node_id, properties)
 
 
+def sort_output_to_hierarchy(data: list[QualityOutput]) -> list[QualityOutput]:
+    output = []
+    for order in desired_sorting:
+        output.append(QualityOutput(metadatum=order.title, level=1, columns={}))
+        for node in order.children:
+            row = list(filter(lambda entry: entry.metadatum == node, data))
+            if len(row) == 1:
+                output.append(row[0])
+    return output
+
+
 async def _quality_matrix(
     columns, id_to_name_mapping, match_keyword, node_id, properties
 ) -> list[QualityOutput]:
@@ -163,4 +174,6 @@ async def _quality_matrix(
                     value, total_count, id_to_name_mapping[column_id]
                 )
     logger.debug(f"Quality matrix output:\n{output}")
-    return api_ready_output(output)
+    output = api_ready_output(output)
+
+    return sort_output_to_hierarchy(output)

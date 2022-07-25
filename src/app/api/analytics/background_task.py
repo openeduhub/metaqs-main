@@ -24,10 +24,10 @@ from app.api.analytics.storage import (
     global_store,
 )
 from app.api.collections.counts import AggregationMappings, collection_counts
-from app.api.score.models import required_collection_properties
 from app.core.config import BACKGROUND_TASK_TIME_INTERVAL
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.core.logging import logger
+from app.core.models import required_collection_properties
 from app.elastic.elastic import query_collections, query_materials
 from app.elastic.search import Search
 

@@ -10,13 +10,16 @@ from pydantic import BaseModel, Extra
 from app.api.collections.missing_materials import ElasticResource, EmptyStrToNone
 from app.api.collections.utils import all_source_fields
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.models import LearningMaterialAttribute, ResponseModel
+from app.core.models import _DESCENDANT_COLLECTIONS_MATERIALS_COUNTS
+from app.core.models import CollectionAttribute as _CollectionAttribute
+from app.core.models import (
+    ElasticResourceAttribute,
+    LearningMaterialAttribute,
+    ResponseModel,
+)
 from app.elastic.dsl import ElasticField, aterms, qbool, qmatch
 from app.elastic.elastic import ResourceType, query_materials, type_filter
 from app.elastic.search import Search
-from app.models import _DESCENDANT_COLLECTIONS_MATERIALS_COUNTS
-from app.models import CollectionAttribute as _CollectionAttribute
-from app.models import ElasticResourceAttribute
 
 _COLLECTION = TypeVar("_COLLECTION")
 # TODO Remove duplicate
