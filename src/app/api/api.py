@@ -93,7 +93,7 @@ def node_ids_for_major_collections(
         ...,
         examples={
             "Alle Fachportale": {"value": COLLECTION_ROOT_ID},
-            **COLLECTION_NAME_TO_ID,
+            **{key: {"value": value} for key, value in COLLECTION_NAME_TO_ID.items()},
         },
     ),
 ) -> uuid.UUID:
@@ -115,7 +115,7 @@ async def get_quality(
         default=COLLECTION_ROOT_ID,
         examples={
             "Alle Fachportale": {"value": COLLECTION_ROOT_ID},
-            **COLLECTION_NAME_TO_ID,
+            **{key: {"value": value} for key, value in COLLECTION_NAME_TO_ID.items()},
         },
     ),
     store_to_db: bool = Query(default=False),

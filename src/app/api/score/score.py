@@ -89,7 +89,13 @@ def search_score(node_id: uuid.UUID, resource_type: ResourceType) -> dict:
 
 
 def node_id_param(
-    *, node_id: uuid.UUID = Path(..., examples=COLLECTION_NAME_TO_ID)
+    *,
+    node_id: uuid.UUID = Path(
+        ...,
+        examples={
+            key: {"value": value} for key, value in COLLECTION_NAME_TO_ID.items()
+        },
+    )
 ) -> uuid.UUID:
     return node_id
 
