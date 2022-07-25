@@ -2,12 +2,12 @@ import uuid
 
 from elasticsearch_dsl import AttrDict
 
-from app.api.collections.missing_attributes import (
+from app.api.collections.models import MissingMaterials
+from app.api.collections.pending_collections import (
     missing_attribute_filter,
     missing_attributes_search,
     missing_attributes_spec,
 )
-from app.api.collections.models import MissingMaterials
 from app.api.collections.utils import map_elastic_response_to_model
 
 

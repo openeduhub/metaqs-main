@@ -32,10 +32,6 @@ from app.api.collections.descendants import (
     CollectionMaterialsCount,
     get_material_count_tree,
 )
-from app.api.collections.missing_attributes import (
-    collections_with_missing_attributes,
-    missing_attribute_filter,
-)
 from app.api.collections.missing_materials import (
     LearningMaterial,
     MissingAttributeFilter,
@@ -44,6 +40,10 @@ from app.api.collections.missing_materials import (
     materials_filter_params,
 )
 from app.api.collections.models import CollectionNode, MissingMaterials
+from app.api.collections.pending_collections import (
+    missing_attribute_filter,
+    pending_collections,
+)
 from app.api.collections.tree import collection_tree
 from app.api.quality_matrix.collections import collection_quality
 from app.api.quality_matrix.models import Forms, QualityOutputModel, Timeline
@@ -273,7 +273,7 @@ async def get_collection_counts(
     Searches for entries with one of the following properties being empty or missing: """
     + f"{', '.join([entry.value for entry in missing_attribute_filter])}.",
 )
-async def filter_collections_with_missing_attributes(
+async def filter_pending_collections(
     *,
     node_id: uuid.UUID = Depends(node_ids_for_major_collections),
     missing_attribute: str = Path(
@@ -283,7 +283,7 @@ async def filter_collections_with_missing_attributes(
         },
     ),
 ):
-    return await collections_with_missing_attributes(node_id, missing_attribute)
+    return await pending_collections(node_id, missing_attribute)
 
 
 @router.get(

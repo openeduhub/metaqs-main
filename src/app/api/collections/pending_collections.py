@@ -63,7 +63,7 @@ def missing_attributes_search(
     )
 
 
-async def collections_with_missing_attributes(
+async def pending_collections(
     node_id: uuid.UUID,
     missing_attribute: str,
     max_hits: Optional[int] = ELASTIC_TOTAL_SIZE,
