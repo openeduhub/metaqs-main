@@ -112,7 +112,12 @@ def test_parse_tree():
             for collection in _tree
         ]
 
+    print(tree)
     json_tree = tree_to_json(tree)
+
+    print()
+    print(json_tree)
+    print(expected_tree)
     assert len(json_tree) == len(expected_tree)
 
     def flatten_list(list_of_lists):

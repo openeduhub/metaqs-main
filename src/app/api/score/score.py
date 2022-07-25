@@ -11,11 +11,7 @@ from app.api.score.models import (
     ScoreOutput,
 )
 from app.core.constants import COLLECTION_NAME_TO_ID
-from app.core.models import (
-    CollectionAttribute,
-    ElasticResourceAttribute,
-    LearningMaterialAttribute,
-)
+from app.core.models import ElasticResourceAttribute
 from app.core.utils import create_examples
 from app.elastic.dsl import afilter, amissing
 from app.elastic.elastic import (
@@ -113,26 +109,28 @@ def field_names_used_for_score_calculation(properties: dict) -> list[str]:
 
 
 aggs_material_validation = {
-    "missing_title": amissing(qfield=LearningMaterialAttribute.TITLE),
+    "missing_title": amissing(qfield=ElasticResourceAttribute.TITLE),
     "missing_material_type": amissing(
-        qfield=LearningMaterialAttribute.LEARNINGRESOURCE_TYPE
+        qfield=ElasticResourceAttribute.LEARNINGRESOURCE_TYPE
     ),
-    "missing_subjects": amissing(qfield=LearningMaterialAttribute.SUBJECTS),
-    "missing_url": amissing(qfield=LearningMaterialAttribute.WWW_URL),
+    "missing_subjects": amissing(qfield=ElasticResourceAttribute.SUBJECTS),
+    "missing_url": amissing(qfield=ElasticResourceAttribute.WWW_URL),
     "missing_license": afilter(query=query_missing_material_license()),
-    "missing_publisher": amissing(qfield=LearningMaterialAttribute.PUBLISHER),
-    "missing_description": amissing(qfield=LearningMaterialAttribute.DESCRIPTION),
+    "missing_publisher": amissing(qfield=ElasticResourceAttribute.PUBLISHER),
+    "missing_description": amissing(qfield=ElasticResourceAttribute.DESCRIPTION),
     "missing_intended_end_user_role": amissing(
-        qfield=LearningMaterialAttribute.EDUENDUSERROLE_DE
+        qfield=ElasticResourceAttribute.EDUENDUSERROLE_DE
     ),
-    "missing_edu_context": amissing(qfield=LearningMaterialAttribute.EDU_CONTEXT),
+    "missing_edu_context": amissing(qfield=ElasticResourceAttribute.EDU_CONTEXT),
 }
 aggs_collection_validation = {
-    "missing_title": amissing(qfield=CollectionAttribute.TITLE),
+    "missing_title": amissing(qfield=ElasticResourceAttribute.COLLECTION_TITLE),
     "short_title": afilter(Q("range", char_count_title={"gt": 0, "lt": 5})),
     "missing_keywords": amissing(qfield=ElasticResourceAttribute.KEYWORDS),
     "few_keywords": afilter(Q("range", token_count_keywords={"gt": 0, "lt": 3})),
-    "missing_description": amissing(qfield=CollectionAttribute.DESCRIPTION),
+    "missing_description": amissing(
+        qfield=ElasticResourceAttribute.COLLECTION_DESCRIPTION
+    ),
     "short_description": afilter(
         Q("range", char_count_description={"gt": 0, "lt": 30})
     ),

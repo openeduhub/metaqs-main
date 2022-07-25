@@ -54,11 +54,7 @@ def test_missing_materials_search():
         "properties.cclom:title",
         "properties.ccm:educationalcontext",
     ]
-
-    actual_source.sort()
-    expected_source.sort()
-    source_contains_equal_elements = actual_source == expected_source
-    assert source_contains_equal_elements
+    assert sorted(actual_source) == sorted(expected_source)
 
 
 def test_missing_materials_search_license():

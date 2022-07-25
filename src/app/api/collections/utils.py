@@ -4,7 +4,7 @@ from elasticsearch_dsl.response import Response
 from glom import glom
 
 from app.api.collections.models import CollectionNode, MissingMaterials
-from app.core.models import CollectionAttribute, ElasticResourceAttribute
+from app.core.models import ElasticResourceAttribute
 
 T = TypeVar("T", CollectionNode, MissingMaterials)
 
@@ -16,12 +16,12 @@ def map_elastic_response_to_model(
 
 
 all_source_fields: list = [
-    ElasticResourceAttribute.NODEREF_ID,
+    ElasticResourceAttribute.NODE_ID,
     ElasticResourceAttribute.TYPE,
     ElasticResourceAttribute.NAME,
-    CollectionAttribute.TITLE,
+    ElasticResourceAttribute.COLLECTION_TITLE,
     ElasticResourceAttribute.KEYWORDS,
-    CollectionAttribute.DESCRIPTION,
-    CollectionAttribute.PATH,
-    CollectionAttribute.PARENT_ID,
+    ElasticResourceAttribute.COLLECTION_DESCRIPTION,
+    ElasticResourceAttribute.PATH,
+    ElasticResourceAttribute.PARENT_ID,
 ]

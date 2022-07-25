@@ -9,37 +9,33 @@ from glom import Coalesce, Iter
 from app.api.collections.models import MissingMaterials
 from app.api.collections.utils import all_source_fields, map_elastic_response_to_model
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.models import (
-    CollectionAttribute,
-    ElasticResourceAttribute,
-    LearningMaterialAttribute,
-)
+from app.core.models import ElasticResourceAttribute
 from app.elastic.dsl import qbool, qmatch
 from app.elastic.elastic import ResourceType, type_filter
 from app.elastic.search import Search
 
 missing_attribute_filter = [
-    CollectionAttribute.TITLE,
+    ElasticResourceAttribute.COLLECTION_TITLE,
     ElasticResourceAttribute.NAME,
     ElasticResourceAttribute.KEYWORDS,
-    CollectionAttribute.DESCRIPTION,
-    LearningMaterialAttribute.LICENSES,
+    ElasticResourceAttribute.DESCRIPTION,
+    ElasticResourceAttribute.LICENSES,
 ]
 
 
 missing_attributes_spec = {
-    "title": Coalesce(CollectionAttribute.TITLE.path, default=""),
+    "title": Coalesce(ElasticResourceAttribute.TITLE.path, default=""),
     "keywords": (
         Coalesce(ElasticResourceAttribute.KEYWORDS.path, default=[]),
         Iter().all(),
     ),
-    "description": Coalesce(CollectionAttribute.DESCRIPTION.path, default=""),
+    "description": Coalesce(ElasticResourceAttribute.DESCRIPTION.path, default=""),
     "path": (
-        Coalesce(CollectionAttribute.PATH.path, default=[]),
+        Coalesce(ElasticResourceAttribute.PATH.path, default=[]),
         Iter().all(),
     ),
-    "parent_id": Coalesce(CollectionAttribute.PARENT_ID.path, default=""),
-    "noderef_id": Coalesce(CollectionAttribute.NODE_ID.path, default=""),
+    "parent_id": Coalesce(ElasticResourceAttribute.PARENT_ID.path, default=""),
+    "noderef_id": Coalesce(ElasticResourceAttribute.NODE_ID.path, default=""),
     "name": Coalesce(ElasticResourceAttribute.NAME.path, default=""),
     "type": Coalesce(ElasticResourceAttribute.TYPE.path, default=""),
     "children": Coalesce("", default=[]),  # workaround to map easier to pydantic model

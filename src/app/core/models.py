@@ -1,26 +1,29 @@
 from dataclasses import dataclass
-from itertools import chain
 from typing import TypeVar
 
 from pydantic import BaseModel, Extra
 
 from app.elastic.dsl import ElasticField, ElasticFieldType
 
-# TODO: distinguish better what ElasticResourceAttribute and CollectionAttribute do, how they differ
-#  and why their additional context is meaningful.
-#  Bring together with LearningMaterialAttribute
 
-
-class _LearningMaterialAttribute(ElasticField):
-    TITLE = ("properties.cclom:title", ElasticFieldType.TEXT)
-    SUBJECTS = ("properties.ccm:taxonid", ElasticFieldType.TEXT)
-    SUBJECTS_DE = ("i18n.de_DE.ccm:taxonid", ElasticFieldType.TEXT)
-    WWW_URL = ("properties.ccm:wwwurl", ElasticFieldType.TEXT)
-    DESCRIPTION = ("properties.cclom:general_description", ElasticFieldType.TEXT)
-    LICENSES = ("properties.ccm:commonlicense_key", ElasticFieldType.TEXT)
+class ElasticResourceAttribute(ElasticField):
+    COLLECTION_DESCRIPTION = ("properties.cm:description", ElasticFieldType.TEXT)
     COLLECTION_NODEREF_ID = ("collections.nodeRef.id", ElasticFieldType.TEXT)
     COLLECTION_PATH = ("collections.path", ElasticFieldType.TEXT)
+    COLLECTION_TITLE = ("properties.cm:title", ElasticFieldType.TEXT)
+    CONTAINS_ADS = ("properties.ccm:containsAdvertisement", ElasticFieldType.TEXT)
     CONTENT_FULLTEXT = ("content.fulltext", ElasticFieldType.TEXT)
+    COVER = ("preview", ElasticFieldType.TEXT)
+    DESCRIPTION = ("properties.cclom:general_description", ElasticFieldType.TEXT)
+    EDU_CONTEXT = ("properties.ccm:educationalcontext", ElasticFieldType.TEXT)
+    EDU_CONTEXT_DE = ("i18n.de_DE.ccm:educationalcontext", ElasticFieldType.TEXT)
+    EDUENDUSERROLE_DE = (
+        "i18n.de_DE.ccm:educationalintendedenduserrole",
+        ElasticFieldType.TEXT,
+    )
+    EDU_METADATASET = ("properties.cm:edu_metadataset", ElasticFieldType.TEXT)
+    FULLPATH = ("fullpath", ElasticFieldType.KEYWORD)
+    KEYWORDS = ("properties.cclom:general_keyword", ElasticFieldType.TEXT)
     LEARNINGRESOURCE_TYPE = (
         "properties.ccm:oeh_lrt",
         ElasticFieldType.TEXT,
@@ -29,37 +32,21 @@ class _LearningMaterialAttribute(ElasticField):
         "i18n.de_DE.ccm:oeh_lrt",
         ElasticFieldType.TEXT,
     )
-    EDUENDUSERROLE_DE = (
-        "i18n.de_DE.ccm:educationalintendedenduserrole",
-        ElasticFieldType.TEXT,
-    )
-    CONTAINS_ADS = ("properties.ccm:containsAdvertisement", ElasticFieldType.TEXT)
-    OBJECT_TYPE = ("properties.ccm:objecttype", ElasticFieldType.TEXT)
-    PUBLISHER = ("properties.ccm:oeh_publisher_combined", ElasticFieldType.TEXT)
-    COVER = ("preview", ElasticFieldType.TEXT)
-
-
-class ElasticResourceAttribute(ElasticField):
-    EDU_CONTEXT = ("properties.ccm:educationalcontext", ElasticFieldType.TEXT)
-    EDU_CONTEXT_DE = ("i18n.de_DE.ccm:educationalcontext", ElasticFieldType.TEXT)
-    EDU_METADATASET = ("properties.cm:edu_metadataset", ElasticFieldType.TEXT)
-    FULLPATH = ("fullpath", ElasticFieldType.KEYWORD)
-    KEYWORDS = ("properties.cclom:general_keyword", ElasticFieldType.TEXT)
+    LICENSES = ("properties.ccm:commonlicense_key", ElasticFieldType.TEXT)
     NAME = ("properties.cm:name", ElasticFieldType.TEXT)
-    NODEREF_ID = ("nodeRef.id", ElasticFieldType.KEYWORD)
+    NODE_ID = ("nodeRef.id", ElasticFieldType.KEYWORD)
+    OBJECT_TYPE = ("properties.ccm:objecttype", ElasticFieldType.TEXT)
+    PARENT_ID = ("parentRef.id", ElasticFieldType.KEYWORD)
+    PATH = ("path", ElasticFieldType.KEYWORD)
     PERMISSION_READ = ("permissions.Read", ElasticFieldType.TEXT)
     PROTOCOL = ("nodeRef.storeRef.protocol", ElasticFieldType.KEYWORD)
+    PUBLISHER = ("properties.ccm:oeh_publisher_combined", ElasticFieldType.TEXT)
     REPLICATION_SOURCE_DE = ("replicationsource", ElasticFieldType.TEXT)
+    SUBJECTS = ("properties.ccm:taxonid", ElasticFieldType.TEXT)
+    SUBJECTS_DE = ("i18n.de_DE.ccm:taxonid", ElasticFieldType.TEXT)
+    TITLE = ("properties.cclom:title", ElasticFieldType.TEXT)
     TYPE = ("type", ElasticFieldType.KEYWORD)
-
-
-LearningMaterialAttribute = ElasticField(
-    "LearningMaterialAttribute",
-    [
-        (f.name, (f.value, f.field_type))
-        for f in chain(ElasticResourceAttribute, _LearningMaterialAttribute)
-    ],
-)
+    WWW_URL = ("properties.ccm:wwwurl", ElasticFieldType.TEXT)
 
 
 class ResponseConfig:
@@ -70,20 +57,6 @@ class ResponseConfig:
 class ResponseModel(BaseModel):
     class Config(ResponseConfig):
         pass
-
-
-required_collection_properties = {
-    LearningMaterialAttribute.TITLE.path: "title",
-    LearningMaterialAttribute.LEARNINGRESOURCE_TYPE.path: "learning_resource_type",
-    LearningMaterialAttribute.SUBJECTS.path: "taxon_id",
-    LearningMaterialAttribute.WWW_URL.path: "url",
-    LearningMaterialAttribute.LICENSES.path: "license",
-    LearningMaterialAttribute.PUBLISHER.path: "publisher",
-    LearningMaterialAttribute.DESCRIPTION.path: "description",
-    LearningMaterialAttribute.EDUENDUSERROLE_DE.path: "intended_end_user_role",
-    LearningMaterialAttribute.EDU_CONTEXT.path: "edu_context",
-    LearningMaterialAttribute.COVER.path: "cover",
-}
 
 
 @dataclass
@@ -98,7 +71,7 @@ desired_sorting: list[SortNode] = [
         children=[
             "preview",
             "ccm:collectionshorttitle",
-            "cclom:title",
+            ElasticResourceAttribute.TITLE,
             "cclom:general_description",
             "cclom:status",
             "ccm:wwwurl",
@@ -196,15 +169,23 @@ desired_sorting: list[SortNode] = [
         ],
     ),
 ]
+
+
+required_collection_properties = {
+    ElasticResourceAttribute.TITLE.path: "title",
+    ElasticResourceAttribute.LEARNINGRESOURCE_TYPE.path: "learning_resource_type",
+    ElasticResourceAttribute.SUBJECTS.path: "taxon_id",
+    ElasticResourceAttribute.WWW_URL.path: "url",
+    ElasticResourceAttribute.LICENSES.path: "license",
+    ElasticResourceAttribute.PUBLISHER.path: "publisher",
+    ElasticResourceAttribute.DESCRIPTION.path: "description",
+    ElasticResourceAttribute.EDUENDUSERROLE_DE.path: "intended_end_user_role",
+    ElasticResourceAttribute.EDU_CONTEXT.path: "edu_context",
+    ElasticResourceAttribute.COVER.path: "cover",
+}
+
+
 _ELASTIC_RESOURCE = TypeVar("_ELASTIC_RESOURCE")
 _DESCENDANT_COLLECTIONS_MATERIALS_COUNTS = TypeVar(
     "_DESCENDANT_COLLECTIONS_MATERIALS_COUNTS"
 )
-
-
-class CollectionAttribute(ElasticField):
-    DESCRIPTION = ("properties.cm:description", ElasticFieldType.TEXT)
-    PARENT_ID = ("parentRef.id", ElasticFieldType.KEYWORD)
-    PATH = ("path", ElasticFieldType.KEYWORD)
-    NODE_ID = ("nodeRef.id", ElasticFieldType.KEYWORD)
-    TITLE = ("properties.cm:title", ElasticFieldType.TEXT)

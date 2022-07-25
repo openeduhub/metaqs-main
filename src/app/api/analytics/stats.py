@@ -28,7 +28,7 @@ from app.api.collections.models import CollectionNode
 from app.api.collections.oer import oer_ratio
 from app.api.collections.tree import collection_tree
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.models import LearningMaterialAttribute, required_collection_properties
+from app.core.models import ElasticResourceAttribute, required_collection_properties
 from app.elastic.dsl import ElasticField, aterms
 from app.elastic.elastic import query_materials
 from app.elastic.search import Search
@@ -49,14 +49,14 @@ def search_materials(query_str: str) -> Query:
     return qsimplequerystring(
         query=query_str,
         qfields=[
-            LearningMaterialAttribute.TITLE,
-            LearningMaterialAttribute.KEYWORDS,
-            LearningMaterialAttribute.DESCRIPTION,
-            LearningMaterialAttribute.CONTENT_FULLTEXT,
-            LearningMaterialAttribute.SUBJECTS_DE,
-            LearningMaterialAttribute.LEARNINGRESOURCE_TYPE_DE,
-            LearningMaterialAttribute.EDU_CONTEXT_DE,
-            LearningMaterialAttribute.EDUENDUSERROLE_DE,
+            ElasticResourceAttribute.TITLE,
+            ElasticResourceAttribute.KEYWORDS,
+            ElasticResourceAttribute.DESCRIPTION,
+            ElasticResourceAttribute.CONTENT_FULLTEXT,
+            ElasticResourceAttribute.SUBJECTS_DE,
+            ElasticResourceAttribute.LEARNINGRESOURCE_TYPE_DE,
+            ElasticResourceAttribute.EDU_CONTEXT_DE,
+            ElasticResourceAttribute.EDUENDUSERROLE_DE,
         ],
         default_operator="and",
     )
@@ -65,7 +65,7 @@ def search_materials(query_str: str) -> Query:
 def agg_material_types(size: int = ELASTIC_TOTAL_SIZE) -> Agg:
     # TODO: This is the key property we are aggregating for
     return aterms(
-        qfield=LearningMaterialAttribute.LEARNINGRESOURCE_TYPE,
+        qfield=ElasticResourceAttribute.LEARNINGRESOURCE_TYPE,
         missing="N/A",
         size=size,
     )

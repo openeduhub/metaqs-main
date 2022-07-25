@@ -60,7 +60,7 @@ from app.api.score.score import (
 )
 from app.core.config import API_DEBUG, BACKGROUND_TASK_TIME_INTERVAL
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
-from app.core.models import LearningMaterialAttribute
+from app.core.models import ElasticResourceAttribute
 from app.core.utils import create_examples
 
 
@@ -301,7 +301,7 @@ async def filter_materials_with_missing_attributes(
     *,
     node_id: uuid.UUID = Depends(node_ids_for_major_collections),
     missing_attr_filter: MissingAttributeFilter = Depends(materials_filter_params),
-    response_fields: Optional[set[LearningMaterialAttribute]] = Depends(
+    response_fields: Optional[set[ElasticResourceAttribute]] = Depends(
         material_response_fields
     ),
 ):

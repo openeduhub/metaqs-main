@@ -3,11 +3,7 @@ from enum import Enum
 
 from elasticsearch_dsl.query import Query
 
-from app.core.models import (
-    CollectionAttribute,
-    ElasticResourceAttribute,
-    LearningMaterialAttribute,
-)
+from app.core.models import ElasticResourceAttribute
 from app.elastic.dsl import qbool, qboolor, qnotexists, qterm, qterms
 
 
@@ -30,10 +26,10 @@ def query_many(resource_type: ResourceType, node_id: uuid.UUID = None) -> Query:
     qfilter = [*type_filter[resource_type]]
     if node_id:
         if resource_type is ResourceType.COLLECTION:
-            qfilter.append(qterm(qfield=CollectionAttribute.PATH, value=node_id))
+            qfilter.append(qterm(qfield=ElasticResourceAttribute.PATH, value=node_id))
         elif resource_type is ResourceType.MATERIAL:
             qfilter.append(
-                qterm(qfield=LearningMaterialAttribute.COLLECTION_PATH, value=node_id)
+                qterm(qfield=ElasticResourceAttribute.COLLECTION_PATH, value=node_id)
             )
 
     return qbool(filter=qfilter)
@@ -48,7 +44,7 @@ def query_materials(node_id: uuid.UUID = None) -> Query:
 
 
 def query_missing_material_license() -> Query:
-    qfield = LearningMaterialAttribute.LICENSES
+    qfield = ElasticResourceAttribute.LICENSES
     return qboolor(
         [
             qterms(

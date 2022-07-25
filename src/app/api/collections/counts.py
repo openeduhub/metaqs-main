@@ -6,7 +6,7 @@ from elasticsearch_dsl import A
 from pydantic import BaseModel
 
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.models import CollectionAttribute, ElasticResourceAttribute
+from app.core.models import ElasticResourceAttribute
 from app.elastic.elastic import query_materials
 from app.elastic.search import Search
 
@@ -53,10 +53,10 @@ def collection_counts_search(
     search.aggs.bucket(_AGGREGATION_NAME, material_agg)
     search = search.source(
         [
-            ElasticResourceAttribute.NODEREF_ID.path,
-            CollectionAttribute.TITLE.path,
-            CollectionAttribute.PATH.path,
-            CollectionAttribute.PARENT_ID.path,
+            ElasticResourceAttribute.NODE_ID.path,
+            ElasticResourceAttribute.COLLECTION_TITLE.path,
+            ElasticResourceAttribute.PATH.path,
+            ElasticResourceAttribute.PARENT_ID.path,
         ]
     )[:0]
     return search

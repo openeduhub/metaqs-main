@@ -1,5 +1,4 @@
 import uuid
-from itertools import chain
 from typing import Optional, Type, TypeVar
 
 from elasticsearch_dsl.aggs import A, Agg
@@ -10,26 +9,16 @@ from pydantic import BaseModel, Extra
 from app.api.collections.missing_materials import ElasticResource, EmptyStrToNone
 from app.api.collections.utils import all_source_fields
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.models import _DESCENDANT_COLLECTIONS_MATERIALS_COUNTS
-from app.core.models import CollectionAttribute as _CollectionAttribute
 from app.core.models import (
+    _DESCENDANT_COLLECTIONS_MATERIALS_COUNTS,
     ElasticResourceAttribute,
-    LearningMaterialAttribute,
     ResponseModel,
 )
-from app.elastic.dsl import ElasticField, aterms, qbool, qmatch
+from app.elastic.dsl import aterms, qbool, qmatch
 from app.elastic.elastic import ResourceType, query_materials, type_filter
 from app.elastic.search import Search
 
 _COLLECTION = TypeVar("_COLLECTION")
-# TODO Remove duplicate
-CollectionAttribute = ElasticField(
-    "CollectionAttribute",
-    [
-        (f.name, (f.value, f.field_type))
-        for f in chain(ElasticResourceAttribute, _CollectionAttribute)
-    ],
-)
 
 
 class CollectionMaterialsCount(ResponseModel):
@@ -72,7 +61,7 @@ def agg_materials_by_collection(size: int = 65536) -> Agg:
         sources=[
             {
                 "noderef_id": aterms(
-                    qfield=LearningMaterialAttribute.COLLECTION_NODEREF_ID
+                    qfield=ElasticResourceAttribute.COLLECTION_NODEREF_ID
                 )
             }
         ],
@@ -112,17 +101,21 @@ class CollectionBase(ElasticResource):
         hit: dict,
     ) -> dict:
         spec = {
-            "title": Coalesce(CollectionAttribute.TITLE.path, default=None),
+            "title": Coalesce(ElasticResourceAttribute.TITLE.path, default=None),
             "keywords": (
-                Coalesce(CollectionAttribute.KEYWORDS.path, default=[]),
+                Coalesce(ElasticResourceAttribute.KEYWORDS.path, default=[]),
                 Iter().all(),
             ),
-            "description": Coalesce(CollectionAttribute.DESCRIPTION.path, default=None),
+            "description": Coalesce(
+                ElasticResourceAttribute.DESCRIPTION.path, default=None
+            ),
             "path": (
-                Coalesce(CollectionAttribute.PATH.path, default=[]),
+                Coalesce(ElasticResourceAttribute.PATH.path, default=[]),
                 Iter().all(),
             ),
-            "parent_id": Coalesce(CollectionAttribute.PARENT_ID.path, default=None),
+            "parent_id": Coalesce(
+                ElasticResourceAttribute.PARENT_ID.path, default=None
+            ),
         }
         return {
             **super(CollectionBase, cls).parse_elastic_hit_to_dict(hit),
