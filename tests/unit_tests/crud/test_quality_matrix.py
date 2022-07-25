@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 from elasticsearch_dsl.response import Hit, Response
 
+from app.api.quality_matrix.models import ColumnOutput
 from app.api.quality_matrix.quality_matrix import (
     all_sources,
     create_empty_entries_search,
@@ -243,67 +244,76 @@ def compare_lists_of_dict(expected, actually) -> bool:
 
 def test_transpose():
     data = [
-        {
-            "metadatum": "virtual",
-            "columns": {
+        ColumnOutput(
+            metadatum="virtual",
+            columns={
                 "00abdb05-6c96-4604-831c-b9846eae7d2d": 13.0,
                 "3305f552-c931-4bcc-842b-939c99752bd5": 20.0,
                 "35054614-72c8-49b2-9924-7b04c7f3bf71": -10.0,
             },
-        }
+            level=2,
+        )
     ]
 
-    assert compare_lists_of_dict(
-        transpose(data),
-        [
-            {
-                "metadatum": "00abdb05-6c96-4604-831c-b9846eae7d2d",
-                "columns": {"virtual": 13.0},
+    assert transpose(data) == [
+        ColumnOutput(
+            metadatum="00abdb05-6c96-4604-831c-b9846eae7d2d",
+            columns={
+                "virtual": 13.0,
             },
-            {
-                "metadatum": "3305f552-c931-4bcc-842b-939c99752bd5",
-                "columns": {"virtual": 20.0},
+            level=2,
+        ),
+        ColumnOutput(
+            metadatum="3305f552-c931-4bcc-842b-939c99752bd5",
+            columns={
+                "virtual": 20.0,
             },
-            {
-                "metadatum": "35054614-72c8-49b2-9924-7b04c7f3bf71",
-                "columns": {"virtual": -10.0},
+            level=2,
+        ),
+        ColumnOutput(
+            metadatum="35054614-72c8-49b2-9924-7b04c7f3bf71",
+            columns={
+                "virtual": -10.0,
             },
-        ],
-    )
+            level=2,
+        ),
+    ]
 
     data = [
-        {
-            "metadatum": "virtual",
-            "columns": {
+        ColumnOutput(
+            metadatum="virtual",
+            columns={
                 "00abdb05-6c96-4604-831c-b9846eae7d2d": 13.0,
                 "3305f552-c931-4bcc-842b-939c99752bd5": 20.0,
                 "35054614-72c8-49b2-9924-7b04c7f3bf71": -10.0,
             },
-        },
-        {
-            "metadatum": "actually",
-            "columns": {
-                "00abdb05-6c96-4604-831c-b9846eae7d2d": 20.0,
-                "3305f552-c931-4bcc-842b-939c99752bd5": 21.0,
-                "35054614-72c8-49b2-9924-7b04c7f3bf71": -1.0,
+            level=2,
+        ),
+        ColumnOutput(
+            metadatum="actually",
+            columns={
+                "00abdb05-6c96-4604-831c-b9846eae7d2d": 20,
+                "3305f552-c931-4bcc-842b-939c99752bd5": 21,
+                "35054614-72c8-49b2-9924-7b04c7f3bf71": -1,
             },
-        },
+            level=1,
+        ),
     ]
 
-    assert compare_lists_of_dict(
-        transpose(data),
-        [
-            {
-                "metadatum": "00abdb05-6c96-4604-831c-b9846eae7d2d",
-                "columns": {"virtual": 13.0, "actually": 20},
-            },
-            {
-                "metadatum": "3305f552-c931-4bcc-842b-939c99752bd5",
-                "columns": {"virtual": 20.0, "actually": 21},
-            },
-            {
-                "metadatum": "35054614-72c8-49b2-9924-7b04c7f3bf71",
-                "columns": {"virtual": -10.0, "actually": -1},
-            },
-        ],
-    )
+    assert transpose(data) == [
+        ColumnOutput(
+            metadatum="00abdb05-6c96-4604-831c-b9846eae7d2d",
+            columns={"virtual": 13.0, "actually": 20},
+            level=2,
+        ),
+        ColumnOutput(
+            metadatum="3305f552-c931-4bcc-842b-939c99752bd5",
+            columns={"virtual": 20.0, "actually": 21},
+            level=2,
+        ),
+        ColumnOutput(
+            metadatum="35054614-72c8-49b2-9924-7b04c7f3bf71",
+            columns={"virtual": -10.0, "actually": -1},
+            level=2,
+        ),
+    ]

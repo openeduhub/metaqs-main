@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from enum import Enum
 from typing import Union
 
@@ -6,8 +7,16 @@ from sqlalchemy import JSON, Column, Integer, Text
 from sqlalchemy.orm import declarative_base
 
 
+@dataclass(frozen=True)
+class ColumnOutput:
+    metadatum: str
+    level: int
+    columns: dict[str, float]
+
+
 class ColumnOutputModel(BaseModel):
     metadatum: str = Field(default="", description="Name of the evaluated metadatum.")
+    level: int = Field(description="Hierarchy level of this metadatum")
     columns: dict[str, float] = Field(
         description="The ratio of quality for the required columns."
     )

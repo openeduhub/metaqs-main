@@ -1,17 +1,20 @@
-def transpose(data: list) -> list:
-    rows = [entry["metadatum"] for entry in data]
-    columns = list(data[0]["columns"].keys())
+from app.api.quality_matrix.models import ColumnOutput
+
+
+def transpose(data: list[ColumnOutput]) -> list[ColumnOutput]:
+    rows = [entry.metadatum for entry in data]
+    columns = list(data[0].columns.keys())
     output = []
     for column in columns:
-        new_row = {"metadatum": column}
-        new_row.update({"columns": {}})
+        new_columns = {}
         for row in rows:
-            entry = {}
-            for line in data:
-                if line["metadatum"] == row:
-                    entry = line
-                    break
-            new_row["columns"].update({row: entry["columns"][column]})
+            entry = list(filter(lambda line: line.metadatum == row, data))
+            if len(entry) == 1:
+                new_columns.update({row: entry[0].columns[column]})
+
+        new_row = ColumnOutput(
+            metadatum=column, columns=new_columns, level=data[0].level
+        )
         output.append(new_row)
     return output
 
