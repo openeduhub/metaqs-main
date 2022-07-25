@@ -155,8 +155,6 @@ def sort_output_to_hierarchy(data: list[QualityOutput]) -> list[QualityOutput]:
     for order in metadata_hierarchy:
         output.append(QualityOutput(metadatum=order.title, level=1, columns={}))
         for node in order.children:
-            print([entry.metadatum for entry in data])
-            print(order.title, node.path.path.split(".")[-1])
             row = list(
                 filter(
                     lambda entry: entry.metadatum == node.path.path.split(".")[-1], data
