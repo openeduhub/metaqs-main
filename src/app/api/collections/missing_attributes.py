@@ -35,7 +35,7 @@ missing_attributes_spec = {
         Iter().all(),
     ),
     "parent_id": Coalesce(ElasticResourceAttribute.PARENT_ID.path, default=""),
-    "noderef_id": Coalesce(ElasticResourceAttribute.NODE_ID.path, default=""),
+    "node_id": Coalesce(ElasticResourceAttribute.NODE_ID.path, default=""),
     "name": Coalesce(ElasticResourceAttribute.NAME.path, default=""),
     "type": Coalesce(ElasticResourceAttribute.TYPE.path, default=""),
     "children": Coalesce("", default=[]),  # workaround to map easier to pydantic model

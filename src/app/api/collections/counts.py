@@ -17,7 +17,7 @@ class CollectionTreeCount(BaseModel):
     e.g. OER licence
     """
 
-    noderef_id: uuid.UUID
+    node_id: uuid.UUID
     total: int
     counts: dict[str, int]
 
@@ -73,7 +73,7 @@ async def collection_counts(
 def build_counts(response) -> list[CollectionTreeCount]:
     return [
         CollectionTreeCount(
-            noderef_id=data["key"],
+            node_id=data["key"],
             counts={sub["key"]: sub["doc_count"] for sub in data.facet.buckets},
             total=data.doc_count,
         )

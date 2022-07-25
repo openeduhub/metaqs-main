@@ -6,7 +6,7 @@ from elasticsearch_dsl.response import Response
 from glom import Coalesce, Iter, glom
 from pydantic import BaseModel, Extra
 
-from app.api.collections.missing_materials import ElasticResource, EmptyStrToNone
+from app.api.collections.missing_materials import EmptyStrToNone
 from app.api.collections.utils import all_source_fields
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.models import (
@@ -22,7 +22,7 @@ _COLLECTION = TypeVar("_COLLECTION")
 
 
 class CollectionMaterialsCount(ResponseModel):
-    noderef_id: uuid.UUID
+    node_id: uuid.UUID
     title: str
     materials_count: int
 
@@ -88,7 +88,10 @@ def material_counts_search(node_id: uuid.UUID):
     return s
 
 
-class CollectionBase(ElasticResource):
+class CollectionBase(ResponseModel):
+    node_id: uuid.UUID
+    type: Optional[EmptyStrToNone] = None
+    name: Optional[EmptyStrToNone] = None
     title: Optional[EmptyStrToNone] = None
     keywords: Optional[list[str]] = None
     description: Optional[EmptyStrToNone] = None
@@ -116,6 +119,9 @@ class CollectionBase(ElasticResource):
             "parent_id": Coalesce(
                 ElasticResourceAttribute.PARENT_ID.path, default=None
             ),
+            "node_id": ElasticResourceAttribute.NODE_ID.path,
+            "type": Coalesce(ElasticResourceAttribute.TYPE.path, default=None),
+            "name": Coalesce(ElasticResourceAttribute.NAME.path, default=None),
         }
         return {
             **super(CollectionBase, cls).parse_elastic_hit_to_dict(hit),
@@ -136,7 +142,7 @@ class CollectionBase(ElasticResource):
 
 
 # TODO: Double naming with collection in types
-class Collection(ResponseModel, CollectionBase):
+class Collection(CollectionBase):
     pass
 
 
@@ -181,18 +187,18 @@ async def get_material_count_tree(node_id) -> list[CollectionMaterialsCount]:
         node_id=node_id,
     )
     descendant_collections = {
-        collection.noderef_id: collection.title for collection in descendant_collections
+        collection.node_id: collection.title for collection in descendant_collections
     }
     stats = []
     for record in materials_counts.results:
         try:
-            title = descendant_collections.pop(record.noderef_id)
+            title = descendant_collections.pop(record.node_id)
         except KeyError:
             continue
 
         stats.append(
             CollectionMaterialsCount(
-                noderef_id=record.noderef_id,
+                node_id=record.node_id,
                 title=title,
                 materials_count=record.materials_count,
             )
@@ -200,7 +206,7 @@ async def get_material_count_tree(node_id) -> list[CollectionMaterialsCount]:
     stats = [
         *[
             CollectionMaterialsCount(
-                noderef_id=noderef_id,
+                node_id=noderef_id,
                 title=title,
                 materials_count=0,
             )

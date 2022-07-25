@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 
 class CollectionNode(BaseModel):
-    noderef_id: uuid.UUID
+    node_id: uuid.UUID
     title: Optional[str]  # might be none due to data model
     children: list[CollectionNode]
     parent_id: Optional[uuid.UUID]

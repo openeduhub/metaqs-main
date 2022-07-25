@@ -42,7 +42,7 @@ async def test_overall_stats():
             if key == "counts":
                 return [
                     CollectionTreeCount(
-                        noderef_id=entry["noderef_id"],
+                        node_id=entry["noderef_id"],
                         total=entry["total"],
                         counts=entry["counts"],
                     )
@@ -161,7 +161,7 @@ def test_query_material_types():
             if key == "counts":
                 return [
                     CollectionTreeCount(
-                        noderef_id=entry["noderef_id"],
+                        node_id=entry["noderef_id"],
                         total=entry["total"],
                         counts=entry["counts"],
                     )
@@ -200,7 +200,7 @@ def test_collections_with_missing_properties():
             if key == "counts":
                 return [
                     CollectionTreeCount(
-                        noderef_id=entry["noderef_id"],
+                        node_id=entry["noderef_id"],
                         total=entry["total"],
                         counts=entry["counts"],
                     )
@@ -241,7 +241,7 @@ def test_materials_with_missing_properties():
             if key == "counts":
                 return [
                     CollectionTreeCount(
-                        noderef_id=entry["noderef_id"],
+                        node_id=entry["noderef_id"],
                         total=entry["total"],
                         counts=entry["counts"],
                     )

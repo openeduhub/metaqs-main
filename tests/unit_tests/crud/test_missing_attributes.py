@@ -92,4 +92,4 @@ def test_hits_to_missing_attributes():
     assert len(result[0].children) == 0
     assert result[0].description == ""
     assert result[0].parent_id == parent_ref
-    assert result[0].noderef_id == node_ref
+    assert result[0].node_id == node_ref

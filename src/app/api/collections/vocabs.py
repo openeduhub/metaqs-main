@@ -20,7 +20,7 @@ async def tree_from_vocabs(
 def collection_to_model(data: list[dict]) -> list[CollectionNode]:
     return [
         CollectionNode(
-            noderef_id=collection["id"].split("/")[-1],
+            node_id=collection["id"].split("/")[-1],
             title=collection["prefLabel"]["de"],
             children=collection_to_model(collection["narrower"])
             if "narrower" in collection

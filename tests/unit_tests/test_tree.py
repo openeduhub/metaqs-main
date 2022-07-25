@@ -103,7 +103,7 @@ def test_parse_tree():
     def tree_to_json(_tree: list[CollectionNode]) -> list:
         return [
             {
-                "noderef_id": collection.noderef_id,
+                "noderef_id": collection.node_id,
                 "title": collection.title,
                 "children": tree_to_json(collection.children)
                 if collection.children
@@ -160,7 +160,7 @@ def test_build_portal_tree():
     dummy_child_uuid = uuid.uuid4()
     dummy_node = CollectionNode(
         title=None,
-        noderef_id=dummy_child_uuid,
+        node_id=dummy_child_uuid,
         children=[],
         parent_id=dummy_uuid,
     )
@@ -171,7 +171,7 @@ def test_build_portal_tree():
     dummy_child_uuid = uuid.uuid4()
     dummy_node = CollectionNode(
         title="dummy_node",
-        noderef_id=dummy_child_uuid,
+        node_id=dummy_child_uuid,
         children=[],
         parent_id=dummy_uuid,
     )
@@ -184,7 +184,7 @@ def test_build_portal_tree():
     another_child_uuid = uuid.uuid4()
     another_node = CollectionNode(
         title="dummy_node",
-        noderef_id=another_child_uuid,
+        node_id=another_child_uuid,
         children=[],
         parent_id=dummy_child_uuid,
     )

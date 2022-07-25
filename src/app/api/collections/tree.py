@@ -27,7 +27,7 @@ def build_hierarchy(
     collection, tree_hierarchy: dict[str, list[CollectionNode]]
 ) -> dict[str, list[CollectionNode]]:
     portal_node = CollectionNode(
-        noderef_id=collection.noderef_id,
+        node_id=collection.node_id,
         title=collection.title,
         children=[],
     )
@@ -36,7 +36,7 @@ def build_hierarchy(
         tree_hierarchy.update({str(collection.parent_id): []})
 
     tree_hierarchy[str(collection.parent_id)].append(portal_node)
-    tree_hierarchy[str(collection.noderef_id)] = portal_node.children
+    tree_hierarchy[str(collection.node_id)] = portal_node.children
     return tree_hierarchy
 
 
@@ -67,7 +67,7 @@ collection_spec = {
         Iter().all(),
     ),
     "parent_id": Coalesce(ElasticResourceAttribute.PARENT_ID.path, default=None),
-    "noderef_id": Coalesce(ElasticResourceAttribute.NODE_ID.path, default=None),
+    "node_id": Coalesce(ElasticResourceAttribute.NODE_ID.path, default=None),
     "children": Coalesce("", default=[]),
 }
 

@@ -131,7 +131,7 @@ async def get_ids_to_iterate(node_id: uuid.UUID) -> list[Row]:
         return [
             nodes(collection.children)
             if collection.children
-            else (collection.noderef_id, collection.title)
+            else (collection.node_id, collection.title)
             for collection in data
         ]
 
@@ -161,7 +161,7 @@ def query_material_types(
     # TODO: Refactor with filter and dict comprehension
     for collection in collections:
         for count in counts:
-            if collection.id == str(count.noderef_id):
+            if collection.id == str(count.node_id):
                 stats.update(
                     {str(collection.id): {"total": count.total, **count.counts}}
                 )

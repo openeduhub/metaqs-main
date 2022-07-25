@@ -72,4 +72,4 @@ def test_build_counts():
     assert len(result) == 1
     assert result[0].total == 1
     assert list(result[0].counts.values())[0] == -1
-    assert isinstance(result[0].noderef_id, uuid.UUID)
+    assert isinstance(result[0].node_id, uuid.UUID)
