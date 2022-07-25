@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional, TypeVar
+from typing import Optional
 
 from elasticsearch_dsl import Q
 from fastapi.params import Path, Query
@@ -17,8 +17,6 @@ from app.elastic.elastic import (
     type_filter,
 )
 from app.elastic.search import Search
-
-_LEARNING_MATERIAL = TypeVar("_LEARNING_MATERIAL")
 
 
 def empty_to_none(v: str) -> Optional[str]:
@@ -90,22 +88,26 @@ def material_response_fields(
     return response_fields
 
 
+missing_attributes_source_fields = {
+    ElasticResourceAttribute.TITLE,
+    ElasticResourceAttribute.LEARNINGRESOURCE_TYPE,
+    ElasticResourceAttribute.SUBJECTS,
+    ElasticResourceAttribute.WWW_URL,
+    ElasticResourceAttribute.LICENSES,
+    ElasticResourceAttribute.PUBLISHER,
+    ElasticResourceAttribute.DESCRIPTION,
+    ElasticResourceAttribute.EDUENDUSERROLE_DE,
+    ElasticResourceAttribute.EDU_CONTEXT,
+    ElasticResourceAttribute.COVER,
+    ElasticResourceAttribute.NODE_ID,
+    ElasticResourceAttribute.TYPE,
+    ElasticResourceAttribute.NAME,
+    ElasticResourceAttribute.KEYWORDS,
+}
+
 MissingMaterialField = ElasticField(
     "MissingMaterialField",
-    [
-        (f.name, (f.value, f.field_type))
-        for f in [
-            ElasticResourceAttribute.TITLE,
-            ElasticResourceAttribute.LEARNINGRESOURCE_TYPE,
-            ElasticResourceAttribute.SUBJECTS,  # TODO: Refactor to TaxonId
-            ElasticResourceAttribute.WWW_URL,
-            ElasticResourceAttribute.LICENSES,
-            ElasticResourceAttribute.PUBLISHER,
-            ElasticResourceAttribute.DESCRIPTION,
-            ElasticResourceAttribute.EDUENDUSERROLE_DE,
-            ElasticResourceAttribute.EDU_CONTEXT,
-        ]
-    ],
+    [(f.name, (f.value, f.field_type)) for f in missing_attributes_source_fields],
 )
 
 
@@ -117,20 +119,6 @@ def materials_filter_params(
     *, missing_attr: MissingMaterialField = Path(...)
 ) -> MissingAttributeFilter:
     return MissingAttributeFilter(attr=missing_attr)
-
-
-missing_attributes_source_fields = {
-    ElasticResourceAttribute.NODE_ID,
-    ElasticResourceAttribute.TYPE,
-    ElasticResourceAttribute.NAME,
-    ElasticResourceAttribute.TITLE,
-    ElasticResourceAttribute.KEYWORDS,
-    ElasticResourceAttribute.EDU_CONTEXT,
-    ElasticResourceAttribute.SUBJECTS,
-    ElasticResourceAttribute.WWW_URL,
-    ElasticResourceAttribute.DESCRIPTION,
-    ElasticResourceAttribute.LICENSES,
-}
 
 
 def missing_attributes_search(
@@ -176,8 +164,13 @@ async def search_materials_with_missing_attributes(
     search = missing_attributes_search(
         node_id, missing_attr_filter.attr.value, ELASTIC_TOTAL_SIZE
     )
+    print("search.to_dict()")
+    print(search.to_dict())
     response = search.execute()
     if response.success():
+        print("success")
+        print("response: ", response.hits)
+        print("missing_materials_spec: ", missing_materials_spec)
         missing_attributes: list[LearningMaterial] = map_elastic_response_to_model(
             response, missing_materials_spec, LearningMaterial
         )
