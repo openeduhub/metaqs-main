@@ -11,7 +11,11 @@ from app.api.quality_matrix.utils import default_properties
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import COLLECTION_ROOT_ID
 from app.core.logging import logger
-from app.core.models import metadata_hierarchy, required_collection_properties
+from app.core.models import (
+    ElasticResourceAttribute,
+    metadata_hierarchy,
+    required_collection_properties,
+)
 from app.elastic.dsl import qbool, qmatch
 from app.elastic.search import Search
 
@@ -23,7 +27,7 @@ def create_sources_search(aggregation_name: str) -> Search:
     s.aggs.bucket(
         aggregation_name,
         "terms",
-        field=f"{PROPERTIES}.{REPLICATION_SOURCE_ID}.keyword",
+        field=f"{ElasticResourceAttribute.REPLICATION_SOURCE.path}.keyword",
         size=ELASTIC_TOTAL_SIZE,
     )
     return s
@@ -135,16 +139,14 @@ async def items_in_response(response: Response) -> dict:
     return response.aggregations.to_dict().items()
 
 
-REPLICATION_SOURCE_ID = "ccm:replicationsource"
 PROPERTIES = "properties"
 
 
 async def source_quality(
     node_id: uuid.UUID = COLLECTION_ROOT_ID,
-    match_keyword: str = f"{PROPERTIES}.{REPLICATION_SOURCE_ID}",
+    match_keyword: str = ElasticResourceAttribute.REPLICATION_SOURCE.path,
 ) -> list[QualityOutput]:
     properties = get_properties()
-    print("properties: ", properties)
     columns = all_sources()
     mapping = {key: key for key in columns.keys()}  # identity mapping
     return await _quality_matrix(columns, mapping, match_keyword, node_id, properties)

@@ -56,6 +56,7 @@ class ElasticResourceAttribute(ElasticField):
     PERMISSION_READ = ("permissions.Read", ElasticFieldType.TEXT)
     PROTOCOL = ("nodeRef.storeRef.protocol", ElasticFieldType.KEYWORD)
     PUBLISHER = ("properties.ccm:oeh_publisher_combined", ElasticFieldType.TEXT)
+    REPLICATION_SOURCE = ("properties.ccm:replicationsource", ElasticFieldType.TEXT)
     REPLICATION_SOURCE_DE = ("replicationsource", ElasticFieldType.TEXT)
     STATUS = ("properties.cclom:status", ElasticFieldType.TEXT)
     SUBJECTS = ("properties.ccm:taxonid", ElasticFieldType.TEXT)
@@ -233,21 +234,6 @@ required_collection_properties = {
     for node in metadata_hierarchy
     for child in node.children
 }
-
-required_collection_properties = {
-    ElasticResourceAttribute.TITLE.path: "title",
-    ElasticResourceAttribute.LEARNINGRESOURCE_TYPE.path: "learning_resource_type",
-    ElasticResourceAttribute.SUBJECTS.path: "taxon_id",
-    ElasticResourceAttribute.WWW_URL.path: "url",
-    ElasticResourceAttribute.LICENSES.path: "license",
-    ElasticResourceAttribute.PUBLISHER.path: "publisher",
-    ElasticResourceAttribute.DESCRIPTION.path: "description",
-    ElasticResourceAttribute.EDUENDUSERROLE_DE.path: "intended_end_user_role",
-    ElasticResourceAttribute.EDU_CONTEXT.path: "edu_context",
-    ElasticResourceAttribute.COVER.path: "cover",
-}
-
-print("required_collection_properties: ", required_collection_properties)
 
 _ELASTIC_RESOURCE = TypeVar("_ELASTIC_RESOURCE")
 _DESCENDANT_COLLECTIONS_MATERIALS_COUNTS = TypeVar(
