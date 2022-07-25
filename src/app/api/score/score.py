@@ -4,7 +4,13 @@ from elasticsearch_dsl import Q
 from elasticsearch_dsl.response import Response
 from fastapi import Path
 
-import app.core.constants
+from app.api.collections.oer import oer_ratio
+from app.api.score.models import (
+    MissingCollectionProperties,
+    MissingMaterialProperties,
+    ScoreOutput,
+)
+from app.core.constants import COLLECTION_NAME_TO_ID
 from app.core.models import LearningMaterialAttribute
 from app.elastic.dsl import afilter, amissing
 from app.elastic.elastic import (
@@ -53,10 +59,9 @@ def calc_weighted_score(collection_scores: dict, material_scores: dict) -> int:
 
 
 def get_score_search(node_id: uuid.UUID, resource_type: ResourceType) -> Search:
-    query, aggs = None, None
     if resource_type is ResourceType.COLLECTION:
         query, aggs = query_collections, aggs_collection_validation
-    elif resource_type is ResourceType.MATERIAL:
+    else:  # ResourceType.MATERIAL
         query, aggs = query_materials, aggs_material_validation
     s = Search().base_filters().query(query(node_id=node_id))
     for name, _agg in aggs.items():
@@ -81,8 +86,7 @@ def search_score(node_id: uuid.UUID, resource_type: ResourceType) -> dict:
 
 
 def node_id_param(
-    *,
-    node_id: uuid.UUID = Path(..., examples=app.core.constants.COLLECTION_NAME_TO_ID),
+    *, node_id: uuid.UUID = Path(..., examples=COLLECTION_NAME_TO_ID)
 ) -> uuid.UUID:
     return node_id
 
@@ -102,16 +106,18 @@ def field_names_used_for_score_calculation(properties: dict) -> list[str]:
 
 aggs_material_validation = {
     "missing_title": amissing(qfield=LearningMaterialAttribute.TITLE),
-    "missing_keywords": amissing(qfield=LearningMaterialAttribute.KEYWORDS),
-    "missing_subjects": amissing(qfield=LearningMaterialAttribute.SUBJECTS),
-    "missing_description": amissing(qfield=LearningMaterialAttribute.DESCRIPTION),
-    "missing_license": afilter(query=query_missing_material_license()),
-    "missing_edu_context": amissing(qfield=LearningMaterialAttribute.EDU_CONTEXT),
-    "missing_ads_qualifier": amissing(qfield=LearningMaterialAttribute.CONTAINS_ADS),
     "missing_material_type": amissing(
         qfield=LearningMaterialAttribute.LEARNINGRESOURCE_TYPE
     ),
-    "missing_object_type": amissing(qfield=LearningMaterialAttribute.OBJECT_TYPE),
+    "missing_subjects": amissing(qfield=LearningMaterialAttribute.SUBJECTS),
+    "missing_url": amissing(qfield=LearningMaterialAttribute.WWW_URL),
+    "missing_license": afilter(query=query_missing_material_license()),
+    "missing_publisher": amissing(qfield=LearningMaterialAttribute.PUBLISHER),
+    "missing_description": amissing(qfield=LearningMaterialAttribute.DESCRIPTION),
+    "missing_intended_end_user_role": amissing(
+        qfield=LearningMaterialAttribute.EDUENDUSERROLE_DE
+    ),
+    "missing_edu_context": amissing(qfield=LearningMaterialAttribute.EDU_CONTEXT),
 }
 aggs_collection_validation = {
     "missing_title": amissing(qfield=CollectionAttribute.TITLE),
@@ -126,19 +132,27 @@ aggs_collection_validation = {
 }
 
 
-async def get_score(node_id):
+async def get_score(node_id: uuid.UUID) -> ScoreOutput:
     collection_stats = search_score(
         node_id=node_id, resource_type=ResourceType.COLLECTION
     )
     collection_scores = calc_scores(stats=collection_stats)
+
     material_stats = search_score(node_id=node_id, resource_type=ResourceType.MATERIAL)
     material_scores = calc_scores(stats=material_stats)
+
     score_ = calc_weighted_score(
-        collection_scores=collection_scores,
-        material_scores=material_scores,
+        collection_scores=collection_scores, material_scores=material_scores
     )
-    return {
-        "score": score_,
-        "collections": {"total": collection_stats["total"], **collection_scores},
-        "materials": {"total": material_stats["total"], **material_scores},
-    }
+
+    oer = oer_ratio(node_id)
+
+    collections = MissingCollectionProperties(
+        total=collection_stats["total"], **collection_scores
+    )
+    materials = MissingMaterialProperties(
+        total=material_stats["total"], **material_scores
+    )
+    return ScoreOutput(
+        score=score_, collections=collections, materials=materials, oer_ratio=oer
+    )

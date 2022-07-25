@@ -12,7 +12,6 @@ from app.core.models import ResponseModel
 
 
 class StatType(str, Enum):
-    # PORTAL_TREE = "portal-tree"  # Currently unused
     SEARCH = "search"
     MATERIAL_TYPES = "material-types"
     VALIDATION_COLLECTIONS = "validation-collections"
@@ -37,12 +36,13 @@ class ElasticModel(BaseModel):
         pass
 
 
-COUNT_STATISTICS_TYPE = dict[str, int]
+CountStatistics = dict[str, int]
 
 
 class StatsResponse(ResponseModel):
     derived_at: datetime
-    stats: dict[str, dict[str, COUNT_STATISTICS_TYPE]]
+    stats: dict[str, dict[str, CountStatistics]]
+    oer_ratio: int = Field(ge=0, le=100, description="Overall ratio of OER content")
 
 
 ValidationStatsT = TypeVar("ValidationStatsT")
@@ -98,6 +98,7 @@ class MaterialFieldValidation(BaseModel):
 class MaterialValidationStats(ElasticValidationStats[MaterialFieldValidation]):
     subjects: Optional[MaterialFieldValidation]
     license: Optional[MaterialFieldValidation]
-    ads_qualifier: Optional[MaterialFieldValidation]
+    url: Optional[MaterialFieldValidation]
+    publisher: Optional[MaterialFieldValidation]
+    intended_end_user_role: Optional[MaterialFieldValidation]
     material_type: Optional[MaterialFieldValidation]
-    object_type: Optional[MaterialFieldValidation]

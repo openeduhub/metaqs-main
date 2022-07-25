@@ -1,7 +1,4 @@
-REPLICATION_SOURCE_ID = "ccm:replicationsource"
-PROPERTIES = "properties"
-
-COLLECTION_NAME_TO_ID = {
+COLLECTION_NAME_TO_ID: dict[str, dict[str, str]] = {
     "Physik": {"value": "94f22c9b-0d3a-4c1c-8987-4c8e83f3a92e"},
     "Mathematik": {"value": "bd8be6d5-0fbe-4534-a4b3-773154ba6abc"},
     "Biologie": {"value": "15fce411-54d9-467f-8f35-61ea374a298d"},
@@ -28,6 +25,6 @@ COLLECTION_NAME_TO_ID = {
     "Franzoesisch": {"value": "86b990ef-0955-45ad-bdae-ec2623cf0e1a"},
     "Musik": {"value": "2eda0065-f69b-46c8-ae09-d258c8226a5e"},
     "Philosophie": {"value": "9d364fd0-4374-40b4-a153-3c722b9cda35"},
-}
+}  # TODO: Refactor by removing value and refactoring the API constructor respectively
 OPEN_API_VERSION = "2.1.0"
 COLLECTION_ROOT_ID = "5e40e372-735c-4b17-bbf7-e827a5702b57"

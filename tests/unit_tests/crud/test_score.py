@@ -84,17 +84,16 @@ def test_score_search_material():
 
     expected_search = {
         "aggs": {
-            "missing_ads_qualifier": {
-                "missing": {"field": "properties.ccm:containsAdvertisement.keyword"}
-            },
             "missing_description": {
                 "missing": {"field": "properties.cclom:general_description.keyword"}
             },
             "missing_edu_context": {
                 "missing": {"field": "properties.ccm:educationalcontext.keyword"}
             },
-            "missing_keywords": {
-                "missing": {"field": "properties.cclom:general_keyword.keyword"}
+            "missing_intended_end_user_role": {
+                "missing": {
+                    "field": "i18n.de_DE.ccm:educationalintendedenduserrole.keyword"
+                }
             },
             "missing_license": {
                 "filter": {
@@ -126,15 +125,16 @@ def test_score_search_material():
                 }
             },
             "missing_material_type": {
-                "missing": {"field": "properties.ccm:oeh_lrt_aggregated.keyword"}
+                "missing": {"field": "properties.ccm:oeh_lrt.keyword"}
             },
-            "missing_object_type": {
-                "missing": {"field": "properties.ccm:objecttype.keyword"}
+            "missing_publisher": {
+                "missing": {"field": "properties.ccm:oeh_publisher_combined.keyword"}
             },
             "missing_subjects": {
                 "missing": {"field": "properties.ccm:taxonid.keyword"}
             },
             "missing_title": {"missing": {"field": "properties.cclom:title.keyword"}},
+            "missing_url": {"missing": {"field": "properties.ccm:wwwurl.keyword"}},
         },
         "query": {
             "bool": {

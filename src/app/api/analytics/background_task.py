@@ -1,5 +1,6 @@
 import asyncio
 import os
+import uuid
 from datetime import datetime
 
 from fastapi import APIRouter
@@ -9,17 +10,23 @@ from starlette.status import HTTP_202_ACCEPTED
 
 import app.api.analytics.storage
 from app.api.analytics.models import Collection
-from app.api.analytics.stats import get_ids_to_iterate, search_hits_by_material_type
+from app.api.analytics.stats import (
+    Row,
+    get_ids_to_iterate,
+    search_hits_by_material_type,
+)
 from app.api.analytics.storage import (
     _COLLECTION_COUNT,
+    _COLLECTION_COUNT_OER,
     _COLLECTIONS,
     _MATERIALS,
-    _SEARCH,
+    SearchStore,
+    global_store,
 )
 from app.api.collections.counts import AggregationMappings, collection_counts
 from app.api.score.models import required_collection_properties
 from app.core.config import BACKGROUND_TASK_TIME_INTERVAL
-from app.core.constants import COLLECTION_ROOT_ID
+from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.core.logging import logger
 from app.elastic.elastic import query_collections, query_materials
 from app.elastic.search import Search
@@ -105,12 +112,29 @@ def run():
     app.api.analytics.storage.global_storage[_COLLECTION_COUNT] = asyncio.run(
         collection_counts(COLLECTION_ROOT_ID, AggregationMappings.lrt)
     )
+    app.api.analytics.storage.global_storage[_COLLECTION_COUNT_OER] = asyncio.run(
+        collection_counts(COLLECTION_ROOT_ID, AggregationMappings.lrt, oer_only=True)
+    )
 
-    all_collections = asyncio.run(get_ids_to_iterate(node_id=COLLECTION_ROOT_ID))
+    all_collections = [
+        Row(id=uuid.UUID(value["value"]), title=key)
+        for key, value in COLLECTION_NAME_TO_ID.items()
+    ]
     print("Tree ready to iterate. Length: ", len(all_collections))
 
     # TODO Refactor, this is very expensive
-    app.api.analytics.storage.global_storage[_SEARCH] = {
-        row.id: search_hits_by_material_type(row.title) for row in all_collections
-    }
+    search_store = []
+    for row in all_collections:
+        sub_collections: list[Row] = asyncio.run(get_ids_to_iterate(node_id=row.id))
+        print("Working on: ", row.title, len(sub_collections))
+        missing_materials = {
+            sub.id: search_hits_by_material_type(sub.title) for sub in sub_collections
+        }
+
+        search_store.append(
+            SearchStore(node_id=row.id, missing_materials=missing_materials)
+        )
+
+    global_store.search = search_store
+
     print("Background task done")

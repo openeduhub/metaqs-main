@@ -151,18 +151,15 @@ MissingMaterialField = ElasticField(
     [
         (f.name, (f.value, f.field_type))
         for f in [
-            LearningMaterialAttribute.NAME,
             LearningMaterialAttribute.TITLE,
-            LearningMaterialAttribute.KEYWORDS,
-            LearningMaterialAttribute.EDU_CONTEXT,
-            LearningMaterialAttribute.SUBJECTS,
-            LearningMaterialAttribute.WWW_URL,
-            LearningMaterialAttribute.DESCRIPTION,
-            LearningMaterialAttribute.LICENSES,
-            LearningMaterialAttribute.OBJECT_TYPE,
             LearningMaterialAttribute.LEARNINGRESOURCE_TYPE,
-            LearningMaterialAttribute.CONTAINS_ADS,
+            LearningMaterialAttribute.SUBJECTS,  # TODO: Refactor to TaxonId
+            LearningMaterialAttribute.WWW_URL,
+            LearningMaterialAttribute.LICENSES,
             LearningMaterialAttribute.PUBLISHER,
+            LearningMaterialAttribute.DESCRIPTION,
+            LearningMaterialAttribute.EDUENDUSERROLE_DE,
+            LearningMaterialAttribute.EDU_CONTEXT,
         ]
     ],
 )
@@ -187,9 +184,13 @@ def missing_attributes_search(
             qmatch(**{"collections.path": node_id}),
             qmatch(**{"collections.nodeRef.id": node_id}),
         ],
-        "filter": type_filter[
-            ResourceType.MATERIAL
-        ].copy(),  # copy otherwise appending the query causes mutation
+        "filter": [
+            *type_filter[
+                ResourceType.MATERIAL
+            ].copy(),  # copy otherwise appending the query causes mutation
+            Q("bool", **{"must_not": [{"term": {"aspects": "ccm:io_childobject"}}]}),
+            Q({"term": {"content.mimetype.keyword": "text/plain"}}),
+        ],
     }
     if missing_attribute == LearningMaterialAttribute.LICENSES.path:
         query["filter"].append(query_missing_material_license().to_dict())
@@ -210,7 +211,7 @@ def missing_attributes_search(
     )
 
 
-async def get_many(
+async def search_materials_with_missing_attributes(
     node_id: Optional[uuid.UUID] = None,
     missing_attr_filter: Optional[MissingAttributeFilter] = None,
 ) -> list[LearningMaterial]:
@@ -237,7 +238,7 @@ async def get_materials_with_missing_attributes(
 ):
     if response_fields:
         response_fields.add(LearningMaterialAttribute.NODEREF_ID)
-    materials = await get_many(
+    materials = await search_materials_with_missing_attributes(
         node_id=node_id,
         missing_attr_filter=missing_attr_filter,
     )

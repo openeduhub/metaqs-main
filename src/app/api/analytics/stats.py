@@ -9,12 +9,11 @@ from elasticsearch_dsl.response import AggResponse, Response
 from glom import merge
 
 from app.api.analytics.analytics import (
-    COUNT_STATISTICS_TYPE,
     CollectionValidationStats,
+    CountStatistics,
     MaterialValidationStats,
     StatsNotFoundException,
     StatsResponse,
-    StatType,
     ValidationStatsResponse,
 )
 from app.api.analytics.models import Collection
@@ -23,8 +22,10 @@ from app.api.analytics.storage import (
     _COLLECTIONS,
     _MATERIALS,
     global_storage,
+    global_store,
 )
 from app.api.collections.models import CollectionNode
+from app.api.collections.oer import oer_ratio
 from app.api.collections.tree import collection_tree
 from app.api.score.models import required_collection_properties
 from app.core.config import ELASTIC_TOTAL_SIZE
@@ -86,7 +87,7 @@ def search_hits_by_material_type(collection_title: str) -> dict:
     response: Response = s[:0].execute()
 
     if response.success():
-        # TODO: Clear and cleanu p: what does this do?
+        # TODO: Clear and cleanup: what does this do?
         stats = merge_agg_response(response.aggregations.material_types)
         stats["total"] = sum(stats.values())
         return stats
@@ -109,7 +110,7 @@ class Row:
     title: str
 
 
-async def get_ids_to_iterate(node_id: uuid.UUID):
+async def get_ids_to_iterate(node_id: uuid.UUID) -> list[Row]:
     """
     Contains the collection id's to iterate over.
 
@@ -139,7 +140,9 @@ async def get_ids_to_iterate(node_id: uuid.UUID):
     return [Row(id=row[0], title=row[1]) for row in flatten_list(nodes(tree))]
 
 
-def query_material_types(node_id: uuid.UUID) -> dict[str, COUNT_STATISTICS_TYPE]:
+def query_material_types(
+    node_id: uuid.UUID, oer_only: bool
+) -> dict[str, CountStatistics]:
     """
     get collections with parent id equal to node_id
 
@@ -159,7 +162,7 @@ def query_material_types(node_id: uuid.UUID) -> dict[str, COUNT_STATISTICS_TYPE]
     # TODO: Refactor with filter and dict comprehension
     for collection in collections:
         for count in counts:
-            if str(collection.id) == str(count.noderef_id):
+            if collection.id == str(count.noderef_id):
                 stats.update(
                     {str(collection.id): {"total": count.total, **count.counts}}
                 )
@@ -174,31 +177,21 @@ def filtered_collections(collections: list[Collection], node_id: uuid.UUID):
     ]
 
 
-async def stats_latest(
-    stat_type: StatType, node_id: uuid.UUID
-) -> dict[str, COUNT_STATISTICS_TYPE]:
-    results = {}
-
-    if stat_type is StatType.SEARCH:
-        all_collection_nodes = await get_ids_to_iterate(node_id)
-        for row in all_collection_nodes:
-            stats = search_hits_by_material_type(row.title)
-            results.update({str(row.id): stats})
-    elif stat_type is StatType.MATERIAL_TYPES:
-        results = query_material_types(node_id)
-    return results
+async def query_search_statistics(
+    node_id: uuid.UUID,
+) -> dict[str, CountStatistics]:
+    for stats in global_store.search:
+        if str(node_id) == str(stats.node_id):
+            return {str(key): value for key, value in stats.missing_materials.items()}
+    return {}
 
 
-async def overall_stats(node_id) -> StatsResponse:
-    search_stats = await stats_latest(stat_type=StatType.SEARCH, node_id=node_id)
-
+async def overall_stats(node_id, oer_only: bool = False) -> StatsResponse:
+    search_stats = await query_search_statistics(node_id=node_id)
     if not search_stats:
         raise StatsNotFoundException
 
-    material_types_stats = await stats_latest(
-        stat_type=StatType.MATERIAL_TYPES, node_id=node_id
-    )
-
+    material_types_stats = query_material_types(node_id, oer_only)
     if not material_types_stats:
         raise StatsNotFoundException
 
@@ -210,8 +203,10 @@ async def overall_stats(node_id) -> StatsResponse:
         else:
             stats_output.update({key: {"material_types": value}})
 
-    output = StatsResponse(derived_at=datetime.datetime.now(), stats=stats_output)
-    return output
+    oer = oer_ratio(node_id)
+    return StatsResponse(
+        derived_at=datetime.datetime.now(), stats=stats_output, oer_ratio=oer
+    )
 
 
 def collections_with_missing_properties(
