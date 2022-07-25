@@ -1,7 +1,7 @@
-from app.api.quality_matrix.models import ColumnOutput
+from app.api.quality_matrix.models import QualityOutput
 
 
-def transpose(data: list[ColumnOutput]) -> list[ColumnOutput]:
+def transpose(data: list[QualityOutput]) -> list[QualityOutput]:
     rows = [entry.metadatum for entry in data]
     columns = list(data[0].columns.keys())
     output = []
@@ -12,7 +12,7 @@ def transpose(data: list[ColumnOutput]) -> list[ColumnOutput]:
             if len(entry) == 1:
                 new_columns.update({row: entry[0].columns[column]})
 
-        new_row = ColumnOutput(
+        new_row = QualityOutput(
             metadatum=column, columns=new_columns, level=data[0].level
         )
         output.append(new_row)

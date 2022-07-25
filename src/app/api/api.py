@@ -46,7 +46,7 @@ from app.api.collections.missing_materials import (
 from app.api.collections.models import CollectionNode, MissingMaterials
 from app.api.collections.tree import collection_tree
 from app.api.quality_matrix.collections import collection_quality
-from app.api.quality_matrix.models import ColumnOutputModel, Forms, Timeline
+from app.api.quality_matrix.models import Forms, QualityOutputModel, Timeline
 from app.api.quality_matrix.quality_matrix import source_quality, store_in_timeline
 from app.api.quality_matrix.timeline import timestamps
 from app.api.quality_matrix.utils import transpose
@@ -103,7 +103,7 @@ def node_ids_for_major_collections(
 @router.get(
     "/quality",
     status_code=HTTP_200_OK,
-    response_model=list[ColumnOutputModel],
+    response_model=list[QualityOutputModel],
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[_TAG_STATISTICS],
     description=QUALITY_MATRIX_DESCRIPTION,
@@ -142,7 +142,7 @@ async def get_quality(
 @router.get(
     "/quality/{timestamp}",
     status_code=HTTP_200_OK,
-    response_model=list[ColumnOutputModel],
+    response_model=list[QualityOutputModel],
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[_TAG_STATISTICS],
     description="""An unix timestamp in integer seconds since epoch yields the

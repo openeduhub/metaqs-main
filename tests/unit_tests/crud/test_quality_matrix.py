@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 from elasticsearch_dsl.response import Hit, Response
 
-from app.api.quality_matrix.models import ColumnOutput
+from app.api.quality_matrix.models import QualityOutput
 from app.api.quality_matrix.quality_matrix import (
     all_sources,
     create_empty_entries_search,
@@ -244,7 +244,7 @@ def compare_lists_of_dict(expected, actually) -> bool:
 
 def test_transpose():
     data = [
-        ColumnOutput(
+        QualityOutput(
             metadatum="virtual",
             columns={
                 "00abdb05-6c96-4604-831c-b9846eae7d2d": 13.0,
@@ -256,21 +256,21 @@ def test_transpose():
     ]
 
     assert transpose(data) == [
-        ColumnOutput(
+        QualityOutput(
             metadatum="00abdb05-6c96-4604-831c-b9846eae7d2d",
             columns={
                 "virtual": 13.0,
             },
             level=2,
         ),
-        ColumnOutput(
+        QualityOutput(
             metadatum="3305f552-c931-4bcc-842b-939c99752bd5",
             columns={
                 "virtual": 20.0,
             },
             level=2,
         ),
-        ColumnOutput(
+        QualityOutput(
             metadatum="35054614-72c8-49b2-9924-7b04c7f3bf71",
             columns={
                 "virtual": -10.0,
@@ -280,7 +280,7 @@ def test_transpose():
     ]
 
     data = [
-        ColumnOutput(
+        QualityOutput(
             metadatum="virtual",
             columns={
                 "00abdb05-6c96-4604-831c-b9846eae7d2d": 13.0,
@@ -289,7 +289,7 @@ def test_transpose():
             },
             level=2,
         ),
-        ColumnOutput(
+        QualityOutput(
             metadatum="actually",
             columns={
                 "00abdb05-6c96-4604-831c-b9846eae7d2d": 20,
@@ -301,17 +301,17 @@ def test_transpose():
     ]
 
     assert transpose(data) == [
-        ColumnOutput(
+        QualityOutput(
             metadatum="00abdb05-6c96-4604-831c-b9846eae7d2d",
             columns={"virtual": 13.0, "actually": 20},
             level=2,
         ),
-        ColumnOutput(
+        QualityOutput(
             metadatum="3305f552-c931-4bcc-842b-939c99752bd5",
             columns={"virtual": 20.0, "actually": 21},
             level=2,
         ),
-        ColumnOutput(
+        QualityOutput(
             metadatum="35054614-72c8-49b2-9924-7b04c7f3bf71",
             columns={"virtual": -10.0, "actually": -1},
             level=2,
