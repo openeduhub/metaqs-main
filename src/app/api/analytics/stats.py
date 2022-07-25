@@ -87,7 +87,7 @@ def search_hits_by_material_type(collection_title: str) -> dict:
     response: Response = s[:0].execute()
 
     if response.success():
-        # TODO: Clear and cleanu p: what does this do?
+        # TODO: Clear and cleanup: what does this do?
         stats = merge_agg_response(response.aggregations.material_types)
         stats["total"] = sum(stats.values())
         return stats
@@ -182,10 +182,7 @@ async def query_search_statistics(
 ) -> dict[str, CountStatistics]:
     for stats in global_store.search:
         if str(node_id) == str(stats.node_id):
-            return {
-                str(key): value.missing_materials
-                for key, value in stats.collections.items()
-            }
+            return {str(key): value for key, value in stats.missing_materials.items()}
     return {}
 
 

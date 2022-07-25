@@ -20,19 +20,13 @@ global_storage = {
 
 
 @dataclass(frozen=True)
-class SearchStoreCollection:
-    node_id: uuid.UUID
-    missing_materials: CountStatistics
-
-
-@dataclass(frozen=True)
 class SearchStore:
-    __slots__ = "node_id", "collections"
+    __slots__ = "node_id", "missing_materials"
     node_id: uuid.UUID
-    collections: dict[uuid.UUID, SearchStoreCollection]
+    missing_materials: dict[uuid.UUID, CountStatistics]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=False)
 class Store:
     __slots__ = "search"
     search: list[SearchStore]

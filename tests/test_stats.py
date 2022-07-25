@@ -14,7 +14,7 @@ from app.api.analytics.stats import (
     overall_stats,
     query_material_types,
 )
-from app.api.analytics.storage import SearchStore, SearchStoreCollection
+from app.api.analytics.storage import SearchStore
 from app.api.collections.counts import CollectionTreeCount
 
 
@@ -52,10 +52,8 @@ async def test_overall_stats():
                 return [
                     SearchStore(
                         node_id=uuid.UUID(test_node),
-                        collections={
-                            key: SearchStoreCollection(
-                                node_id=key, missing_materials=item["missing_materials"]
-                            )
+                        missing_materials={
+                            key: item["missing_materials"]
                             for key, item in entry["collections"].items()
                         },
                     )
