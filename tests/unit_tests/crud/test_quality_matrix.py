@@ -36,7 +36,7 @@ async def test_get_properties():
     assert len(data) > 150
     data = get_properties(True)
     assert "cclom:title" in data
-    assert len(data) == 9
+    assert len(data) == 10
 
 
 @pytest.mark.asyncio
@@ -50,7 +50,7 @@ async def test_get_quality_matrix_no_sources_no_properties():
             mocked_get_properties.return_value = []
             mocked_get_sourced.return_value = {}
             quality = await source_quality()
-            assert len(quality) == 9
+            assert len(quality) == 10
             assert quality[0].columns == {}
 
 
@@ -65,7 +65,7 @@ async def test_get_quality_matrix_no_sources():
             mocked_get_properties.return_value = ["dummy_properties"]
             mocked_get_sourced.return_value = {}
             quality = await source_quality()
-            assert len(quality) == 9
+            assert len(quality) == 10
             assert quality[0].columns == {}
 
 
@@ -88,7 +88,7 @@ async def test_get_quality_matrix():
                 mocked_all_missing_properties.return_value = mocked_response
 
                 quality = await source_quality()
-                assert len(quality) == 10
+                assert len(quality) == 11
 
                 assert quality[0].columns == {}
 
