@@ -16,11 +16,11 @@ from app.api.analytics.analytics import (
     StatsResponse,
     ValidationStatsResponse,
 )
-from app.api.analytics.models import Collection
 from app.api.analytics.storage import (
     _COLLECTION_COUNT,
     _COLLECTIONS,
     _MATERIALS,
+    StorageModel,
     global_storage,
     global_store,
 )
@@ -168,7 +168,7 @@ def query_material_types(
     return stats
 
 
-def filtered_collections(collections: list[Collection], node_id: uuid.UUID):
+def filtered_collections(collections: list[StorageModel], node_id: uuid.UUID):
     return [
         collection
         for collection in collections
@@ -255,10 +255,10 @@ def materials_with_missing_properties(
     :return:
     """
 
-    collections: list[Collection] = global_storage[_COLLECTIONS]
+    collections: list[StorageModel] = global_storage[_COLLECTIONS]
     collections = filtered_collections(collections, node_id)
 
-    materials: list[Collection] = global_storage[_MATERIALS]
+    materials: list[StorageModel] = global_storage[_MATERIALS]
     # find materials belonging to each collection
     # check whether they are missing the required properties
     # if so, add them as a list to validation stats

@@ -9,7 +9,6 @@ from starlette.background import BackgroundTasks
 from starlette.status import HTTP_202_ACCEPTED
 
 import app.api.analytics.storage
-from app.api.analytics.models import Collection
 from app.api.analytics.stats import (
     Row,
     get_ids_to_iterate,
@@ -21,6 +20,7 @@ from app.api.analytics.storage import (
     _COLLECTIONS,
     _MATERIALS,
     SearchStore,
+    StorageModel,
     global_store,
 )
 from app.api.collections.counts import AggregationMappings, collection_counts
@@ -61,7 +61,7 @@ def import_collections(derived_at: datetime):
 
         seen.add(hit.nodeRef["id"])
         collections.append(
-            Collection(
+            StorageModel(
                 id=str(hit.nodeRef["id"]),
                 doc=hit.to_dict(),
                 derived_at=derived_at,
@@ -90,7 +90,7 @@ def import_materials(derived_at: datetime):
         if node_id not in seen:
             seen.add(node_id)
             collections.append(
-                Collection(
+                StorageModel(
                     id=str(node_id),
                     doc=hit.to_dict(),
                     derived_at=derived_at,

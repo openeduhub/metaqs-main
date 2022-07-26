@@ -141,11 +141,6 @@ class CollectionBase(ResponseModel):
         return collection
 
 
-# TODO: Double naming with collection in types
-class Collection(CollectionBase):
-    pass
-
-
 def descendants_search(node_id: uuid.UUID, max_hits):
     query = {
         "filter": [*type_filter[ResourceType.COLLECTION]],
@@ -166,13 +161,13 @@ def descendants_search(node_id: uuid.UUID, max_hits):
 def get_many_descendants(
     node_id: Optional[uuid.UUID] = None,
     max_hits: Optional[int] = ELASTIC_TOTAL_SIZE,
-) -> list[Collection]:
+) -> list[CollectionBase]:
     search = descendants_search(node_id, max_hits)
 
     response = search.execute()
 
     if response.success():
-        return [Collection.parse_elastic_hit(hit) for hit in response]
+        return [CollectionBase.parse_elastic_hit(hit) for hit in response]
 
 
 async def get_material_count_tree(node_id) -> list[CollectionMaterialsCount]:

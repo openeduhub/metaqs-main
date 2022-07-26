@@ -5,7 +5,6 @@ from unittest import mock
 import pytest
 
 from app.api.analytics.analytics import CollectionValidationStats
-from app.api.analytics.models import Collection
 from app.api.analytics.stats import (
     Row,
     build_material_search,
@@ -14,7 +13,7 @@ from app.api.analytics.stats import (
     overall_stats,
     query_material_types,
 )
-from app.api.analytics.storage import SearchStore
+from app.api.analytics.storage import SearchStore, StorageModel
 from app.api.collections.counts import CollectionTreeCount
 
 
@@ -32,7 +31,7 @@ async def test_overall_stats():
         def _get_item(_, key):
             if key == "collections":
                 return [
-                    Collection(
+                    StorageModel(
                         id=entry["id"],
                         doc=entry["doc"],
                         derived_at=entry["derived_at"],
@@ -151,7 +150,7 @@ def test_query_material_types():
         def _get_item(_, key):
             if key == "collections":
                 return [
-                    Collection(
+                    StorageModel(
                         id=entry["id"],
                         doc=entry["doc"],
                         derived_at=entry["derived_at"],
@@ -190,7 +189,7 @@ def test_collections_with_missing_properties():
         def _get_item(_, key):
             if key == "collections":
                 return [
-                    Collection(
+                    StorageModel(
                         id=entry["id"],
                         doc=entry["doc"],
                         derived_at=entry["derived_at"],
@@ -231,7 +230,7 @@ def test_materials_with_missing_properties():
         def _get_item(_, key):
             if key in ["collections", "materials"]:
                 return [
-                    Collection(
+                    StorageModel(
                         id=entry["id"],
                         doc=entry["doc"],
                         derived_at=entry["derived_at"],
