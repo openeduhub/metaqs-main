@@ -8,7 +8,7 @@ from fastapi.params import Param
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from starlette.requests import Request
-from starlette.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
+from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 
 from app.api.analytics.analytics import (
     CollectionValidationStats,
@@ -45,11 +45,9 @@ from app.api.collections.pending_collections import (
     pending_collections,
 )
 from app.api.collections.tree import collection_tree
-from app.api.quality_matrix.collections import collection_quality
 from app.api.quality_matrix.models import Forms, QualityOutputResponse, Timeline
-from app.api.quality_matrix.quality_matrix import source_quality
+from app.api.quality_matrix.quality import quality
 from app.api.quality_matrix.timeline import timestamps
-from app.api.quality_matrix.utils import transpose
 from app.api.score.models import ScoreOutput
 from app.api.score.score import (
     aggs_collection_validation,
@@ -125,18 +123,9 @@ async def get_quality(
         default=Forms.REPLICATION_SOURCE,
         examples={form: {"value": form} for form in Forms},
     ),
-    transpose_output: bool = Query(default=False),
 ):
-    total = {}
-    if form == Forms.REPLICATION_SOURCE:
-        _quality_matrix, total = await source_quality(uuid.UUID(node_id))
-    elif form == Forms.COLLECTIONS:
-        _quality_matrix = await collection_quality(uuid.UUID(node_id))
-        _quality_matrix = transpose(_quality_matrix)
-    else:
-        return HTTP_400_BAD_REQUEST
-    if transpose_output:
-        _quality_matrix = transpose(_quality_matrix)
+    _quality_matrix, total = await quality(form, node_id)
+
     if store_to_db:
         await store_in_timeline(_quality_matrix, database, form)
     return {"data": _quality_matrix, "total": total}

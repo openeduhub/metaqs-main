@@ -6,7 +6,7 @@ import pytest
 from elasticsearch_dsl.response import Hit, Response
 
 from app.api.quality_matrix.models import QualityOutput
-from app.api.quality_matrix.quality_matrix import (
+from app.api.quality_matrix.replication_source import (
     all_sources,
     create_empty_entries_search,
     create_properties_search,
@@ -42,10 +42,10 @@ async def test_get_properties():
 @pytest.mark.asyncio
 async def test_get_quality_matrix_no_sources_no_properties():
     with mock.patch(
-        "app.api.quality_matrix.quality_matrix.all_sources"
+        "app.api.quality_matrix.replication_source.all_sources"
     ) as mocked_get_sourced:
         with mock.patch(
-            "app.api.quality_matrix.quality_matrix.get_properties"
+            "app.api.quality_matrix.replication_source.get_properties"
         ) as mocked_get_properties:
             mocked_get_properties.return_value = []
             mocked_get_sourced.return_value = {}
@@ -57,10 +57,10 @@ async def test_get_quality_matrix_no_sources_no_properties():
 @pytest.mark.asyncio
 async def test_get_quality_matrix_no_sources():
     with mock.patch(
-        "app.api.quality_matrix.quality_matrix.all_sources"
+        "app.api.quality_matrix.replication_source.all_sources"
     ) as mocked_get_sourced:
         with mock.patch(
-            "app.api.quality_matrix.quality_matrix.get_properties"
+            "app.api.quality_matrix.replication_source.get_properties"
         ) as mocked_get_properties:
             mocked_get_properties.return_value = ["dummy_properties"]
             mocked_get_sourced.return_value = {}
@@ -72,13 +72,13 @@ async def test_get_quality_matrix_no_sources():
 @pytest.mark.asyncio
 async def test_get_quality_matrix():
     with mock.patch(
-        "app.api.quality_matrix.quality_matrix.all_sources"
+        "app.api.quality_matrix.replication_source.all_sources"
     ) as mocked_get_sourced:
         with mock.patch(
-            "app.api.quality_matrix.quality_matrix.get_properties"
+            "app.api.quality_matrix.replication_source.get_properties"
         ) as mocked_get_properties:
             with mock.patch(
-                "app.api.quality_matrix.quality_matrix.queried_missing_properties"
+                "app.api.quality_matrix.replication_source.queried_missing_properties"
             ) as mocked_all_missing_properties:
                 dummy_property = "preview"
                 mocked_get_properties.return_value = [dummy_property]
@@ -102,7 +102,7 @@ async def test_get_quality_matrix():
 
 def test_get_empty_entries_dummy_entries():
     with mock.patch(
-        "app.api.quality_matrix.quality_matrix.Search.execute"
+        "app.api.quality_matrix.replication_source.Search.execute"
     ) as mocked_execute:
         dummy_response = 3
         mocked_execute.return_value = dummy_response
@@ -177,7 +177,7 @@ def test_create_sources_search():
 @pytest.mark.skip(reason="Cannot mock Hit properly,yet. TODO")
 def test_sources():
     with mock.patch(
-        "app.api.quality_matrix.quality_matrix.Search.execute"
+        "app.api.quality_matrix.replication_source.Search.execute"
     ) as mocked_execute:
         dummy_count = {"aggregations": {"unique_sources": {"buckets": []}}}
         dummy_hit = Hit({"_source": MagicMock()})
@@ -258,8 +258,13 @@ def test_transpose():
             level=2,
         )
     ]
+    total = {
+        "00abdb05-6c96-4604-831c-b9846eae7d2d": 13.0,
+        "3305f552-c931-4bcc-842b-939c99752bd5": 20.0,
+        "35054614-72c8-49b2-9924-7b04c7f3bf71": -10.0,
+    }
 
-    assert transpose(data) == [
+    assert transpose(data, total) == [
         QualityOutput(
             metadatum="00abdb05-6c96-4604-831c-b9846eae7d2d",
             columns={
@@ -304,7 +309,12 @@ def test_transpose():
         ),
     ]
 
-    assert transpose(data) == [
+    total = {
+        "virtual": 13.0,
+        "actually": 20.0,
+    }
+
+    assert transpose(data, total) == [
         QualityOutput(
             metadatum="00abdb05-6c96-4604-831c-b9846eae7d2d",
             columns={"virtual": 13.0, "actually": 20},

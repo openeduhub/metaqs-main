@@ -4,7 +4,7 @@ from elasticsearch_dsl import Q
 from elasticsearch_dsl.response import Response
 
 from app.api.quality_matrix.models import QualityOutput
-from app.api.quality_matrix.quality_matrix import (
+from app.api.quality_matrix.replication_source import (
     _quality_matrix,
     extract_sources_from_response,
     get_properties,
@@ -66,7 +66,7 @@ async def id_to_title_mapping(node_id: uuid.UUID) -> dict[str, str]:
 
 async def collection_quality(
     node_id: uuid.UUID, match_keyword: str = "path"
-) -> list[QualityOutput]:
+) -> tuple[list[QualityOutput], {dict[str, int]}]:
     mapping = await id_to_title_mapping(node_id)
     columns = queried_collections(node_id)
     properties = get_properties()

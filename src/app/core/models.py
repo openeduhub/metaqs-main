@@ -477,7 +477,7 @@ metadata_hierarchy: list[SortNode] = [
 
 required_collection_properties = {
     child.path.path: child.title
-    for node in metadata_hierarchy
+    for node in metadata_hierarchy[:2]
     for child in node.children
 }
 
