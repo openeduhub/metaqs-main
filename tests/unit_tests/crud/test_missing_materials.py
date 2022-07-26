@@ -70,7 +70,6 @@ def test_missing_materials_search_license():
         dummy_uuid, dummy_missing_attribute, dummy_maximum_size
     )
     actual = search.to_dict()
-    print(actual["_source"])
     actual["_source"] = []
 
     assert actual == {

@@ -24,6 +24,15 @@ class QualityOutputModel(BaseModel):
     )
 
 
+class QualityOutputResponse(BaseModel):
+    data: list[QualityOutputModel] = Field(
+        default=[], description="Quality data per metadatum and column"
+    )
+    total: dict[str, int] = Field(
+        default={}, description="Column names and total materials per column"
+    )
+
+
 Base = declarative_base()
 
 

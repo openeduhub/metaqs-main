@@ -45,7 +45,7 @@ def background_task():
 
 
 def import_collections(derived_at: datetime):
-    s = (
+    search = (
         Search()
         .query(query_collections(node_id=COLLECTION_ROOT_ID))
         .source(
@@ -55,23 +55,21 @@ def import_collections(derived_at: datetime):
 
     seen = set()
     collections = []
-    for hit in s.scan():
-        if hit.nodeRef["id"] in seen:
-            continue
-
-        seen.add(hit.nodeRef["id"])
-        collections.append(
-            StorageModel(
-                id=str(hit.nodeRef["id"]),
-                doc=hit.to_dict(),
-                derived_at=derived_at,
+    for hit in search.scan():
+        if hit.nodeRef["id"] not in seen:
+            seen.add(hit.nodeRef["id"])
+            collections.append(
+                StorageModel(
+                    id=str(hit.nodeRef["id"]),
+                    doc=hit.to_dict(),
+                    derived_at=derived_at,
+                )
             )
-        )
     app.api.analytics.storage.global_storage[_COLLECTIONS] = collections
 
 
 def import_materials(derived_at: datetime):
-    s = (
+    search = (
         Search()
         .query(query_materials(node_id=COLLECTION_ROOT_ID))
         .source(
@@ -85,7 +83,7 @@ def import_materials(derived_at: datetime):
 
     seen = set()
     collections = []
-    for hit in s.scan():
+    for hit in search.scan():
         node_id = hit.nodeRef["id"]
         if node_id not in seen:
             seen.add(node_id)

@@ -360,7 +360,6 @@ metadata_hierarchy: list[SortNode] = [
         ],
         path=None,
     ),
-    SortNode(title="Qualität", children=[], path=None),
     SortNode(
         title="Zugänglichkeit",
         children=[

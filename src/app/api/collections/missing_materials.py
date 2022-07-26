@@ -164,17 +164,11 @@ async def search_materials_with_missing_attributes(
     search = missing_attributes_search(
         node_id, missing_attr_filter.attr.value, ELASTIC_TOTAL_SIZE
     )
-    print("search.to_dict()")
-    print(search.to_dict())
     response = search.execute()
     if response.success():
-        print("success")
-        print("response: ", response.hits)
-        print("missing_materials_spec: ", missing_materials_spec)
-        missing_attributes: list[LearningMaterial] = map_elastic_response_to_model(
+        return map_elastic_response_to_model(
             response, missing_materials_spec, LearningMaterial
         )
-        return missing_attributes
 
 
 # TODO is this really being used?

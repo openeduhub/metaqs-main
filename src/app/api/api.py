@@ -46,8 +46,8 @@ from app.api.collections.pending_collections import (
 )
 from app.api.collections.tree import collection_tree
 from app.api.quality_matrix.collections import collection_quality
-from app.api.quality_matrix.models import Forms, QualityOutputModel, Timeline
-from app.api.quality_matrix.quality_matrix import source_quality, store_in_timeline
+from app.api.quality_matrix.models import Forms, QualityOutputResponse, Timeline
+from app.api.quality_matrix.quality_matrix import source_quality
 from app.api.quality_matrix.timeline import timestamps
 from app.api.quality_matrix.utils import transpose
 from app.api.score.models import ScoreOutput
@@ -62,6 +62,7 @@ from app.core.config import API_DEBUG, BACKGROUND_TASK_TIME_INTERVAL
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.core.models import ElasticResourceAttribute
 from app.core.utils import create_examples
+from app.db.tasks import store_in_timeline
 
 
 def get_database(request: Request) -> Database:
@@ -104,7 +105,7 @@ def node_ids_for_major_collections(
 @router.get(
     "/quality",
     status_code=HTTP_200_OK,
-    response_model=list[QualityOutputModel],
+    response_model=QualityOutputResponse,
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[_TAG_STATISTICS],
     description=QUALITY_MATRIX_DESCRIPTION,
@@ -126,8 +127,9 @@ async def get_quality(
     ),
     transpose_output: bool = Query(default=False),
 ):
+    total = {}
     if form == Forms.REPLICATION_SOURCE:
-        _quality_matrix = await source_quality(uuid.UUID(node_id))
+        _quality_matrix, total = await source_quality(uuid.UUID(node_id))
     elif form == Forms.COLLECTIONS:
         _quality_matrix = await collection_quality(uuid.UUID(node_id))
         _quality_matrix = transpose(_quality_matrix)
@@ -137,13 +139,13 @@ async def get_quality(
         _quality_matrix = transpose(_quality_matrix)
     if store_to_db:
         await store_in_timeline(_quality_matrix, database, form)
-    return _quality_matrix
+    return {"data": _quality_matrix, "total": total}
 
 
 @router.get(
     "/quality/{timestamp}",
     status_code=HTTP_200_OK,
-    response_model=list[QualityOutputModel],
+    response_model=QualityOutputResponse,
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[_TAG_STATISTICS],
     description="""An unix timestamp in integer seconds since epoch yields the
@@ -163,7 +165,7 @@ async def get_past_quality_matrix(
         raise HTTPException(status_code=404, detail="Item not found")
     elif len(result) > 1:
         raise HTTPException(status_code=500, detail="More than one item found")
-    return json.loads(result[0].quality_matrix)
+    return {"data": json.loads(result[0].quality_matrix), "total": {}}
 
 
 @router.get(

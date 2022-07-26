@@ -28,7 +28,7 @@ def node_count(data: list):
 async def test_collection_tree():
     root_node_id = uuid.UUID("5e40e372-735c-4b17-bbf7-e827a5702b57")
     data = await collection_tree(root_node_id, use_vocabs=True)
-    assert len(data) == 26
+    assert len(data) == 27
     count = node_count(data)
     assert count >= 2200  # adapt this number to the current state, may change regularly
 
@@ -112,12 +112,8 @@ def test_parse_tree():
             for collection in _tree
         ]
 
-    print(tree)
     json_tree = tree_to_json(tree)
 
-    print()
-    print(json_tree)
-    print(expected_tree)
     assert len(json_tree) == len(expected_tree)
 
     def flatten_list(list_of_lists):

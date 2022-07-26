@@ -49,8 +49,8 @@ async def test_get_quality_matrix_no_sources_no_properties():
         ) as mocked_get_properties:
             mocked_get_properties.return_value = []
             mocked_get_sourced.return_value = {}
-            quality = await source_quality()
-            assert len(quality) == 10
+            quality, _ = await source_quality()
+            assert len(quality) == 9
             assert quality[0].columns == {}
 
 
@@ -64,8 +64,8 @@ async def test_get_quality_matrix_no_sources():
         ) as mocked_get_properties:
             mocked_get_properties.return_value = ["dummy_properties"]
             mocked_get_sourced.return_value = {}
-            quality = await source_quality()
-            assert len(quality) == 10
+            quality, _ = await source_quality()
+            assert len(quality) == 9
             assert quality[0].columns == {}
 
 
@@ -87,8 +87,8 @@ async def test_get_quality_matrix():
                 mocked_response.aggregations.to_dict.return_value = {}
                 mocked_all_missing_properties.return_value = mocked_response
 
-                quality = await source_quality()
-                assert len(quality) == 11
+                quality, _ = await source_quality()
+                assert len(quality) == 10
 
                 assert quality[0].columns == {}
 
@@ -96,7 +96,7 @@ async def test_get_quality_matrix():
                     dummy_property: {"doc_count": 5}
                 }
                 mocked_all_missing_properties.return_value = mocked_response
-                quality = await source_quality()
+                quality, _ = await source_quality()
                 assert quality[1].columns == {"dummy_source": 50.0}
 
 

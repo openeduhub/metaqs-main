@@ -1,12 +1,9 @@
 import uuid
-from datetime import datetime
 
-import sqlalchemy
-from databases import Database
 from elasticsearch_dsl import AttrDict, Q
 from elasticsearch_dsl.response import Response
 
-from app.api.quality_matrix.models import Forms, QualityOutput, Timeline
+from app.api.quality_matrix.models import QualityOutput
 from app.api.quality_matrix.utils import default_properties
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import COLLECTION_ROOT_ID
@@ -63,8 +60,8 @@ def get_properties(use_required_properties_only: bool = True) -> PROPERTY_TYPE:
     if use_required_properties_only:
         return [entry.split(".")[-1] for entry in required_collection_properties.keys()]
     else:
-        s = create_properties_search()
-        response = s.execute()
+        search = create_properties_search()
+        response = search.execute()
         return extract_properties(response.hits)
 
 
@@ -74,7 +71,7 @@ def create_empty_entries_search(
     node_id: uuid.UUID,
     match_keyword: str,
 ) -> Search:
-    s = (
+    search = (
         Search()
         .base_filters()
         .query(
@@ -89,8 +86,8 @@ def create_empty_entries_search(
     )
 
     for keyword in properties:
-        s.aggs.bucket(keyword, "missing", field=f"{PROPERTIES}.{keyword}.keyword")
-    return s
+        search.aggs.bucket(keyword, "missing", field=f"{PROPERTIES}.{keyword}.keyword")
+    return search
 
 
 def queried_missing_properties(
@@ -122,19 +119,6 @@ def missing_fields(
     return {search_keyword: missing_fields_ratio(value, total_count)}
 
 
-async def store_in_timeline(data: QualityOutput, database: Database, form: Forms):
-    await database.connect()
-    await database.execute(
-        sqlalchemy.insert(Timeline).values(
-            {
-                "timestamp": datetime.now().timestamp(),
-                "quality_matrix": data,
-                "form": form,
-            }
-        )
-    )
-
-
 async def items_in_response(response: Response) -> dict:
     return response.aggregations.to_dict().items()
 
@@ -145,7 +129,7 @@ PROPERTIES = "properties"
 async def source_quality(
     node_id: uuid.UUID = COLLECTION_ROOT_ID,
     match_keyword: str = ElasticResourceAttribute.REPLICATION_SOURCE.path,
-) -> list[QualityOutput]:
+) -> tuple[list[QualityOutput], {dict[str, int]}]:
     properties = get_properties()
     columns = all_sources()
     mapping = {key: key for key in columns.keys()}  # identity mapping
@@ -169,7 +153,7 @@ def sort_output_to_hierarchy(data: list[QualityOutput]) -> list[QualityOutput]:
 
 async def _quality_matrix(
     columns, id_to_name_mapping, match_keyword, node_id, properties
-) -> list[QualityOutput]:
+) -> tuple[list[QualityOutput], {dict[str, int]}]:
     output = {k: {} for k in properties}
     for column_id, total_count in columns.items():
         if column_id in id_to_name_mapping.keys():
@@ -183,4 +167,4 @@ async def _quality_matrix(
     logger.debug(f"Quality matrix output:\n{output}")
     output = api_ready_output(output)
 
-    return sort_output_to_hierarchy(output)
+    return sort_output_to_hierarchy(output), columns
