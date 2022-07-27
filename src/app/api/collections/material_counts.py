@@ -94,7 +94,9 @@ material_counts_spec = {
         Coalesce(ElasticResourceAttribute.KEYWORDS.path, default=[]),
         Iter().all(),
     ),
-    "description": Coalesce(ElasticResourceAttribute.DESCRIPTION.path, default=None),
+    "description": Coalesce(
+        ElasticResourceAttribute.COLLECTION_DESCRIPTION.path, default=None
+    ),
     "path": (
         Coalesce(ElasticResourceAttribute.PATH.path, default=[]),
         Iter().all(),
@@ -138,13 +140,14 @@ def get_children(
         )
 
 
-async def get_material_count_tree(node_id) -> list[CollectionMaterialsCount]:
+async def get_material_count_tree(node_id: uuid.UUID) -> list[CollectionMaterialsCount]:
     """
-    TODO: Refactor this function, it is very unclear to me
 
     :param node_id:
     :return:
     """
+
+    # TODO: Refactor get_children, it creates a lot of false hits, i.e., too many collections without materials
     children = get_children(node_id=node_id)
     materials_counts = material_counts_by_children(
         node_id=node_id,

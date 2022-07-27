@@ -29,7 +29,9 @@ missing_attributes_spec = {
         Coalesce(ElasticResourceAttribute.KEYWORDS.path, default=[]),
         Iter().all(),
     ),
-    "description": Coalesce(ElasticResourceAttribute.DESCRIPTION.path, default=""),
+    "description": Coalesce(
+        ElasticResourceAttribute.COLLECTION_DESCRIPTION.path, default=""
+    ),
     "path": (
         Coalesce(ElasticResourceAttribute.PATH.path, default=[]),
         Iter().all(),
