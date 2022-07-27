@@ -28,7 +28,7 @@ from app.api.collections.counts import (
     CollectionTreeCount,
     collection_counts,
 )
-from app.api.collections.descendants import (
+from app.api.collections.material_counts import (
     CollectionMaterialsCount,
     get_material_count_tree,
 )

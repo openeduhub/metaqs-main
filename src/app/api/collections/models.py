@@ -27,7 +27,7 @@ class MissingMaterials(CollectionNode):
     """
 
     keywords: list[str]
-    description: str
+    description: Optional[str]
     path: list[str]
     type: str
     name: str

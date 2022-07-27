@@ -6,8 +6,8 @@ from elasticsearch_dsl.response import Response
 from glom import Coalesce, Iter, glom
 from pydantic import BaseModel, Extra
 
-from app.api.collections.missing_materials import EmptyStrToNone
-from app.api.collections.utils import all_source_fields
+from app.api.collections.models import MissingMaterials
+from app.api.collections.utils import all_source_fields, map_elastic_response_to_model
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.models import (
     _DESCENDANT_COLLECTIONS_MATERIALS_COUNTS,
@@ -45,7 +45,7 @@ class DescendantCollectionsMaterialsCounts(BaseModel):
             response,
             (
                 "aggregations.grouped_by_collection.buckets",
-                [{"noderef_id": "key.noderef_id", "materials_count": "doc_count"}],
+                [{"node_id": "key.noderef_id", "materials_count": "doc_count"}],
             ),
         )
         return cls.construct(
@@ -69,7 +69,7 @@ def agg_materials_by_collection(size: int = 65536) -> Agg:
     )
 
 
-def material_counts_by_descendant(
+def material_counts_by_children(
     node_id: uuid.UUID,
 ) -> DescendantCollectionsMaterialsCounts:
     search = material_counts_search(node_id)
@@ -88,60 +88,26 @@ def material_counts_search(node_id: uuid.UUID):
     return s
 
 
-class CollectionBase(ResponseModel):
-    node_id: uuid.UUID
-    type: Optional[EmptyStrToNone] = None
-    name: Optional[EmptyStrToNone] = None
-    title: Optional[EmptyStrToNone] = None
-    keywords: Optional[list[str]] = None
-    description: Optional[EmptyStrToNone] = None
-    path: Optional[list[uuid.UUID]] = None
-    parent_id: Optional[uuid.UUID] = None
-
-    @classmethod
-    def parse_elastic_hit_to_dict(
-        cls: Type[_COLLECTION],
-        hit: dict,
-    ) -> dict:
-        spec = {
-            "title": Coalesce(ElasticResourceAttribute.TITLE.path, default=None),
-            "keywords": (
-                Coalesce(ElasticResourceAttribute.KEYWORDS.path, default=[]),
-                Iter().all(),
-            ),
-            "description": Coalesce(
-                ElasticResourceAttribute.DESCRIPTION.path, default=None
-            ),
-            "path": (
-                Coalesce(ElasticResourceAttribute.PATH.path, default=[]),
-                Iter().all(),
-            ),
-            "parent_id": Coalesce(
-                ElasticResourceAttribute.PARENT_ID.path, default=None
-            ),
-            "node_id": ElasticResourceAttribute.NODE_ID.path,
-            "type": Coalesce(ElasticResourceAttribute.TYPE.path, default=None),
-            "name": Coalesce(ElasticResourceAttribute.NAME.path, default=None),
-        }
-        return {
-            **super(CollectionBase, cls).parse_elastic_hit_to_dict(hit),
-            **glom(hit, spec),
-        }
-
-    @classmethod
-    def parse_elastic_hit(
-        cls: Type[_COLLECTION],
-        hit: dict,
-    ) -> _COLLECTION:
-        collection = cls.construct(**cls.parse_elastic_hit_to_dict(hit))
-        try:
-            collection.parent_id = collection.path[-1]
-        except IndexError:
-            pass
-        return collection
+material_counts_spec = {
+    "title": Coalesce(ElasticResourceAttribute.COLLECTION_TITLE.path, default=None),
+    "keywords": (
+        Coalesce(ElasticResourceAttribute.KEYWORDS.path, default=[]),
+        Iter().all(),
+    ),
+    "description": Coalesce(ElasticResourceAttribute.DESCRIPTION.path, default=None),
+    "path": (
+        Coalesce(ElasticResourceAttribute.PATH.path, default=[]),
+        Iter().all(),
+    ),
+    "parent_id": Coalesce(ElasticResourceAttribute.PARENT_ID.path, default=None),
+    "node_id": ElasticResourceAttribute.NODE_ID.path,
+    "type": Coalesce(ElasticResourceAttribute.TYPE.path, default=None),
+    "name": Coalesce(ElasticResourceAttribute.NAME.path, default=None),
+    "children": Coalesce("", default=[]),  # workaround to map easier to pydantic model
+}
 
 
-def descendants_search(node_id: uuid.UUID, max_hits):
+def descendants_search(node_id: uuid.UUID, max_hits: int):
     query = {
         "filter": [*type_filter[ResourceType.COLLECTION]],
         "minimum_should_match": 1,
@@ -158,16 +124,18 @@ def descendants_search(node_id: uuid.UUID, max_hits):
     )
 
 
-def get_many_descendants(
+def get_children(
     node_id: Optional[uuid.UUID] = None,
     max_hits: Optional[int] = ELASTIC_TOTAL_SIZE,
-) -> list[CollectionBase]:
+) -> list[MissingMaterials]:
     search = descendants_search(node_id, max_hits)
 
     response = search.execute()
 
     if response.success():
-        return [CollectionBase.parse_elastic_hit(hit) for hit in response]
+        return map_elastic_response_to_model(
+            response, material_counts_spec, MissingMaterials
+        )
 
 
 async def get_material_count_tree(node_id) -> list[CollectionMaterialsCount]:
@@ -177,36 +145,34 @@ async def get_material_count_tree(node_id) -> list[CollectionMaterialsCount]:
     :param node_id:
     :return:
     """
-    descendant_collections = get_many_descendants(node_id=node_id)
-    materials_counts = material_counts_by_descendant(
+    children = get_children(node_id=node_id)
+    materials_counts = material_counts_by_children(
         node_id=node_id,
     )
-    descendant_collections = {
-        collection.node_id: collection.title for collection in descendant_collections
-    }
-    stats = []
+    children = {collection.node_id: collection.title for collection in children}
+    counts = []
     for record in materials_counts.results:
         try:
-            title = descendant_collections.pop(record.node_id)
+            title = children.pop(record.node_id)
         except KeyError:
             continue
 
-        stats.append(
+        counts.append(
             CollectionMaterialsCount(
                 node_id=record.node_id,
                 title=title,
                 materials_count=record.materials_count,
             )
         )
-    stats = [
+    counts = [
         *[
             CollectionMaterialsCount(
-                node_id=noderef_id,
+                node_id=node_id,
                 title=title,
                 materials_count=0,
             )
-            for (noderef_id, title) in descendant_collections.items()
+            for (node_id, title) in children.items()
         ],
-        *stats,
+        *counts,
     ]
-    return stats
+    return counts
