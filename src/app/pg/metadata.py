@@ -4,7 +4,7 @@ import sqlalchemy as sa
 import sqlalchemy.dialects.postgresql as pgsql
 from sqlalchemy.orm import declarative_base
 
-from app.core.config import DATABASE_URL
+from src.app.core.config import DATABASE_URL
 
 engine = sa.create_engine(str(DATABASE_URL), future=True)
 Base = declarative_base()

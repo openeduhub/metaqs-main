@@ -4,9 +4,9 @@ from uuid import UUID
 
 from asyncpg import Connection
 
-from app.core.config import DEBUG
-from app.core.logging import logger
-from app.models.stats import StatType
+from src.app.core.config import DEBUG
+from src.app.core.logging import logger
+from src.app.models.stats import StatType
 
 
 async def stats_latest(

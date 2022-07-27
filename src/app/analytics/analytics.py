@@ -4,10 +4,10 @@ from datetime import datetime
 from fastapi_utils.tasks import repeat_every
 from sqlalchemy.orm import Session
 
-import app.analytics.rpc_client as dbt
-from app.core.config import BACKGROUND_TASK_ANALYTICS_INTERVAL
-from app.core.logging import logger
-from app.pg.util import get_postgres
+import src.app.analytics.rpc_client as dbt
+from src.app.core.config import BACKGROUND_TASK_ANALYTICS_INTERVAL
+from src.app.core.logging import logger
+from src.app.pg.util import get_postgres
 
 from .resource_import import import_collections, import_materials
 

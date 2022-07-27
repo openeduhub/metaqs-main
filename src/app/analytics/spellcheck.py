@@ -5,16 +5,16 @@ import sqlalchemy.dialects.postgresql as sapg
 from fastapi_utils.tasks import repeat_every
 from pylanguagetool import api as languagetool
 
-import app.analytics.rpc_client as dbt
-from app.core.config import (
+import src.app.analytics.rpc_client as dbt
+from src.app.core.config import (
     BACKGROUND_TASK_SPELLCHECK_INTERVAL,
     DEBUG,
     LANGUAGETOOL_ENABLED_CATEGORIES,
     LANGUAGETOOL_URL,
 )
-from app.core.logging import logger
-from app.pg.metadata import spellcheck, spellcheck_queue
-from app.pg.util import get_postgres
+from src.app.core.logging import logger
+from src.app.pg.metadata import spellcheck, spellcheck_queue
+from src.app.pg.util import get_postgres
 
 
 @repeat_every(seconds=BACKGROUND_TASK_SPELLCHECK_INTERVAL, logger=logger)

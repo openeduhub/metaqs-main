@@ -7,19 +7,19 @@ from asyncpg import Pool
 from fastapi import APIRouter, Depends
 from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 
-from app.api.util import portal_id_param
-from app.crud.util import StatsNotFoundException, build_portal_tree
-from app.models.collection import Collection, PortalTreeNode
-from app.models.oeh_validation import MaterialFieldValidation, OehValidationError
-from app.models.stats import (
+from src.app.api.util import portal_id_param
+from src.app.crud.util import StatsNotFoundException, build_portal_tree
+from src.app.models.collection import Collection, PortalTreeNode
+from src.app.models.oeh_validation import MaterialFieldValidation, OehValidationError
+from src.app.models.stats import (
     CollectionValidationStats,
     MaterialValidationStats,
     StatsResponse,
     StatType,
     ValidationStatsResponse,
 )
-from app.pg.queries import stats_latest
-from app.pg.util import get_postgres_async
+from src.app.pg.queries import stats_latest
+from src.app.pg.util import get_postgres_async
 
 router = APIRouter()
 

@@ -1,10 +1,10 @@
 from fastapi import APIRouter, BackgroundTasks, Security
 from starlette.status import HTTP_202_ACCEPTED
 
-import app.analytics.analytics as analytics
-import app.analytics.search_stats as search_stats
-import app.analytics.spellcheck as spellcheck
-from app.api.auth import authenticated
+import src.app.analytics.analytics as analytics
+import src.app.analytics.search_stats as search_stats
+import src.app.analytics.spellcheck as spellcheck
+from src.app.api.auth import authenticated
 
 router = APIRouter()
 

@@ -1,8 +1,12 @@
+import asyncio
+import uuid
 from unittest import mock
 
 from starlette.testclient import TestClient
 
-from app.main import fastapi_app
+from src.app.crud.collection import material_counts_by_descendant, get_many
+from src.app.main import fastapi_app
+from src.app.models.collection import CollectionAttribute
 
 client = TestClient(fastapi_app)
 
@@ -19,3 +23,20 @@ def test_get_portals():
         response = client.get("/real-time/collections")
     assert response.status_code == 200
     assert response.json() == 0
+
+
+async def test_material_counts_by_descendant():
+    dummy_uuid = uuid.uuid4()
+    try:
+        result = material_counts_by_descendant(dummy_uuid)
+    except:
+        pass
+
+    await get_many(dummy_uuid, source_fields={CollectionAttribute.NODEREF_ID,
+                                              CollectionAttribute.PATH,
+                                              CollectionAttribute.TITLE, })
+    assert False
+
+
+if __name__ == '__main__':
+    asyncio.run(test_material_counts_by_descendant())

@@ -57,6 +57,8 @@ async def get_many(
         resource_type=ResourceType.MATERIAL,
         ancestor_id=ancestor_id,
     )
+    print(query_dict)
+    print(missing_attr_filter)
     if missing_attr_filter:
         query_dict = missing_attr_filter.__call__(query_dict=query_dict)
     s = Search().query(qbool(**query_dict))

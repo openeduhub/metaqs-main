@@ -8,12 +8,12 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
 from starlette_context.middleware import RawContextMiddleware
 
-import app.api as api
+import src.app.api as api
 # from app.analytics.analytics import background_task as analytics_background_task
 # from app.analytics.search_stats import background_task as search_stats_background_task
 # from app.analytics.spellcheck import background_task as spellcheck_background_task
-from app.api.languagetool import router as languagetool_router
-from app.core.config import (
+from src.app.api.languagetool import router as languagetool_router
+from src.app.core.config import (
     ALLOWED_HOSTS,
     BACKGROUND_TASK_ANALYTICS_INTERVAL,
     BACKGROUND_TASK_SEARCH_STATS_INTERVAL,
@@ -23,10 +23,10 @@ from app.core.config import (
     PROJECT_NAME,
     ROOT_PATH, ENABLE_ANALYTICS,
 )
-from app.core.errors import http_422_error_handler, http_error_handler
-from app.core.logging import logger
-from app.elastic.utils import close_elastic_connection, connect_to_elastic
-from app.http import close_client
+from src.app.core.errors import http_422_error_handler, http_error_handler
+from src.app.core.logging import logger
+from src.app.elastic.utils import close_elastic_connection, connect_to_elastic
+from src.app.http import close_client
 
 API_PORT = 8081
 

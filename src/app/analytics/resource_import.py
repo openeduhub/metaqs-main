@@ -2,10 +2,10 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.core.config import PORTAL_ROOT_ID
-from app.crud.elastic import query_collections, query_materials
-from app.elastic import Search
-from app.pg.metadata import Collection, Material
+from src.app.core.config import PORTAL_ROOT_ID
+from src.app.crud.elastic import query_collections, query_materials
+from src.app.elastic import Search
+from src.app.pg.metadata import Collection, Material
 
 
 def import_collections(session: Session, derived_at: datetime):

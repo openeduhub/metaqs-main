@@ -5,14 +5,14 @@ import sqlalchemy as sa
 import sqlalchemy.dialects.postgresql as sapg
 from fastapi_utils.tasks import repeat_every
 
-from app.core.config import (
+from src.app.core.config import (
     BACKGROUND_TASK_SEARCH_STATS_INTERVAL,
     BACKGROUND_TASK_SEARCH_STATS_SLEEP_INTERVAL,
 )
-from app.core.logging import logger
-from app.crud.stats import search_hits_by_material_type
-from app.pg.metadata import Collection, ResourceField, ResourceType, search_stats
-from app.pg.util import get_postgres
+from src.app.core.logging import logger
+from src.app.crud.stats import search_hits_by_material_type
+from src.app.pg.metadata import Collection, ResourceField, ResourceType, search_stats
+from src.app.pg.util import get_postgres
 
 
 @repeat_every(seconds=BACKGROUND_TASK_SEARCH_STATS_INTERVAL, logger=logger)

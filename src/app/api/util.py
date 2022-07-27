@@ -5,17 +5,17 @@ from fastapi import Path, Query
 from pydantic import BaseModel
 from starlette.responses import Response
 
-import app.crud.collection as crud_collection
-from app.core.config import PORTAL_ROOT_ID
-from app.crud import (
+import src.app.crud.collection as crud_collection
+from src.app.core.config import PORTAL_ROOT_ID
+from src.app.crud import (
     MissingCollectionAttributeFilter,
     MissingCollectionField,
     MissingMaterialAttributeFilter,
     MissingMaterialField,
 )
-from app.elastic.fields import Field
-from app.models.collection import CollectionAttribute
-from app.models.learning_material import LearningMaterialAttribute
+from src.app.elastic.fields import Field
+from src.app.models.collection import CollectionAttribute
+from src.app.models.learning_material import LearningMaterialAttribute
 
 
 def portal_id_param(

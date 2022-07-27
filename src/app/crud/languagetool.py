@@ -1,6 +1,6 @@
 from httpx import AsyncClient
 
-from app.core.config import LANGUAGETOOL_ENABLED_CATEGORIES, LANGUAGETOOL_URL
+from src.app.core.config import LANGUAGETOOL_ENABLED_CATEGORIES, LANGUAGETOOL_URL
 
 
 async def check_text(http: AsyncClient, text: str, language: str = "de-DE") -> dict:

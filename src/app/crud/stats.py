@@ -5,9 +5,9 @@ from uuid import UUID
 from elasticsearch_dsl.response import Response
 from glom import merge
 
-from app.crud.elastic import ResourceType
-from app.elastic import Search
-from app.elastic.utils import merge_agg_response, merge_composite_agg_response
+from src.app.crud.elastic import ResourceType
+from src.app.elastic import Search
+from src.app.elastic.utils import merge_agg_response, merge_composite_agg_response
 
 from .elastic import (
     agg_material_types,

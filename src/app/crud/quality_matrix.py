@@ -7,11 +7,11 @@ from elasticsearch_dsl import AttrDict, Q
 from elasticsearch_dsl.aggs import Agg
 from elasticsearch_dsl.response import Response, Hit
 
-from app.core.config import ELASTIC_MAX_SIZE, ELASTIC_INDEX
-from app.core.logging import logger
-from app.crud.elastic import base_filter, base_match_filter
-from app.elastic import Search, qbool, qexists, aterms, qmatch
-from app.models.elastic import ElasticResourceAttribute
+from src.app.core.config import ELASTIC_MAX_SIZE, ELASTIC_INDEX
+from src.app.core.logging import logger
+from src.app.crud.elastic import base_filter, base_match_filter
+from src.app.elastic import Search, qbool, qexists, aterms, qmatch
+from src.app.models.elastic import ElasticResourceAttribute
 
 REPLICATION_SOURCE = "ccm:replicationsource"
 PROPERTIES = "properties"

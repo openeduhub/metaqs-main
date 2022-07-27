@@ -2,7 +2,7 @@ from typing import Union
 
 from httpx import AsyncClient, Timeout
 
-from app.core.logging import logger
+from src.app.core.logging import logger
 
 _client: Union[AsyncClient, None] = None
 

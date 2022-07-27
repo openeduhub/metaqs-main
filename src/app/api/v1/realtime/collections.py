@@ -5,26 +5,26 @@ from fastapi import APIRouter, Depends, Query, Response
 from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 from starlette_context import context
 
-import app.crud.collection as crud_collection
-import app.crud.stats as crud_stats
-from app.api.util import (
+import src.app.crud.collection as crud_collection
+import src.app.crud.stats as crud_stats
+from src.app.api.util import (
     collection_response_fields,
     collections_filter_params,
     filter_response_fields,
     portal_id_param,
     portal_id_with_root_param,
 )
-from app.core.logging import logger
-from app.crud import MissingCollectionAttributeFilter, quality_matrix
-from app.crud.elastic import ResourceType
-from app.crud.util import build_portal_tree
-from app.models.collection import (
+from src.app.core.logging import logger
+from src.app.crud import MissingCollectionAttributeFilter, quality_matrix
+from src.app.crud.elastic import ResourceType
+from src.app.crud.util import build_portal_tree
+from src.app.models.collection import (
     Collection,
     CollectionAttribute,
     CollectionMaterialsCount,
     PortalTreeNode,
 )
-from app.score import ScoreModulator, ScoreWeights, calc_scores, calc_weighted_score
+from src.app.score import ScoreModulator, ScoreWeights, calc_scores, calc_weighted_score
 
 router = APIRouter()
 

@@ -113,6 +113,7 @@ async def get_many(
 
     search = s.source(source_fields if source_fields else Collection.source_fields)[:max_hits]
 
+    print("search.to_dict()")
     print(search.to_dict())
     response = search.execute()
 
@@ -172,7 +173,7 @@ async def get_child_collections_with_missing_attributes(
     )
 
 
-async def material_counts_by_descendant(
+def material_counts_by_descendant(
         ancestor_id: UUID,
 ) -> DescendantCollectionsMaterialsCounts:
     s = Search().query(query_materials(ancestor_id=ancestor_id))
@@ -181,6 +182,8 @@ async def material_counts_by_descendant(
         abucketsort(sort=[{"_count": {"order": "asc"}}]),
     )
 
+    print("s.to_dict()")
+    print(s.to_dict())
     response: Response = s[:0].execute()
 
     if response.success():

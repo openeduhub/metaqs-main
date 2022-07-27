@@ -1,6 +1,6 @@
 from importlib import import_module
 
-from app.core.config import API_VERSION, ENABLE_ANALYTICS
+from src.app.core.config import API_VERSION, ENABLE_ANALYTICS
 
 from .util import PaginationParams, materials_filter_params, pagination_params
 

@@ -10,13 +10,13 @@ from sqlalchemy.dialects.postgresql import pypostgresql
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import ClauseElement
 
-from app.core.config import (
+from src.app.core.config import (
     DATABASE_URL,
     DEBUG,
     MAX_CONNECTIONS_COUNT,
     MIN_CONNECTIONS_COUNT,
 )
-from app.core.logging import logger
+from src.app.core.logging import logger
 
 dialect = pypostgresql.dialect(paramstyle="pyformat")
 dialect.implicit_returning = True
