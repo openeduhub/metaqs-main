@@ -74,7 +74,7 @@ async def collection_quality(
         columns, mapping, match_keyword, node_id, properties
     )
     _quality = transpose(_quality, [name for name in mapping.values()])
-    return _quality, {property: 0 for property in properties}
+    return _quality, {prop: 0 for prop in properties}
 
 
 def transpose(entries: list[QualityOutput], columns: list[str]) -> list[QualityOutput]:
@@ -88,7 +88,7 @@ def transpose(entries: list[QualityOutput], columns: list[str]) -> list[QualityO
                 new_columns.update({metadatum: entry[0].columns[column]})
 
         new_row = QualityOutput(
-            metadatum=column, columns=new_columns, level=entries[0].level
-        )
+            metadatum=column, columns=new_columns, level=2
+        )  # Must be level 2 for frontend
         output.append(new_row)
     return output
