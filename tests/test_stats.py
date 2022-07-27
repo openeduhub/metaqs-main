@@ -256,5 +256,5 @@ def test_materials_with_missing_properties():
     assert result[0].noderef_id == uuid.UUID("f3dc9ea1-d608-4b4e-a78c-98063a3e8461")
     dummy_material_node = uuid.UUID("263afc5b-6445-4a5a-b014-a77f1db473b9")
 
-    assert result[0].validation_stats.publisher.missing == [dummy_material_node]
+    assert result[0].validation_stats.url.missing == [dummy_material_node]
     assert result[0].validation_stats.material_type is None

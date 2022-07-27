@@ -1,31 +1,3 @@
-from app.api.quality_matrix.models import QualityOutput
-
-
-def transpose(data: list[QualityOutput], total: dict[str, int]) -> list[QualityOutput]:
-    print(data)
-    print(len(data))
-    rows = [entry.metadatum for entry in data]
-    columns = list(total.keys())
-    output = []
-    print(columns)
-    for column in columns:
-        new_columns = {}
-        for row in rows:
-            print(column, row)
-            entry = list(filter(lambda line: line.metadatum == row, data))
-            print(entry)
-            if len(entry) == 1:
-                new_columns.update({row: entry[0].columns[column]})
-
-        new_row = QualityOutput(
-            metadatum=column, columns=new_columns, level=data[0].level
-        )
-        output.append(new_row)
-    print(output)
-    print(len(output))
-    return output
-
-
 def default_properties() -> list[str]:
     return [
         "add_to_stream_description",

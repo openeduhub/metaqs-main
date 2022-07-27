@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 from elasticsearch_dsl.response import Hit, Response
 
+from app.api.quality_matrix.collections import transpose
 from app.api.quality_matrix.models import QualityOutput
 from app.api.quality_matrix.replication_source import (
     all_sources,
@@ -17,7 +18,6 @@ from app.api.quality_matrix.replication_source import (
     queried_missing_properties,
     source_quality,
 )
-from app.api.quality_matrix.utils import transpose
 from app.core.config import ELASTICSEARCH_URL
 from app.elastic.search import Search
 from app.elastic.utils import connect_to_elastic
@@ -310,8 +310,9 @@ def test_transpose():
     ]
 
     total = {
-        "virtual": 13.0,
-        "actually": 20.0,
+        "00abdb05-6c96-4604-831c-b9846eae7d2d": 13.0,
+        "3305f552-c931-4bcc-842b-939c99752bd5": 20.0,
+        "35054614-72c8-49b2-9924-7b04c7f3bf71": -10.0,
     }
 
     assert transpose(data, total) == [

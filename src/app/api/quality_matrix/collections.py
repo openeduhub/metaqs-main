@@ -70,4 +70,25 @@ async def collection_quality(
     mapping = await id_to_title_mapping(node_id)
     columns = queried_collections(node_id)
     properties = get_properties()
-    return await _quality_matrix(columns, mapping, match_keyword, node_id, properties)
+    _quality = await _quality_matrix(
+        columns, mapping, match_keyword, node_id, properties
+    )
+    _quality = transpose(_quality, [name for name in mapping.values()])
+    return _quality, {property: 0 for property in properties}
+
+
+def transpose(entries: list[QualityOutput], columns: list[str]) -> list[QualityOutput]:
+    rows = [entry.metadatum for entry in entries]
+    output = []
+    for column in columns:
+        new_columns = {}
+        for metadatum in rows:
+            entry = list(filter(lambda line: line.metadatum == metadatum, entries))
+            if len(entry) == 1 and column in entry[0].columns:
+                new_columns.update({metadatum: entry[0].columns[column]})
+
+        new_row = QualityOutput(
+            metadatum=column, columns=new_columns, level=entries[0].level
+        )
+        output.append(new_row)
+    return output

@@ -133,7 +133,10 @@ async def source_quality(
     properties = get_properties()
     columns = all_sources()
     mapping = {key: key for key in columns.keys()}  # identity mapping
-    return await _quality_matrix(columns, mapping, match_keyword, node_id, properties)
+    quality = await _quality_matrix(
+        columns, mapping, match_keyword, node_id, properties
+    )
+    return quality, columns
 
 
 def sort_output_to_hierarchy(data: list[QualityOutput]) -> list[QualityOutput]:
@@ -153,7 +156,7 @@ def sort_output_to_hierarchy(data: list[QualityOutput]) -> list[QualityOutput]:
 
 async def _quality_matrix(
     columns, id_to_name_mapping, match_keyword, node_id, properties
-) -> tuple[list[QualityOutput], {dict[str, int]}]:
+) -> list[QualityOutput]:
     output = {k: {} for k in properties}
     for column_id, total_count in columns.items():
         if column_id in id_to_name_mapping.keys():
@@ -167,4 +170,4 @@ async def _quality_matrix(
     logger.debug(f"Quality matrix output:\n{output}")
     output = api_ready_output(output)
 
-    return sort_output_to_hierarchy(output), columns
+    return sort_output_to_hierarchy(output)
