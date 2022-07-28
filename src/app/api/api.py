@@ -45,8 +45,9 @@ from app.api.collections.pending_collections import (
     pending_collections,
 )
 from app.api.collections.tree import collection_tree
+from app.api.quality_matrix.collections import collection_quality
 from app.api.quality_matrix.models import Forms, QualityOutputResponse, Timeline
-from app.api.quality_matrix.quality import quality
+from app.api.quality_matrix.replication_source import source_quality
 from app.api.quality_matrix.timeline import timestamps
 from app.api.score.models import ScoreOutput
 from app.api.score.score import (
@@ -54,12 +55,10 @@ from app.api.score.score import (
     aggs_material_validation,
     field_names_used_for_score_calculation,
     get_score,
-    node_id_param,
 )
 from app.core.config import API_DEBUG, BACKGROUND_TASK_TIME_INTERVAL
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.core.models import ElasticResourceAttribute
-from app.core.utils import create_examples
 from app.db.tasks import store_in_timeline
 
 
@@ -93,7 +92,7 @@ def node_ids_for_major_collections(
         ...,
         examples={
             "Alle Fachportale": {"value": COLLECTION_ROOT_ID},
-            **create_examples(COLLECTION_NAME_TO_ID),
+            **{key: {"value": value} for key, value in COLLECTION_NAME_TO_ID.items()},
         },
     ),
 ) -> uuid.UUID:
@@ -115,7 +114,7 @@ async def get_quality(
         default=COLLECTION_ROOT_ID,
         examples={
             "Alle Fachportale": {"value": COLLECTION_ROOT_ID},
-            **create_examples(COLLECTION_NAME_TO_ID),
+            **{key: {"value": value} for key, value in COLLECTION_NAME_TO_ID.items()},
         },
     ),
     store_to_db: bool = Query(default=False),
@@ -124,11 +123,14 @@ async def get_quality(
         examples={form: {"value": form} for form in Forms},
     ),
 ):
-    _quality_matrix, total = await quality(form, node_id)
+    if form == Forms.REPLICATION_SOURCE:
+        quality_data, total = await source_quality(uuid.UUID(node_id))
+    else:  # Forms.COLLECTIONS:
+        quality_data, total = await collection_quality(uuid.UUID(node_id))
 
     if store_to_db:
-        await store_in_timeline(_quality_matrix, database, form)
-    return {"data": _quality_matrix, "total": total}
+        await store_in_timeline(quality_data, database, form)
+    return {"data": quality_data, "total": total}
 
 
 @router.get(
@@ -154,7 +156,7 @@ async def get_past_quality_matrix(
         raise HTTPException(status_code=404, detail="Item not found")
     elif len(result) > 1:
         raise HTTPException(status_code=500, detail="More than one item found")
-    return {"data": json.loads(result[0].quality_matrix), "total": {}}
+    return QualityOutputResponse(data=json.loads(result[0].quality_matrix), total={})
 
 
 @router.get(
@@ -198,7 +200,7 @@ async def get_timestamps(
       + field_names_used_for_score_calculation(aggs_material_validation)}`.
     """,
 )
-async def score(*, node_id: uuid.UUID = Depends(node_id_param)):
+async def score(*, node_id: uuid.UUID = Depends(node_ids_for_major_collections)):
     return await get_score(node_id)
 
 

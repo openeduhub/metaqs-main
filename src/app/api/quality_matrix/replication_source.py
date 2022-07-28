@@ -17,6 +17,7 @@ from app.elastic.dsl import qbool, qmatch
 from app.elastic.search import Search
 
 PROPERTY_TYPE = list[str]
+PROPERTIES = "properties"
 
 
 def create_sources_search(aggregation_name: str) -> Search:
@@ -101,14 +102,6 @@ def queried_missing_properties(
     ).execute()
 
 
-def build_quality_output(data: dict, key: str) -> QualityOutput:
-    return QualityOutput(metadatum=key, columns=data, level=2)
-
-
-def api_ready_output(raw_input: dict) -> list[QualityOutput]:
-    return [build_quality_output(data, key) for key, data in raw_input.items()]
-
-
 def missing_fields_ratio(value: dict, total_count: int) -> float:
     return round((1 - value["doc_count"] / total_count) * 100, 2)
 
@@ -123,13 +116,10 @@ async def items_in_response(response: Response) -> dict:
     return response.aggregations.to_dict().items()
 
 
-PROPERTIES = "properties"
-
-
 async def source_quality(
     node_id: uuid.UUID = COLLECTION_ROOT_ID,
     match_keyword: str = ElasticResourceAttribute.REPLICATION_SOURCE.path,
-) -> tuple[list[QualityOutput], {dict[str, int]}]:
+) -> tuple[list[QualityOutput], dict[str, int]]:
     properties = get_properties()
     columns = all_sources()
     mapping = {key: key for key in columns.keys()}  # identity mapping
@@ -142,11 +132,12 @@ async def source_quality(
 def sort_output_to_hierarchy(data: list[QualityOutput]) -> list[QualityOutput]:
     output = []
     for order in metadata_hierarchy:
-        output.append(QualityOutput(metadatum=order.title, level=1, columns={}))
+        output.append(QualityOutput(row_header=order.title, level=1, columns={}))
         for node in order.children:
             row = list(
                 filter(
-                    lambda entry: entry.metadatum == node.path.path.split(".")[-1], data
+                    lambda entry: entry.row_header == node.path.path.split(".")[-1],
+                    data,
                 )
             )
             if len(row) == 1:
@@ -168,6 +159,9 @@ async def _quality_matrix(
                     value, total_count, id_to_name_mapping[column_id]
                 )
     logger.debug(f"Quality matrix output:\n{output}")
-    output = api_ready_output(output)
+    output = [
+        QualityOutput(row_header=key, columns=data, level=2)
+        for key, data in output.items()
+    ]
 
     return sort_output_to_hierarchy(output)

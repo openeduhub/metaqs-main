@@ -2,7 +2,6 @@ import uuid
 
 from elasticsearch_dsl import Q
 from elasticsearch_dsl.response import Response
-from fastapi import Path
 
 from app.api.collections.oer import oer_ratio
 from app.api.score.models import (
@@ -10,9 +9,7 @@ from app.api.score.models import (
     MissingMaterialProperties,
     ScoreOutput,
 )
-from app.core.constants import COLLECTION_NAME_TO_ID
 from app.core.models import ElasticResourceAttribute
-from app.core.utils import create_examples
 from app.elastic.dsl import afilter, amissing
 from app.elastic.elastic import (
     ResourceType,
@@ -85,16 +82,6 @@ def search_score(node_id: uuid.UUID, resource_type: ResourceType) -> dict:
         return map_response_to_output(response)
 
 
-def node_id_param(
-    *,
-    node_id: uuid.UUID = Path(
-        ...,
-        examples=create_examples(COLLECTION_NAME_TO_ID),
-    )
-) -> uuid.UUID:
-    return node_id
-
-
 def field_names_used_for_score_calculation(properties: dict) -> list[str]:
     values = []
     for value in properties.values():
@@ -119,7 +106,7 @@ aggs_material_validation = {
     "missing_publisher": amissing(qfield=ElasticResourceAttribute.PUBLISHER),
     "missing_description": amissing(qfield=ElasticResourceAttribute.DESCRIPTION),
     "missing_intended_end_user_role": amissing(
-        qfield=ElasticResourceAttribute.EDUENDUSERROLE_DE
+        qfield=ElasticResourceAttribute.EDU_ENDUSERROLE_DE
     ),
     "missing_edu_context": amissing(qfield=ElasticResourceAttribute.EDU_CONTEXT),
 }

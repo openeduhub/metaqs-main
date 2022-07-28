@@ -66,29 +66,29 @@ async def id_to_title_mapping(node_id: uuid.UUID) -> dict[str, str]:
 
 async def collection_quality(
     node_id: uuid.UUID, match_keyword: str = "path"
-) -> tuple[list[QualityOutput], {dict[str, int]}]:
+) -> tuple[list[QualityOutput], dict[str, int]]:
     mapping = await id_to_title_mapping(node_id)
     columns = queried_collections(node_id)
     properties = get_properties()
-    _quality = await _quality_matrix(
+    quality_data = await _quality_matrix(
         columns, mapping, match_keyword, node_id, properties
     )
-    _quality = transpose(_quality, [name for name in mapping.values()])
-    return _quality, {prop: 0 for prop in properties}
+    quality_data = transpose(quality_data, [name for name in mapping.values()])
+    return quality_data, {prop: 0 for prop in properties}
 
 
 def transpose(entries: list[QualityOutput], columns: list[str]) -> list[QualityOutput]:
-    rows = [entry.metadatum for entry in entries]
+    rows = [entry.row_header for entry in entries]
     output = []
     for column in columns:
         new_columns = {}
-        for metadatum in rows:
-            entry = list(filter(lambda line: line.metadatum == metadatum, entries))
+        for row_header in rows:
+            entry = list(filter(lambda line: line.row_header == row_header, entries))
             if len(entry) == 1 and column in entry[0].columns:
-                new_columns.update({metadatum: entry[0].columns[column]})
+                new_columns.update({row_header: entry[0].columns[column]})
 
         new_row = QualityOutput(
-            metadatum=column, columns=new_columns, level=2
+            row_header=column, columns=new_columns, level=2
         )  # Must be level 2 for frontend
         output.append(new_row)
     return output
