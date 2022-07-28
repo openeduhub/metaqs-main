@@ -458,6 +458,12 @@ metadata_hierarchy: list[SortNode] = [
                 children=[],
                 title="published_date",
             ),
+        ],
+        path=None,
+    ),
+    SortNode(
+        title="Entstehung des Inhaltes",
+        children=[
             SortNode(
                 path=ElasticResourceAttribute.PUBLISHING,
                 children=[],
