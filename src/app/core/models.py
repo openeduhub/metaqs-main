@@ -145,6 +145,10 @@ class ElasticResourceAttribute(ElasticField):
         "properties.ccm:oeh_quality_criminal_law",
         ElasticFieldType.TEXT,
     )
+    QUALITY_CRIMINAL_LAW = (
+        "properties.ccm:oeh_quality_criminal_law",
+        ElasticFieldType.TEXT,
+    )
     QUALITY_CURRENTNESS = (
         "properties.ccm:oeh_quality_currentness",
         ElasticFieldType.TEXT,
