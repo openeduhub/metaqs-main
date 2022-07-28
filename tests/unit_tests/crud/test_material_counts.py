@@ -1,6 +1,9 @@
 import uuid
 
-from app.api.collections.descendants import descendants_search, material_counts_search
+from app.api.collections.material_counts import (
+    descendants_search,
+    material_counts_search,
+)
 
 
 def test_descendants_search():

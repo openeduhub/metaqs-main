@@ -1,7 +1,7 @@
 import uuid
 
-from app.api.collections.missing_attributes import missing_attribute_filter
 from app.api.collections.missing_materials import missing_attributes_search
+from app.api.collections.pending_collections import missing_attribute_filter
 
 
 def test_missing_materials_search():
@@ -53,12 +53,12 @@ def test_missing_materials_search():
         "properties.cm:name",
         "properties.cclom:title",
         "properties.ccm:educationalcontext",
+        "properties.ccm:oeh_lrt",
+        "properties.ccm:oeh_publisher_combined",
+        "i18n.de_DE.ccm:educationalintendedenduserrole",
+        "preview",
     ]
-
-    actual_source.sort()
-    expected_source.sort()
-    source_contains_equal_elements = actual_source == expected_source
-    assert source_contains_equal_elements
+    assert sorted(actual_source) == sorted(expected_source)
 
 
 def test_missing_materials_search_license():

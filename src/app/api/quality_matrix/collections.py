@@ -3,8 +3,8 @@ import uuid
 from elasticsearch_dsl import Q
 from elasticsearch_dsl.response import Response
 
-from app.api.quality_matrix.models import QUALITY_MATRIX_RETURN_TYPE
-from app.api.quality_matrix.quality_matrix import (
+from app.api.quality_matrix.models import QualityOutput
+from app.api.quality_matrix.replication_source import (
     _quality_matrix,
     extract_sources_from_response,
     get_properties,
@@ -66,8 +66,29 @@ async def id_to_title_mapping(node_id: uuid.UUID) -> dict[str, str]:
 
 async def collection_quality(
     node_id: uuid.UUID, match_keyword: str = "path"
-) -> QUALITY_MATRIX_RETURN_TYPE:
+) -> tuple[list[QualityOutput], dict[str, int]]:
     mapping = await id_to_title_mapping(node_id)
     columns = queried_collections(node_id)
     properties = get_properties()
-    return await _quality_matrix(columns, mapping, match_keyword, node_id, properties)
+    quality_data = await _quality_matrix(
+        columns, mapping, match_keyword, node_id, properties
+    )
+    quality_data = transpose(quality_data, [name for name in mapping.values()])
+    return quality_data, {prop: 0 for prop in properties}
+
+
+def transpose(entries: list[QualityOutput], columns: list[str]) -> list[QualityOutput]:
+    rows = [entry.row_header for entry in entries]
+    output = []
+    for column in columns:
+        new_columns = {}
+        for row_header in rows:
+            entry = list(filter(lambda line: line.row_header == row_header, entries))
+            if len(entry) == 1 and column in entry[0].columns:
+                new_columns.update({row_header: entry[0].columns[column]})
+
+        new_row = QualityOutput(
+            row_header=column, columns=new_columns, level=2
+        )  # Must be level 2 for frontend
+        output.append(new_row)
+    return output

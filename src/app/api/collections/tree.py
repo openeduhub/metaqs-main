@@ -8,9 +8,9 @@ from app.api.collections.models import CollectionNode
 from app.api.collections.utils import map_elastic_response_to_model
 from app.api.collections.vocabs import tree_from_vocabs
 from app.core.config import ELASTIC_TOTAL_SIZE
+from app.core.models import ElasticResourceAttribute
 from app.elastic.dsl import qbool, qterm
 from app.elastic.search import Search
-from app.models import CollectionAttribute, ElasticResourceAttribute
 
 
 def build_portal_tree(collections: list, root_id: uuid.UUID) -> list[CollectionNode]:
@@ -27,7 +27,7 @@ def build_hierarchy(
     collection, tree_hierarchy: dict[str, list[CollectionNode]]
 ) -> dict[str, list[CollectionNode]]:
     portal_node = CollectionNode(
-        noderef_id=collection.noderef_id,
+        node_id=collection.node_id,
         title=collection.title,
         children=[],
     )
@@ -36,31 +36,46 @@ def build_hierarchy(
         tree_hierarchy.update({str(collection.parent_id): []})
 
     tree_hierarchy[str(collection.parent_id)].append(portal_node)
-    tree_hierarchy[str(collection.noderef_id)] = portal_node.children
+    tree_hierarchy[str(collection.node_id)] = portal_node.children
     return tree_hierarchy
 
 
 def tree_search(node_id: uuid.UUID) -> Search:
-    s = Search().base_filters().query(qbool(filter=qterm(qfield="path", value=node_id)))
+    s = (
+        Search()
+        .base_filters()
+        .query(
+            qbool(
+                filter=qterm(qfield=ElasticResourceAttribute.PATH.path, value=node_id)
+            )
+        )
+    )
     s = s.source(
-        ["nodeRef.id", "properties.cm:title", "collections.path", "parentRef.id"]
-    ).sort("fullpath")[:ELASTIC_TOTAL_SIZE]
+        [
+            ElasticResourceAttribute.NODE_ID.path,
+            ElasticResourceAttribute.COLLECTION_TITLE.path,
+            ElasticResourceAttribute.COLLECTION_PATH.path,
+            ElasticResourceAttribute.PARENT_ID.path,
+        ]
+    ).sort(ElasticResourceAttribute.FULLPATH.path)[:ELASTIC_TOTAL_SIZE]
     return s
 
 
 collection_spec = {
-    "title": Coalesce(CollectionAttribute.TITLE.path, default=None),
+    "title": Coalesce(ElasticResourceAttribute.COLLECTION_TITLE.path, default=None),
     "keywords": (
         Coalesce(ElasticResourceAttribute.KEYWORDS.path, default=[]),
         Iter().all(),
     ),
-    "description": Coalesce(CollectionAttribute.DESCRIPTION.path, default=None),
+    "description": Coalesce(
+        ElasticResourceAttribute.COLLECTION_DESCRIPTION.path, default=None
+    ),
     "path": (
-        Coalesce(CollectionAttribute.PATH.path, default=[]),
+        Coalesce(ElasticResourceAttribute.PATH.path, default=[]),
         Iter().all(),
     ),
-    "parent_id": Coalesce(CollectionAttribute.PARENT_ID.path, default=None),
-    "noderef_id": Coalesce(CollectionAttribute.NODE_ID.path, default=None),
+    "parent_id": Coalesce(ElasticResourceAttribute.PARENT_ID.path, default=None),
+    "node_id": Coalesce(ElasticResourceAttribute.NODE_ID.path, default=None),
     "children": Coalesce("", default=[]),
 }
 

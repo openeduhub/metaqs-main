@@ -5,7 +5,9 @@ from unittest.mock import MagicMock
 import pytest
 from elasticsearch_dsl.response import Hit, Response
 
-from app.api.quality_matrix.quality_matrix import (
+from app.api.quality_matrix.collections import transpose
+from app.api.quality_matrix.models import QualityOutput
+from app.api.quality_matrix.replication_source import (
     all_sources,
     create_empty_entries_search,
     create_properties_search,
@@ -16,7 +18,6 @@ from app.api.quality_matrix.quality_matrix import (
     queried_missing_properties,
     source_quality,
 )
-from app.api.quality_matrix.utils import transpose
 from app.core.config import ELASTICSEARCH_URL
 from app.elastic.search import Search
 from app.elastic.utils import connect_to_elastic
@@ -35,69 +36,73 @@ async def test_get_properties():
     assert len(data) > 150
     data = get_properties(True)
     assert "cclom:title" in data
-    assert len(data) == 9
+    assert len(data) == 10
 
 
 @pytest.mark.asyncio
 async def test_get_quality_matrix_no_sources_no_properties():
     with mock.patch(
-        "app.api.quality_matrix.quality_matrix.all_sources"
+        "app.api.quality_matrix.replication_source.all_sources"
     ) as mocked_get_sourced:
         with mock.patch(
-            "app.api.quality_matrix.quality_matrix.get_properties"
+            "app.api.quality_matrix.replication_source.get_properties"
         ) as mocked_get_properties:
             mocked_get_properties.return_value = []
             mocked_get_sourced.return_value = {}
-            assert await source_quality() == []
+            quality, _ = await source_quality()
+            assert len(quality) == 10
+            assert quality[0].columns == {}
 
 
 @pytest.mark.asyncio
 async def test_get_quality_matrix_no_sources():
     with mock.patch(
-        "app.api.quality_matrix.quality_matrix.all_sources"
+        "app.api.quality_matrix.replication_source.all_sources"
     ) as mocked_get_sourced:
         with mock.patch(
-            "app.api.quality_matrix.quality_matrix.get_properties"
+            "app.api.quality_matrix.replication_source.get_properties"
         ) as mocked_get_properties:
             mocked_get_properties.return_value = ["dummy_properties"]
             mocked_get_sourced.return_value = {}
-            assert await source_quality() == [
-                {"metadatum": "dummy_properties", "columns": {}}
-            ]
+            quality, _ = await source_quality()
+            assert len(quality) == 10
+            assert quality[0].columns == {}
 
 
 @pytest.mark.asyncio
 async def test_get_quality_matrix():
     with mock.patch(
-        "app.api.quality_matrix.quality_matrix.all_sources"
+        "app.api.quality_matrix.replication_source.all_sources"
     ) as mocked_get_sourced:
         with mock.patch(
-            "app.api.quality_matrix.quality_matrix.get_properties"
+            "app.api.quality_matrix.replication_source.get_properties"
         ) as mocked_get_properties:
             with mock.patch(
-                "app.api.quality_matrix.quality_matrix.queried_missing_properties"
+                "app.api.quality_matrix.replication_source.queried_missing_properties"
             ) as mocked_all_missing_properties:
-                mocked_get_properties.return_value = ["dummy_properties"]
+                dummy_property = "preview"
+                mocked_get_properties.return_value = [dummy_property]
                 mocked_get_sourced.return_value = {"dummy_source": 10}
                 mocked_response = MagicMock()
                 mocked_response.aggregations.to_dict.return_value = {}
                 mocked_all_missing_properties.return_value = mocked_response
-                assert await source_quality() == [
-                    {"metadatum": "dummy_properties", "columns": {}}
-                ]
+
+                quality, _ = await source_quality()
+                assert len(quality) == 11
+
+                assert quality[0].columns == {}
 
                 mocked_response.aggregations.to_dict.return_value = {
-                    "dummy_properties": {"doc_count": 5}
+                    dummy_property: {"doc_count": 5}
                 }
                 mocked_all_missing_properties.return_value = mocked_response
-                assert await source_quality() == [
-                    {"metadatum": "dummy_properties", "columns": {"dummy_source": 50.0}}
-                ]
+                quality, _ = await source_quality()
+                assert quality[1].columns == {"dummy_source": 50.0}
 
 
 def test_get_empty_entries_dummy_entries():
     with mock.patch(
-        "app.api.quality_matrix.quality_matrix.Search.execute"
+        "app.api.quality_matrix.replication_source.Search.execute"
     ) as mocked_execute:
         dummy_response = 3
         mocked_execute.return_value = dummy_response
@@ -172,7 +177,7 @@ def test_create_sources_search():
 @pytest.mark.skip(reason="Cannot mock Hit properly,yet. TODO")
 def test_sources():
     with mock.patch(
-        "app.api.quality_matrix.quality_matrix.Search.execute"
+        "app.api.quality_matrix.replication_source.Search.execute"
     ) as mocked_execute:
         dummy_count = {"aggregations": {"unique_sources": {"buckets": []}}}
         dummy_hit = Hit({"_source": MagicMock()})
@@ -243,67 +248,81 @@ def compare_lists_of_dict(expected, actually) -> bool:
 
 def test_transpose():
     data = [
-        {
-            "metadatum": "virtual",
-            "columns": {
+        QualityOutput(
+            row_header="virtual",
+            columns={
                 "00abdb05-6c96-4604-831c-b9846eae7d2d": 13.0,
                 "3305f552-c931-4bcc-842b-939c99752bd5": 20.0,
                 "35054614-72c8-49b2-9924-7b04c7f3bf71": -10.0,
             },
-        }
+            level=2,
+        )
+    ]
+    columns = [
+        "00abdb05-6c96-4604-831c-b9846eae7d2d",
+        "3305f552-c931-4bcc-842b-939c99752bd5",
+        "35054614-72c8-49b2-9924-7b04c7f3bf71",
     ]
 
-    assert compare_lists_of_dict(
-        transpose(data),
-        [
-            {
-                "metadatum": "00abdb05-6c96-4604-831c-b9846eae7d2d",
-                "columns": {"virtual": 13.0},
+    assert transpose(data, columns) == [
+        QualityOutput(
+            row_header="00abdb05-6c96-4604-831c-b9846eae7d2d",
+            columns={
+                "virtual": 13.0,
             },
-            {
-                "metadatum": "3305f552-c931-4bcc-842b-939c99752bd5",
-                "columns": {"virtual": 20.0},
+            level=2,
+        ),
+        QualityOutput(
+            row_header="3305f552-c931-4bcc-842b-939c99752bd5",
+            columns={
+                "virtual": 20.0,
             },
-            {
-                "metadatum": "35054614-72c8-49b2-9924-7b04c7f3bf71",
-                "columns": {"virtual": -10.0},
+            level=2,
+        ),
+        QualityOutput(
+            row_header="35054614-72c8-49b2-9924-7b04c7f3bf71",
+            columns={
+                "virtual": -10.0,
             },
-        ],
-    )
+            level=2,
+        ),
+    ]
 
     data = [
-        {
-            "metadatum": "virtual",
-            "columns": {
+        QualityOutput(
+            row_header="virtual",
+            columns={
                 "00abdb05-6c96-4604-831c-b9846eae7d2d": 13.0,
                 "3305f552-c931-4bcc-842b-939c99752bd5": 20.0,
                 "35054614-72c8-49b2-9924-7b04c7f3bf71": -10.0,
             },
-        },
-        {
-            "metadatum": "actually",
-            "columns": {
-                "00abdb05-6c96-4604-831c-b9846eae7d2d": 20.0,
-                "3305f552-c931-4bcc-842b-939c99752bd5": 21.0,
-                "35054614-72c8-49b2-9924-7b04c7f3bf71": -1.0,
+            level=2,
+        ),
+        QualityOutput(
+            row_header="actually",
+            columns={
+                "00abdb05-6c96-4604-831c-b9846eae7d2d": 20,
+                "3305f552-c931-4bcc-842b-939c99752bd5": 21,
+                "35054614-72c8-49b2-9924-7b04c7f3bf71": -1,
             },
-        },
+            level=1,
+        ),
     ]
 
-    assert compare_lists_of_dict(
-        transpose(data),
-        [
-            {
-                "metadatum": "00abdb05-6c96-4604-831c-b9846eae7d2d",
-                "columns": {"virtual": 13.0, "actually": 20},
-            },
-            {
-                "metadatum": "3305f552-c931-4bcc-842b-939c99752bd5",
-                "columns": {"virtual": 20.0, "actually": 21},
-            },
-            {
-                "metadatum": "35054614-72c8-49b2-9924-7b04c7f3bf71",
-                "columns": {"virtual": -10.0, "actually": -1},
-            },
-        ],
-    )
+    assert transpose(data, columns) == [
+        QualityOutput(
+            row_header="00abdb05-6c96-4604-831c-b9846eae7d2d",
+            columns={"virtual": 13.0, "actually": 20},
+            level=2,
+        ),
+        QualityOutput(
+            row_header="3305f552-c931-4bcc-842b-939c99752bd5",
+            columns={"virtual": 20.0, "actually": 21},
+            level=2,
+        ),
+        QualityOutput(
+            row_header="35054614-72c8-49b2-9924-7b04c7f3bf71",
+            columns={"virtual": -10.0, "actually": -1},
+            level=2,
+        ),
+    ]

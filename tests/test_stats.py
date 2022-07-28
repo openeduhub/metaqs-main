@@ -5,7 +5,6 @@ from unittest import mock
 import pytest
 
 from app.api.analytics.analytics import CollectionValidationStats
-from app.api.analytics.models import Collection
 from app.api.analytics.stats import (
     Row,
     build_material_search,
@@ -14,7 +13,7 @@ from app.api.analytics.stats import (
     overall_stats,
     query_material_types,
 )
-from app.api.analytics.storage import SearchStore
+from app.api.analytics.storage import SearchStore, StorageModel
 from app.api.collections.counts import CollectionTreeCount
 
 
@@ -32,7 +31,7 @@ async def test_overall_stats():
         def _get_item(_, key):
             if key == "collections":
                 return [
-                    Collection(
+                    StorageModel(
                         id=entry["id"],
                         doc=entry["doc"],
                         derived_at=entry["derived_at"],
@@ -42,7 +41,7 @@ async def test_overall_stats():
             if key == "counts":
                 return [
                     CollectionTreeCount(
-                        noderef_id=entry["noderef_id"],
+                        node_id=entry["noderef_id"],
                         total=entry["total"],
                         counts=entry["counts"],
                     )
@@ -151,7 +150,7 @@ def test_query_material_types():
         def _get_item(_, key):
             if key == "collections":
                 return [
-                    Collection(
+                    StorageModel(
                         id=entry["id"],
                         doc=entry["doc"],
                         derived_at=entry["derived_at"],
@@ -161,7 +160,7 @@ def test_query_material_types():
             if key == "counts":
                 return [
                     CollectionTreeCount(
-                        noderef_id=entry["noderef_id"],
+                        node_id=entry["noderef_id"],
                         total=entry["total"],
                         counts=entry["counts"],
                     )
@@ -190,7 +189,7 @@ def test_collections_with_missing_properties():
         def _get_item(_, key):
             if key == "collections":
                 return [
-                    Collection(
+                    StorageModel(
                         id=entry["id"],
                         doc=entry["doc"],
                         derived_at=entry["derived_at"],
@@ -200,7 +199,7 @@ def test_collections_with_missing_properties():
             if key == "counts":
                 return [
                     CollectionTreeCount(
-                        noderef_id=entry["noderef_id"],
+                        node_id=entry["noderef_id"],
                         total=entry["total"],
                         counts=entry["counts"],
                     )
@@ -231,7 +230,7 @@ def test_materials_with_missing_properties():
         def _get_item(_, key):
             if key in ["collections", "materials"]:
                 return [
-                    Collection(
+                    StorageModel(
                         id=entry["id"],
                         doc=entry["doc"],
                         derived_at=entry["derived_at"],
@@ -241,7 +240,7 @@ def test_materials_with_missing_properties():
             if key == "counts":
                 return [
                     CollectionTreeCount(
-                        noderef_id=entry["noderef_id"],
+                        node_id=entry["noderef_id"],
                         total=entry["total"],
                         counts=entry["counts"],
                     )
@@ -257,5 +256,5 @@ def test_materials_with_missing_properties():
     assert result[0].noderef_id == uuid.UUID("f3dc9ea1-d608-4b4e-a78c-98063a3e8461")
     dummy_material_node = uuid.UUID("263afc5b-6445-4a5a-b014-a77f1db473b9")
 
-    assert result[0].validation_stats.publisher.missing == [dummy_material_node]
+    assert result[0].validation_stats.url.missing == [dummy_material_node]
     assert result[0].validation_stats.material_type is None

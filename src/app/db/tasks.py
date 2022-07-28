@@ -1,7 +1,10 @@
+from datetime import datetime
+
+import sqlalchemy
 from databases import Database
 from fastapi import FastAPI
 
-from app.api.quality_matrix.models import Timeline
+from app.api.quality_matrix.models import Forms, QualityOutput, Timeline
 from app.core.logging import logger
 from app.db.core import create_timeline_table, database_url, has_table
 
@@ -24,3 +27,16 @@ async def close_db_connection(app: FastAPI) -> None:
         await app.state._db.disconnect()
     except Exception:
         logger.exception("")
+
+
+async def store_in_timeline(data: list[QualityOutput], database: Database, form: Forms):
+    await database.connect()
+    await database.execute(
+        sqlalchemy.insert(Timeline).values(
+            {
+                "timestamp": datetime.now().timestamp(),
+                "quality_matrix": data,
+                "form": form,
+            }
+        )
+    )

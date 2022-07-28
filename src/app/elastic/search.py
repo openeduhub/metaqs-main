@@ -7,8 +7,8 @@ from starlette_context.errors import ContextDoesNotExistError
 
 from app.core.config import ELASTIC_INDEX
 from app.core.logging import logger
+from app.core.models import ElasticResourceAttribute
 from app.elastic.dsl import qterm
-from app.models import ElasticResourceAttribute
 
 
 class Search(elasticsearch_dsl.Search):

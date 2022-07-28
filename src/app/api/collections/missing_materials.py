@@ -1,14 +1,15 @@
 import uuid
-from typing import ClassVar, Optional, Type, TypeVar
+from typing import Optional
 
 from elasticsearch_dsl import Q
 from fastapi.params import Path, Query
-from glom import Coalesce, Iter, glom
+from glom import Coalesce, Iter
 from pydantic import BaseModel, Extra
 from pydantic.validators import str_validator
 
+from app.api.collections.utils import map_elastic_response_to_model
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.models import LearningMaterialAttribute, ResponseModel
+from app.core.models import ElasticResourceAttribute, ResponseModel
 from app.elastic.dsl import ElasticField, qbool, qmatch
 from app.elastic.elastic import (
     ResourceType,
@@ -16,9 +17,6 @@ from app.elastic.elastic import (
     type_filter,
 )
 from app.elastic.search import Search
-from app.models import _ELASTIC_RESOURCE, ElasticResourceAttribute
-
-_LEARNING_MATERIAL = TypeVar("_LEARNING_MATERIAL")
 
 
 def empty_to_none(v: str) -> Optional[str]:
@@ -39,41 +37,39 @@ class ElasticConfig:
     extra = Extra.allow
 
 
-class ElasticResource(BaseModel):
-    noderef_id: uuid.UUID
+missing_materials_spec = {
+    "title": Coalesce(ElasticResourceAttribute.TITLE.path, default=None),
+    "keywords": (
+        Coalesce(ElasticResourceAttribute.KEYWORDS.path, default=[]),
+        Iter().all(),
+    ),
+    "edu_context": (
+        Coalesce(ElasticResourceAttribute.EDU_CONTEXT.path, default=[]),
+        Iter().all(),
+    ),
+    "subjects": (
+        Coalesce(ElasticResourceAttribute.SUBJECTS.path, default=[]),
+        Iter().all(),
+    ),
+    "www_url": Coalesce(ElasticResourceAttribute.WWW_URL.path, default=None),
+    "description": (
+        Coalesce(ElasticResourceAttribute.DESCRIPTION.path, default=[]),
+        (Iter().all(), "\n".join),
+    ),
+    "licenses": (
+        Coalesce(ElasticResourceAttribute.LICENSES.path, default=[]),
+        (Iter().all(), "\n".join),
+    ),
+    "node_id": ElasticResourceAttribute.NODE_ID.path,
+    "type": Coalesce(ElasticResourceAttribute.TYPE.path, default=None),
+    "name": Coalesce(ElasticResourceAttribute.NAME.path, default=None),
+}
+
+
+class LearningMaterial(ResponseModel):
+    node_id: uuid.UUID
     type: Optional[EmptyStrToNone] = None
     name: Optional[EmptyStrToNone] = None
-
-    source_fields: ClassVar[set] = {
-        ElasticResourceAttribute.NODEREF_ID,
-        ElasticResourceAttribute.TYPE,
-        ElasticResourceAttribute.NAME,
-    }
-
-    class Config(ElasticConfig):
-        pass
-
-    @classmethod
-    def parse_elastic_hit_to_dict(
-        cls: Type[_ELASTIC_RESOURCE],
-        hit: dict,
-    ) -> dict:
-        spec = {
-            "noderef_id": ElasticResourceAttribute.NODEREF_ID.path,
-            "type": Coalesce(ElasticResourceAttribute.TYPE.path, default=None),
-            "name": Coalesce(ElasticResourceAttribute.NAME.path, default=None),
-        }
-        return glom(hit, spec)
-
-    @classmethod
-    def parse_elastic_hit(
-        cls: Type[_ELASTIC_RESOURCE],
-        hit: dict,
-    ) -> _ELASTIC_RESOURCE:
-        return cls.construct(**cls.parse_elastic_hit_to_dict(hit))
-
-
-class LearningMaterialBase(ElasticResource):
     title: Optional[EmptyStrToNone] = None
     keywords: Optional[list[str]] = None
     edu_context: Optional[list[str]] = None
@@ -82,86 +78,36 @@ class LearningMaterialBase(ElasticResource):
     description: Optional[EmptyStrToNone] = None
     licenses: Optional[EmptyStrToNone] = None
 
-    source_fields: ClassVar[set] = {
-        LearningMaterialAttribute.NODEREF_ID,
-        LearningMaterialAttribute.TYPE,
-        LearningMaterialAttribute.NAME,
-        LearningMaterialAttribute.TITLE,
-        LearningMaterialAttribute.KEYWORDS,
-        LearningMaterialAttribute.EDU_CONTEXT,
-        LearningMaterialAttribute.SUBJECTS,
-        LearningMaterialAttribute.WWW_URL,
-        LearningMaterialAttribute.DESCRIPTION,
-        LearningMaterialAttribute.LICENSES,
-    }
-
-    @classmethod
-    def parse_elastic_hit_to_dict(
-        cls: Type[_LEARNING_MATERIAL],
-        hit: dict,
-    ) -> dict:
-        spec = {
-            "title": Coalesce(LearningMaterialAttribute.TITLE.path, default=None),
-            "keywords": (
-                Coalesce(LearningMaterialAttribute.KEYWORDS.path, default=[]),
-                Iter().all(),
-            ),
-            "edu_context": (
-                Coalesce(LearningMaterialAttribute.EDU_CONTEXT.path, default=[]),
-                Iter().all(),
-            ),
-            "subjects": (
-                Coalesce(LearningMaterialAttribute.SUBJECTS.path, default=[]),
-                Iter().all(),
-            ),
-            "www_url": Coalesce(LearningMaterialAttribute.WWW_URL.path, default=None),
-            "description": (
-                Coalesce(LearningMaterialAttribute.DESCRIPTION.path, default=[]),
-                (Iter().all(), "\n".join),
-            ),
-            "licenses": (
-                Coalesce(LearningMaterialAttribute.LICENSES.path, default=[]),
-                (Iter().all(), "\n".join),
-            ),
-        }
-        return {
-            **super(LearningMaterialBase, cls).parse_elastic_hit_to_dict(hit),
-            **glom(hit, spec),
-        }
-
-
-class LearningMaterial(ResponseModel, LearningMaterialBase):
-    pass
-
-
-LearningMaterialResponseField = ElasticField(
-    "MaterialAttribute",
-    [(f.name, (f.value, f.field_type)) for f in LearningMaterialAttribute],
-)
+    class Config(ElasticConfig):
+        pass
 
 
 def material_response_fields(
-    *, response_fields: set[LearningMaterialResponseField] = Query(None)
-) -> set[LearningMaterialAttribute]:
+    *, response_fields: set[ElasticResourceAttribute] = Query(None)
+) -> set[ElasticResourceAttribute]:
     return response_fields
 
 
+missing_attributes_source_fields = {
+    ElasticResourceAttribute.TITLE,
+    ElasticResourceAttribute.LEARNINGRESOURCE_TYPE,
+    ElasticResourceAttribute.SUBJECTS,
+    ElasticResourceAttribute.WWW_URL,
+    ElasticResourceAttribute.LICENSES,
+    ElasticResourceAttribute.PUBLISHER,
+    ElasticResourceAttribute.DESCRIPTION,
+    ElasticResourceAttribute.EDU_ENDUSERROLE_DE,
+    ElasticResourceAttribute.EDU_CONTEXT,
+    ElasticResourceAttribute.COVER,
+    ElasticResourceAttribute.NODE_ID,
+    ElasticResourceAttribute.TYPE,
+    ElasticResourceAttribute.NAME,
+    ElasticResourceAttribute.KEYWORDS,
+}
+
 MissingMaterialField = ElasticField(
     "MissingMaterialField",
-    [
-        (f.name, (f.value, f.field_type))
-        for f in [
-            LearningMaterialAttribute.TITLE,
-            LearningMaterialAttribute.LEARNINGRESOURCE_TYPE,
-            LearningMaterialAttribute.SUBJECTS,  # TODO: Refactor to TaxonId
-            LearningMaterialAttribute.WWW_URL,
-            LearningMaterialAttribute.LICENSES,
-            LearningMaterialAttribute.PUBLISHER,
-            LearningMaterialAttribute.DESCRIPTION,
-            LearningMaterialAttribute.EDUENDUSERROLE_DE,
-            LearningMaterialAttribute.EDU_CONTEXT,
-        ]
-    ],
+    [(f.name, (f.value, f.field_type)) for f in missing_attributes_source_fields],
 )
 
 
@@ -192,7 +138,7 @@ def missing_attributes_search(
             Q({"term": {"content.mimetype.keyword": "text/plain"}}),
         ],
     }
-    if missing_attribute == LearningMaterialAttribute.LICENSES.path:
+    if missing_attribute == ElasticResourceAttribute.LICENSES.path:
         query["filter"].append(query_missing_material_license().to_dict())
     else:
         query.update(
@@ -205,7 +151,7 @@ def missing_attributes_search(
         Search()
         .base_filters()
         .query(qbool(**query))
-        .source(includes=[source.path for source in LearningMaterial.source_fields])[
+        .source(includes=[source.path for source in missing_attributes_source_fields])[
             :max_hits
         ]
     )
@@ -220,9 +166,12 @@ async def search_materials_with_missing_attributes(
     )
     response = search.execute()
     if response.success():
-        return [LearningMaterial.parse_elastic_hit(hit) for hit in response]
+        return map_elastic_response_to_model(
+            response, missing_materials_spec, LearningMaterial
+        )
 
 
+# TODO is this really being used?
 def filter_response_fields(
     items: list[BaseModel], response_fields: set[ElasticField] = None
 ) -> list[BaseModel]:
@@ -237,7 +186,7 @@ async def get_materials_with_missing_attributes(
     missing_attr_filter, node_id, response_fields
 ):
     if response_fields:
-        response_fields.add(LearningMaterialAttribute.NODEREF_ID)
+        response_fields.add(ElasticResourceAttribute.NODE_ID)
     materials = await search_materials_with_missing_attributes(
         node_id=node_id,
         missing_attr_filter=missing_attr_filter,

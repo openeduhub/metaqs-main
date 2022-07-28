@@ -1,5 +1,8 @@
 import uuid
 from dataclasses import dataclass
+from datetime import datetime
+
+from pydantic import BaseModel
 
 from app.api.analytics.analytics import CountStatistics
 
@@ -33,3 +36,10 @@ class Store:
 
 
 global_store = Store(search=[])
+
+
+# TODO: Rename, as used for materials in background_task, as well
+class StorageModel(BaseModel):
+    id: str  # TODO: Refactored to UUID
+    doc: dict
+    derived_at: datetime

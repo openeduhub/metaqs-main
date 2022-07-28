@@ -1,22 +1,23 @@
 import uuid
-from datetime import datetime
-from typing import Union
 
-import sqlalchemy
-from databases import Database
 from elasticsearch_dsl import AttrDict, Q
 from elasticsearch_dsl.response import Response
 
-from app.api.quality_matrix.models import QUALITY_MATRIX_RETURN_TYPE, Forms, Timeline
+from app.api.quality_matrix.models import QualityOutput
 from app.api.quality_matrix.utils import default_properties
-from app.api.score.models import required_collection_properties
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import COLLECTION_ROOT_ID
 from app.core.logging import logger
+from app.core.models import (
+    ElasticResourceAttribute,
+    metadata_hierarchy,
+    required_collection_properties,
+)
 from app.elastic.dsl import qbool, qmatch
 from app.elastic.search import Search
 
 PROPERTY_TYPE = list[str]
+PROPERTIES = "properties"
 
 
 def create_sources_search(aggregation_name: str) -> Search:
@@ -24,7 +25,7 @@ def create_sources_search(aggregation_name: str) -> Search:
     s.aggs.bucket(
         aggregation_name,
         "terms",
-        field=f"{PROPERTIES}.{REPLICATION_SOURCE_ID}.keyword",
+        field=f"{ElasticResourceAttribute.REPLICATION_SOURCE.path}.keyword",
         size=ELASTIC_TOTAL_SIZE,
     )
     return s
@@ -60,8 +61,8 @@ def get_properties(use_required_properties_only: bool = True) -> PROPERTY_TYPE:
     if use_required_properties_only:
         return [entry.split(".")[-1] for entry in required_collection_properties.keys()]
     else:
-        s = create_properties_search()
-        response = s.execute()
+        search = create_properties_search()
+        response = search.execute()
         return extract_properties(response.hits)
 
 
@@ -71,7 +72,7 @@ def create_empty_entries_search(
     node_id: uuid.UUID,
     match_keyword: str,
 ) -> Search:
-    s = (
+    search = (
         Search()
         .base_filters()
         .query(
@@ -86,8 +87,8 @@ def create_empty_entries_search(
     )
 
     for keyword in properties:
-        s.aggs.bucket(keyword, "missing", field=f"{PROPERTIES}.{keyword}.keyword")
-    return s
+        search.aggs.bucket(keyword, "missing", field=f"{PROPERTIES}.{keyword}.keyword")
+    return search
 
 
 def queried_missing_properties(
@@ -101,14 +102,6 @@ def queried_missing_properties(
     ).execute()
 
 
-def join_data(data: dict, key: str) -> dict[str, Union[str, dict]]:
-    return {"metadatum": key, "columns": data}
-
-
-def api_ready_output(raw_input: dict) -> QUALITY_MATRIX_RETURN_TYPE:
-    return [join_data(data, key) for key, data in raw_input.items()]
-
-
 def missing_fields_ratio(value: dict, total_count: int) -> float:
     return round((1 - value["doc_count"] / total_count) * 100, 2)
 
@@ -119,42 +112,42 @@ def missing_fields(
     return {search_keyword: missing_fields_ratio(value, total_count)}
 
 
-async def store_in_timeline(
-    data: QUALITY_MATRIX_RETURN_TYPE, database: Database, form: Forms
-):
-    await database.connect()
-    await database.execute(
-        sqlalchemy.insert(Timeline).values(
-            {
-                "timestamp": datetime.now().timestamp(),
-                "quality_matrix": data,
-                "form": form,
-            }
-        )
-    )
-
-
 async def items_in_response(response: Response) -> dict:
     return response.aggregations.to_dict().items()
 
 
-REPLICATION_SOURCE_ID = "ccm:replicationsource"
-PROPERTIES = "properties"
-
-
 async def source_quality(
     node_id: uuid.UUID = COLLECTION_ROOT_ID,
-    match_keyword: str = f"{PROPERTIES}.{REPLICATION_SOURCE_ID}",
-) -> QUALITY_MATRIX_RETURN_TYPE:
+    match_keyword: str = ElasticResourceAttribute.REPLICATION_SOURCE.path,
+) -> tuple[list[QualityOutput], dict[str, int]]:
     properties = get_properties()
     columns = all_sources()
     mapping = {key: key for key in columns.keys()}  # identity mapping
-    return await _quality_matrix(columns, mapping, match_keyword, node_id, properties)
+    quality = await _quality_matrix(
+        columns, mapping, match_keyword, node_id, properties
+    )
+    return quality, columns
+
+
+def sort_output_to_hierarchy(data: list[QualityOutput]) -> list[QualityOutput]:
+    output = []
+    for order in metadata_hierarchy:
+        output.append(QualityOutput(row_header=order.title, level=1, columns={}))
+        for node in order.children:
+            row = list(
+                filter(
+                    lambda entry: entry.row_header == node.path.path.split(".")[-1],
+                    data,
+                )
+            )
+            if len(row) == 1:
+                output.append(row[0])
+    return output
 
 
 async def _quality_matrix(
     columns, id_to_name_mapping, match_keyword, node_id, properties
-) -> QUALITY_MATRIX_RETURN_TYPE:
+) -> list[QualityOutput]:
     output = {k: {} for k in properties}
     for column_id, total_count in columns.items():
         if column_id in id_to_name_mapping.keys():
@@ -166,4 +159,9 @@ async def _quality_matrix(
                     value, total_count, id_to_name_mapping[column_id]
                 )
     logger.debug(f"Quality matrix output:\n{output}")
-    return api_ready_output(output)
+    output = [
+        QualityOutput(row_header=key, columns=data, level=2)
+        for key, data in output.items()
+    ]
+
+    return sort_output_to_hierarchy(output)

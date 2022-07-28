@@ -6,9 +6,9 @@ from elasticsearch_dsl import A
 from pydantic import BaseModel
 
 from app.core.config import ELASTIC_TOTAL_SIZE
+from app.core.models import ElasticResourceAttribute
 from app.elastic.elastic import query_materials
 from app.elastic.search import Search
-from app.models import CollectionAttribute, ElasticResourceAttribute
 
 
 class CollectionTreeCount(BaseModel):
@@ -17,7 +17,7 @@ class CollectionTreeCount(BaseModel):
     e.g. OER licence
     """
 
-    noderef_id: uuid.UUID
+    node_id: uuid.UUID
     total: int
     counts: dict[str, int]
 
@@ -53,10 +53,10 @@ def collection_counts_search(
     search.aggs.bucket(_AGGREGATION_NAME, material_agg)
     search = search.source(
         [
-            ElasticResourceAttribute.NODEREF_ID.path,
-            CollectionAttribute.TITLE.path,
-            CollectionAttribute.PATH.path,
-            CollectionAttribute.PARENT_ID.path,
+            ElasticResourceAttribute.NODE_ID.path,
+            ElasticResourceAttribute.COLLECTION_TITLE.path,
+            ElasticResourceAttribute.PATH.path,
+            ElasticResourceAttribute.PARENT_ID.path,
         ]
     )[:0]
     return search
@@ -73,7 +73,7 @@ async def collection_counts(
 def build_counts(response) -> list[CollectionTreeCount]:
     return [
         CollectionTreeCount(
-            noderef_id=data["key"],
+            node_id=data["key"],
             counts={sub["key"]: sub["doc_count"] for sub in data.facet.buckets},
             total=data.doc_count,
         )

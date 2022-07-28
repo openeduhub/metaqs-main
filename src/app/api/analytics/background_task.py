@@ -2,6 +2,7 @@ import asyncio
 import os
 import uuid
 from datetime import datetime
+from typing import Callable
 
 from fastapi import APIRouter
 from fastapi_utils.tasks import repeat_every
@@ -9,7 +10,6 @@ from starlette.background import BackgroundTasks
 from starlette.status import HTTP_202_ACCEPTED
 
 import app.api.analytics.storage
-from app.api.analytics.models import Collection
 from app.api.analytics.stats import (
     Row,
     get_ids_to_iterate,
@@ -21,13 +21,14 @@ from app.api.analytics.storage import (
     _COLLECTIONS,
     _MATERIALS,
     SearchStore,
+    StorageModel,
     global_store,
 )
 from app.api.collections.counts import AggregationMappings, collection_counts
-from app.api.score.models import required_collection_properties
 from app.core.config import BACKGROUND_TASK_TIME_INTERVAL
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.core.logging import logger
+from app.core.models import ElasticResourceAttribute, required_collection_properties
 from app.elastic.elastic import query_collections, query_materials
 from app.elastic.search import Search
 
@@ -44,70 +45,57 @@ def background_task():
     run()
 
 
-def import_collections(derived_at: datetime):
-    s = (
-        Search()
-        .query(query_collections(node_id=COLLECTION_ROOT_ID))
-        .source(
-            includes=["nodeRef.*", "path", *list(required_collection_properties.keys())]
-        )
-    )
+def import_data_from_elasticsearch(
+    derived_at: datetime, query: Callable, path: str, storage_path: str
+):
+    search = search_query(query, path)
 
     seen = set()
     collections = []
-    for hit in s.scan():
-        if hit.nodeRef["id"] in seen:
-            continue
-
-        seen.add(hit.nodeRef["id"])
-        collections.append(
-            Collection(
-                id=str(hit.nodeRef["id"]),
-                doc=hit.to_dict(),
-                derived_at=derived_at,
-            )
-        )
-    app.api.analytics.storage.global_storage[_COLLECTIONS] = collections
-
-
-def import_materials(derived_at: datetime):
-    s = (
-        Search()
-        .query(query_materials(node_id=COLLECTION_ROOT_ID))
-        .source(
-            includes=[
-                "nodeRef.*",
-                "collections.nodeRef.id",
-                *list(required_collection_properties.keys()),
-            ]
-        )
-    )
-
-    seen = set()
-    collections = []
-    for hit in s.scan():
+    for hit in search.scan():
         node_id = hit.nodeRef["id"]
         if node_id not in seen:
             seen.add(node_id)
             collections.append(
-                Collection(
+                StorageModel(
                     id=str(node_id),
                     doc=hit.to_dict(),
                     derived_at=derived_at,
                 )
             )
-    app.api.analytics.storage.global_storage[_MATERIALS] = collections
+    app.api.analytics.storage.global_storage[storage_path] = collections
+
+
+def search_query(query: Callable, path: str) -> Search:
+    search = (
+        Search()
+        .query(query(node_id=COLLECTION_ROOT_ID))
+        .source(
+            includes=["nodeRef.*", path, *list(required_collection_properties.keys())]
+        )
+    )
+    return search
 
 
 def run():
     derived_at = datetime.now()
     logger.info(f"{os.getpid()}: Starting analytics import at: {derived_at}")
 
-    import_collections(derived_at=derived_at)
+    import_data_from_elasticsearch(
+        derived_at=derived_at,
+        query=query_collections,
+        path=ElasticResourceAttribute.PATH.path,
+        storage_path=_COLLECTIONS,
+    )
 
-    import_materials(derived_at=derived_at)
+    import_data_from_elasticsearch(
+        derived_at=derived_at,
+        query=query_materials,
+        path=ElasticResourceAttribute.COLLECTION_NODEREF_ID.path,
+        storage_path=_MATERIALS,
+    )
 
-    print("Collection and materials imported")
+    logger.info("Collection and materials imported")
 
     app.api.analytics.storage.global_storage[_COLLECTION_COUNT] = asyncio.run(
         collection_counts(COLLECTION_ROOT_ID, AggregationMappings.lrt)
@@ -117,16 +105,16 @@ def run():
     )
 
     all_collections = [
-        Row(id=uuid.UUID(value["value"]), title=key)
+        Row(id=uuid.UUID(value), title=key)
         for key, value in COLLECTION_NAME_TO_ID.items()
     ]
-    print("Tree ready to iterate. Length: ", len(all_collections))
+    logger.info(f"Tree ready to iterate. Length: {len(all_collections)}")
 
     # TODO Refactor, this is very expensive
     search_store = []
     for row in all_collections:
         sub_collections: list[Row] = asyncio.run(get_ids_to_iterate(node_id=row.id))
-        print("Working on: ", row.title, len(sub_collections))
+        logger.info(f"Working on: {row.title}, {len(sub_collections)}")
         missing_materials = {
             sub.id: search_hits_by_material_type(sub.title) for sub in sub_collections
         }
@@ -137,4 +125,4 @@ def run():
 
     global_store.search = search_store
 
-    print("Background task done")
+    logger.info("Background task done")

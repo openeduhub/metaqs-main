@@ -28,7 +28,7 @@ def node_count(data: list):
 async def test_collection_tree():
     root_node_id = uuid.UUID("5e40e372-735c-4b17-bbf7-e827a5702b57")
     data = await collection_tree(root_node_id, use_vocabs=True)
-    assert len(data) == 26
+    assert len(data) == 27
     count = node_count(data)
     assert count >= 2200  # adapt this number to the current state, may change regularly
 
@@ -103,7 +103,7 @@ def test_parse_tree():
     def tree_to_json(_tree: list[CollectionNode]) -> list:
         return [
             {
-                "noderef_id": collection.noderef_id,
+                "noderef_id": collection.node_id,
                 "title": collection.title,
                 "children": tree_to_json(collection.children)
                 if collection.children
@@ -113,6 +113,7 @@ def test_parse_tree():
         ]
 
     json_tree = tree_to_json(tree)
+
     assert len(json_tree) == len(expected_tree)
 
     def flatten_list(list_of_lists):
@@ -155,7 +156,7 @@ def test_build_portal_tree():
     dummy_child_uuid = uuid.uuid4()
     dummy_node = CollectionNode(
         title=None,
-        noderef_id=dummy_child_uuid,
+        node_id=dummy_child_uuid,
         children=[],
         parent_id=dummy_uuid,
     )
@@ -166,7 +167,7 @@ def test_build_portal_tree():
     dummy_child_uuid = uuid.uuid4()
     dummy_node = CollectionNode(
         title="dummy_node",
-        noderef_id=dummy_child_uuid,
+        node_id=dummy_child_uuid,
         children=[],
         parent_id=dummy_uuid,
     )
@@ -179,7 +180,7 @@ def test_build_portal_tree():
     another_child_uuid = uuid.uuid4()
     another_node = CollectionNode(
         title="dummy_node",
-        noderef_id=another_child_uuid,
+        node_id=another_child_uuid,
         children=[],
         parent_id=dummy_child_uuid,
     )

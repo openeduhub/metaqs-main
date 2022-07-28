@@ -16,20 +16,19 @@ from app.api.analytics.analytics import (
     StatsResponse,
     ValidationStatsResponse,
 )
-from app.api.analytics.models import Collection
 from app.api.analytics.storage import (
     _COLLECTION_COUNT,
     _COLLECTIONS,
     _MATERIALS,
+    StorageModel,
     global_storage,
     global_store,
 )
 from app.api.collections.models import CollectionNode
 from app.api.collections.oer import oer_ratio
 from app.api.collections.tree import collection_tree
-from app.api.score.models import required_collection_properties
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.models import LearningMaterialAttribute
+from app.core.models import ElasticResourceAttribute, required_collection_properties
 from app.elastic.dsl import ElasticField, aterms
 from app.elastic.elastic import query_materials
 from app.elastic.search import Search
@@ -50,14 +49,14 @@ def search_materials(query_str: str) -> Query:
     return qsimplequerystring(
         query=query_str,
         qfields=[
-            LearningMaterialAttribute.TITLE,
-            LearningMaterialAttribute.KEYWORDS,
-            LearningMaterialAttribute.DESCRIPTION,
-            LearningMaterialAttribute.CONTENT_FULLTEXT,
-            LearningMaterialAttribute.SUBJECTS_DE,
-            LearningMaterialAttribute.LEARNINGRESOURCE_TYPE_DE,
-            LearningMaterialAttribute.EDU_CONTEXT_DE,
-            LearningMaterialAttribute.EDUENDUSERROLE_DE,
+            ElasticResourceAttribute.TITLE,
+            ElasticResourceAttribute.KEYWORDS,
+            ElasticResourceAttribute.DESCRIPTION,
+            ElasticResourceAttribute.CONTENT_FULLTEXT,
+            ElasticResourceAttribute.SUBJECTS_DE,
+            ElasticResourceAttribute.LEARNINGRESOURCE_TYPE_DE,
+            ElasticResourceAttribute.EDU_CONTEXT_DE,
+            ElasticResourceAttribute.EDU_ENDUSERROLE_DE,
         ],
         default_operator="and",
     )
@@ -66,7 +65,7 @@ def search_materials(query_str: str) -> Query:
 def agg_material_types(size: int = ELASTIC_TOTAL_SIZE) -> Agg:
     # TODO: This is the key property we are aggregating for
     return aterms(
-        qfield=LearningMaterialAttribute.LEARNINGRESOURCE_TYPE,
+        qfield=ElasticResourceAttribute.LEARNINGRESOURCE_TYPE,
         missing="N/A",
         size=size,
     )
@@ -132,7 +131,7 @@ async def get_ids_to_iterate(node_id: uuid.UUID) -> list[Row]:
         return [
             nodes(collection.children)
             if collection.children
-            else (collection.noderef_id, collection.title)
+            else (collection.node_id, collection.title)
             for collection in data
         ]
 
@@ -162,14 +161,14 @@ def query_material_types(
     # TODO: Refactor with filter and dict comprehension
     for collection in collections:
         for count in counts:
-            if collection.id == str(count.noderef_id):
+            if collection.id == str(count.node_id):
                 stats.update(
                     {str(collection.id): {"total": count.total, **count.counts}}
                 )
     return stats
 
 
-def filtered_collections(collections: list[Collection], node_id: uuid.UUID):
+def filtered_collections(collections: list[StorageModel], node_id: uuid.UUID):
     return [
         collection
         for collection in collections
@@ -256,10 +255,10 @@ def materials_with_missing_properties(
     :return:
     """
 
-    collections: list[Collection] = global_storage[_COLLECTIONS]
+    collections: list[StorageModel] = global_storage[_COLLECTIONS]
     collections = filtered_collections(collections, node_id)
 
-    materials: list[Collection] = global_storage[_MATERIALS]
+    materials: list[StorageModel] = global_storage[_MATERIALS]
     # find materials belonging to each collection
     # check whether they are missing the required properties
     # if so, add them as a list to validation stats
