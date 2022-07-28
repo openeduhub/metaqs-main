@@ -3,13 +3,17 @@ from unittest.mock import MagicMock
 
 from elasticsearch_dsl.response import Response
 
-from app.api.collections.counts import build_counts, collection_counts_search
+from app.api.collections.counts import (
+    AggregationMappings,
+    build_counts,
+    collection_counts_search,
+)
 
 
 def test_query_collection_counts():
     node_id = uuid.UUID("15fce411-54d9-467f-8f35-61ea374a298d")
     total_size_elastic = 500_000
-    facet = "dummy_facet"
+    facet = AggregationMappings.lrt
     expected_query = {
         "query": {
             "bool": {
@@ -38,11 +42,57 @@ def test_query_collection_counts():
                 },
             }
         },
-        "from": 0,
         "size": 0,
-        "_source": ["nodeRef.id", "properties.cm:title", "path", "parentRef.id"],
     }
-    search = collection_counts_search(node_id, facet)
+    search = collection_counts_search(node_id, facet=facet, oer_only=False)
+    assert search.to_dict() == expected_query
+
+
+def test_query_collection_counts_oer():
+    node_id = uuid.UUID("15fce411-54d9-467f-8f35-61ea374a298d")
+    total_size_elastic = 500_000
+    facet = AggregationMappings.lrt
+    expected_query = {
+        "query": {
+            "bool": {
+                "filter": [
+                    {"term": {"permissions.Read.keyword": "GROUP_EVERYONE"}},
+                    {"term": {"properties.cm:edu_metadataset.keyword": "mds_oeh"}},
+                    {"term": {"nodeRef.storeRef.protocol": "workspace"}},
+                    {"term": {"type": "ccm:io"}},
+                    {"term": {"collections.path.keyword": node_id}},
+                    {
+                        "terms": {
+                            "properties.ccm:commonlicense_key.keyword": [
+                                "CC_0",
+                                "PDM",
+                                "CC_BY",
+                                "CC_BY_SA",
+                            ]
+                        }
+                    },
+                ]
+            }
+        },
+        "aggs": {
+            "collection_id": {
+                "terms": {
+                    "field": "collections.nodeRef.id.keyword",
+                    "size": total_size_elastic,
+                },
+                "aggs": {
+                    "facet": {
+                        "terms": {
+                            "field": facet,
+                            "size": total_size_elastic,
+                        }
+                    }
+                },
+            }
+        },
+        "size": 0,
+    }
+    search = collection_counts_search(node_id, facet=facet, oer_only=True)
     assert search.to_dict() == expected_query
 
 

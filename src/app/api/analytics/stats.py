@@ -25,7 +25,6 @@ from app.api.analytics.storage import (
     global_store,
 )
 from app.api.collections.models import CollectionNode
-from app.api.collections.oer import oer_ratio
 from app.api.collections.tree import collection_tree
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.models import ElasticResourceAttribute, required_collection_properties
@@ -140,20 +139,15 @@ async def get_ids_to_iterate(node_id: uuid.UUID) -> list[Row]:
 
 
 def query_material_types(
-    node_id: uuid.UUID, oer_only: bool
+    node_id: uuid.UUID, oer_only: bool = False
 ) -> dict[str, CountStatistics]:
-    """
-    get collections with parent id equal to node_id
-
-    portal_id == node_id
-    """
+    # get collections with parent id equal to node_id
+    # portal_id == node_id
     collections = global_storage[_COLLECTIONS]
     collections = filtered_collections(collections, node_id)
 
-    """
-    collection id - learning_resource_type - counts
-    Join filtered collections and filtered counts into one, now
-    """
+    # collection id - learning_resource_type - counts
+    # Join filtered collections and filtered counts into one, now
     stats = {}
 
     counts = global_storage[_COLLECTION_COUNT]
@@ -185,13 +179,17 @@ async def query_search_statistics(
     return {}
 
 
-async def overall_stats(node_id, oer_only: bool = False) -> StatsResponse:
+async def overall_stats(node_id) -> StatsResponse:
     search_stats = await query_search_statistics(node_id=node_id)
     if not search_stats:
         raise StatsNotFoundException
 
-    material_types_stats = query_material_types(node_id, oer_only)
+    material_types_stats = query_material_types(node_id, oer_only=False)
     if not material_types_stats:
+        raise StatsNotFoundException
+
+    material_types_oer_stats = query_material_types(node_id, oer_only=True)
+    if not material_types_oer_stats:
         raise StatsNotFoundException
 
     stats_output = {key: {"search": value} for key, value in search_stats.items()}
@@ -202,9 +200,10 @@ async def overall_stats(node_id, oer_only: bool = False) -> StatsResponse:
         else:
             stats_output.update({key: {"material_types": value}})
 
-    oer = oer_ratio(node_id)
     return StatsResponse(
-        derived_at=datetime.datetime.now(), stats=stats_output, oer_ratio=oer
+        derived_at=datetime.datetime.now(),
+        total_stats=stats_output,
+        oer_stats=stats_output,
     )
 
 

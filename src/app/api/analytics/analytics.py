@@ -40,9 +40,21 @@ CountStatistics = dict[str, int]
 
 
 class StatsResponse(ResponseModel):
+    """
+    In principle this class is a four-dimensional array with the dimension:
+     - collection (node_id, the most outer dictionary keys)
+     - Sammlung|Suche (mid level dictionary keys)
+     - content type (Picture, Video, ..., lowes level keys, within CountStatistics)
+     - total_stats vs oer_stats
+    """
+
     derived_at: datetime
-    stats: dict[str, dict[str, CountStatistics]]
-    oer_ratio: int = Field(ge=0, le=100, description="Overall ratio of OER content")
+    total_stats: dict[
+        str, dict[str, CountStatistics]
+    ]  # node_id: search/material_types: UUID of the material
+    oer_stats: dict[
+        str, dict[str, CountStatistics]
+    ]  # node_id: search/material_types: UUID of the material
 
 
 ValidationStatsT = TypeVar("ValidationStatsT")

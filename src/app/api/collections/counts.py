@@ -10,6 +10,8 @@ from app.core.models import ElasticResourceAttribute
 from app.elastic.elastic import query_materials
 from app.elastic.search import Search
 
+oer_license = ["CC_0", "PDM", "CC_BY", "CC_BY_SA"]
+
 
 class CollectionTreeCount(BaseModel):
     """
@@ -38,6 +40,17 @@ def collection_counts_search(
     node_id: uuid.UUID, facet: AggregationMappings, oer_only: bool = False
 ) -> Search:
     search = Search().base_filters().query(query_materials(node_id=node_id))
+    if oer_only:
+        # Match with keyword for exact match, contrary to direct text matching, which is partial
+        search = search.filter(
+            {
+                "terms": {
+                    f"{ElasticResourceAttribute.LICENSES.path}.keyword": oer_license
+                }
+            }
+        )
+        # search = search.filter(Terms({f"{ElasticResourceAttribute.LICENSES.path}.keyword": oer_license})
+
     material_agg = A(
         "terms", field="collections.nodeRef.id.keyword", size=ELASTIC_TOTAL_SIZE
     )
@@ -51,15 +64,7 @@ def collection_counts_search(
     )
 
     search.aggs.bucket(_AGGREGATION_NAME, material_agg)
-    search = search.source(
-        [
-            ElasticResourceAttribute.NODE_ID.path,
-            ElasticResourceAttribute.COLLECTION_TITLE.path,
-            ElasticResourceAttribute.PATH.path,
-            ElasticResourceAttribute.PARENT_ID.path,
-        ]
-    )[:0]
-    return search
+    return search.extra(size=0)
 
 
 async def collection_counts(

@@ -79,14 +79,10 @@ async def test_overall_stats():
                         )
                     ]
 
-                    with mock.patch(
-                        "app.api.analytics.stats.oer_ratio"
-                    ) as mocked_oer_ratio:
-                        mocked_oer_ratio.return_value = 0
-                        stats = await overall_stats(test_node)
+                    stats = await overall_stats(test_node)
 
-    assert len(stats.stats) == 1
-    first_key_values = stats.stats[list(stats.stats.keys())[0]]
+    assert len(stats.total_stats) == 1
+    first_key_values = stats.total_stats[list(stats.total_stats.keys())[0]]
 
     # assert correct structure
     assert list(first_key_values.keys()) == ["search", "material_types"]
