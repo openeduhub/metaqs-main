@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import uuid
 from typing import Optional, Type, TypeVar
 
@@ -9,11 +11,7 @@ from pydantic import BaseModel, Extra
 from app.api.collections.models import MissingMaterials
 from app.api.collections.utils import all_source_fields, map_elastic_response_to_model
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.models import (
-    _DESCENDANT_COLLECTIONS_MATERIALS_COUNTS,
-    ElasticResourceAttribute,
-    ResponseModel,
-)
+from app.core.models import ElasticResourceAttribute, ResponseModel
 from app.elastic.dsl import aterms, qbool, qmatch
 from app.elastic.elastic import ResourceType, query_materials, type_filter
 from app.elastic.search import Search
@@ -27,6 +25,9 @@ class CollectionMaterialsCount(ResponseModel):
     materials_count: int
 
 
+T = TypeVar("T")
+
+
 # TODO: Refactor
 class DescendantCollectionsMaterialsCounts(BaseModel):
     results: list[CollectionMaterialsCount]
@@ -38,9 +39,9 @@ class DescendantCollectionsMaterialsCounts(BaseModel):
 
     @classmethod
     def parse_elastic_response(
-        cls: Type[_DESCENDANT_COLLECTIONS_MATERIALS_COUNTS],
+        cls: Type[T],
         response: Response,
-    ) -> _DESCENDANT_COLLECTIONS_MATERIALS_COUNTS:
+    ) -> T:
         results = glom(
             response,
             (

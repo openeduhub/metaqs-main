@@ -96,7 +96,7 @@ missing_attributes_source_fields = {
     ElasticResourceAttribute.LICENSES,
     ElasticResourceAttribute.PUBLISHER,
     ElasticResourceAttribute.DESCRIPTION,
-    ElasticResourceAttribute.EDUENDUSERROLE_DE,
+    ElasticResourceAttribute.EDU_ENDUSERROLE_DE,
     ElasticResourceAttribute.EDU_CONTEXT,
     ElasticResourceAttribute.COVER,
     ElasticResourceAttribute.NODE_ID,

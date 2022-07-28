@@ -1,3 +1,4 @@
+import logging
 import os
 
 from starlette.datastructures import CommaSeparatedStrings
@@ -7,7 +8,7 @@ API_PORT = 8081
 ROOT_PATH = os.getenv("ROOT_PATH", "")
 API_DEBUG = False  # os.getenv("LOG_LEVEL", "").strip().lower() == "debug"
 ALLOWED_HOSTS = CommaSeparatedStrings(os.getenv("ALLOWED_HOSTS", "*"))
-LOG_LEVEL = os.getenv("LOG_LEVEL")
+LOG_LEVEL = int(os.getenv("LOG_LEVEL", logging.INFO))
 
 ELASTICSEARCH_URL = os.getenv("ELASTICSEARCH_URL")
 

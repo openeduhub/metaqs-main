@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional, TypeVar
+from typing import Optional
 
 from pydantic import BaseModel, Extra
 
@@ -9,7 +9,39 @@ from app.elastic.dsl import ElasticField, ElasticFieldType
 
 
 class ElasticResourceAttribute(ElasticField):
+    """
+    A class representing the data stored in elastic search.
+    It describes the currently essential parts of the metadata.
+
+    Elasticsearch mixes attributes of collections and materials, both in the main structure (collections, properties),
+    as well as in properties.
+
+    The prefix "cm" indicates data connected to collections and is based on Alfresco.
+    "cclom" connects to materials and is based on LOM specification.
+    "ccm" is an extension of the Alfresco attributes.
+
+    Beware, none of these has been used strictly, there may be mixing.
+
+    """
+
+    ACCESSIBILITY_FIND = (
+        "properties.ccm:oeh_accessibility_find",
+        ElasticFieldType.TEXT,
+    )
+    ACCESSIBILITY_OPEN = (
+        "properties.ccm:oeh_accessibility_open",
+        ElasticFieldType.TEXT,
+    )
+    ACCESSIBILITY_SECURITY = (
+        "properties.ccm:oeh_accessibility_security",
+        ElasticFieldType.TEXT,
+    )
+    ACCESSIBILITY_SUMMARY = (
+        "properties.ccm:accessibilitySummary",
+        ElasticFieldType.TEXT,
+    )
     AGE_RANGE = ("properties.ccm:educationaltypicalagerange", ElasticFieldType.TEXT)
+    AUTHOR = ("properties.ccm:author_freetext", ElasticFieldType.TEXT)
     CLASSIFICATION_KEYWORD = (
         "properties.cclom:classification_keyword",
         ElasticFieldType.TEXT,
@@ -31,19 +63,26 @@ class ElasticResourceAttribute(ElasticField):
     CONTAINS_ADS = ("properties.ccm:containsAdvertisement", ElasticFieldType.TEXT)
     CONTENT_FULLTEXT = ("content.fulltext", ElasticFieldType.TEXT)
     COVER = ("preview", ElasticFieldType.TEXT)
+    CREATED = ("properties.cm:created", ElasticFieldType.TEXT)
     CURRICULUM = ("properties.ccm:curriculum", ElasticFieldType.TEXT)
     DESCRIPTION = ("properties.cclom:general_description", ElasticFieldType.TEXT)
     DURATION = ("properties.cclom:duration", ElasticFieldType.TEXT)
     EDITORIAL_FILE_TYPE = ("virtual:editorial_file_type", ElasticFieldType.TEXT)
+    EDITORIAL_PUBLISHER = (
+        "properties.virtual:editorial_publisher",
+        ElasticFieldType.TEXT,
+    )
     EDU_CONTEXT = ("properties.ccm:educationalcontext", ElasticFieldType.TEXT)
     EDU_CONTEXT_DE = ("i18n.de_DE.ccm:educationalcontext", ElasticFieldType.TEXT)
-    EDUENDUSERROLE_DE = (
+    EDU_ENDUSERROLE_DE = (
         "i18n.de_DE.ccm:educationalintendedenduserrole",
         ElasticFieldType.TEXT,
     )
     EDU_METADATASET = ("properties.cm:edu_metadataset", ElasticFieldType.TEXT)
+    FEEDBACK = ("properties.feedback_comment", ElasticFieldType.TEXT)
     FSK = ("properties.ccm:fskRating", ElasticFieldType.KEYWORD)
     FULLPATH = ("fullpath", ElasticFieldType.KEYWORD)
+    INTEROPERABILITY = ("properties.ccm:oeh_interoperability", ElasticFieldType.TEXT)
     KEYWORDS = ("properties.cclom:general_keyword", ElasticFieldType.TEXT)
     LANGUAGE = ("properties.cclom:general_language", ElasticFieldType.TEXT)
     LANGUAGE_TARGET = ("properties.ccm:oeh_languageTarget", ElasticFieldType.TEXT)
@@ -59,52 +98,77 @@ class ElasticResourceAttribute(ElasticField):
         "properties.cclom:typicallearningtime",
         ElasticFieldType.TEXT,
     )
+    LICENSED_UNTIL = ("properties.ccm:license_to", ElasticFieldType.TEXT)
     LICENSES = ("properties.ccm:commonlicense_key", ElasticFieldType.TEXT)
+
+    LOGIN = ("properties.ccm:oeh_quality_login", ElasticFieldType.TEXT)
+
+    METADATA_CONTRIBUTER_CREATOR = (
+        "properties.ccm:metadatacontributer_creator",
+        ElasticFieldType.TEXT,
+    )
+    METADATA_CONTRIBUTER_VALIDATOR = (
+        "properties.ccm:metadatacontributer_validator",
+        ElasticFieldType.TEXT,
+    )
+    METADATA_CONTRIBUTER_PROVIDER = (
+        "properties.ccm:metadatacontributer_provider",
+        ElasticFieldType.TEXT,
+    )
     MIMETYPE = ("mimetype", ElasticFieldType.TEXT)
+    MODIFIED = ("properties.cm:modified", ElasticFieldType.TEXT)
     NAME = ("properties.cm:name", ElasticFieldType.TEXT)
     NODE_ID = ("nodeRef.id", ElasticFieldType.KEYWORD)
     OBJECT_TYPE = ("properties.ccm:objecttype", ElasticFieldType.TEXT)
     PARENT_ID = ("parentRef.id", ElasticFieldType.KEYWORD)
     PATH = ("path", ElasticFieldType.KEYWORD)
-
-    # todo SORT
-    QUALITY_CRIMINAL_LAW = (
-        "properties.ccm:oeh_quality_criminal_law",
+    PERMISSION_READ = ("permissions.Read", ElasticFieldType.TEXT)
+    PRICE = ("properties.ccm:price", ElasticFieldType.TEXT)
+    PROTOCOL = ("nodeRef.storeRef.protocol", ElasticFieldType.KEYWORD)
+    PUBLISHED = ("properties.ccm:published_date", ElasticFieldType.TEXT)
+    PUBLISHER = ("properties.ccm:oeh_publisher_combined", ElasticFieldType.TEXT)
+    PUBLISHING = (
+        "properties.ccm:lifecyclecontributer_publisher",
         ElasticFieldType.TEXT,
     )
+
+    PUBLISHER_HANDLE = ("properties.ccm:published_handle_id", ElasticFieldType.TEXT)
     QUALITY_COPYRIGHT_LAW = (
         "properties.ccm:oeh_quality_copyright_law",
         ElasticFieldType.TEXT,
     )
-    QUALITY_PROTECTION_OF_MINORS = (
-        "properties.ccm:oeh_quality_protection_of_minors",
-        ElasticFieldType.TEXT,
-    )
-    QUALITY_PERSONAL_LAW = (
-        "properties.ccm:oeh_quality_personal_law",
-        ElasticFieldType.TEXT,
-    )
-    QUALITY_DATA_PRIVACY = (
-        "properties.ccm:oeh_quality_data_privacy",
-        ElasticFieldType.TEXT,
-    )
-
     QUALITY_CORRECTNESS = (
         "properties.ccm:oeh_quality_correctness",
+        ElasticFieldType.TEXT,
+    )
+    QUALITY_CRIMINAL_LAW = (
+        "properties.ccm:oeh_quality_criminal_law",
         ElasticFieldType.TEXT,
     )
     QUALITY_CURRENTNESS = (
         "properties.ccm:oeh_quality_currentness",
         ElasticFieldType.TEXT,
     )
-    QUALITY_NEUTRALNESS = (
-        "properties.ccm:oeh_quality_neutralness",
+    QUALITY_DATA_PRIVACY = (
+        "properties.ccm:oeh_quality_data_privacy",
+        ElasticFieldType.TEXT,
+    )
+    QUALITY_DIAGNOSTICS = (
+        "properties.ccm:oeh_quality_didactics",
         ElasticFieldType.TEXT,
     )
     QUALITY_LANGUAGE = ("properties.ccm:oeh_quality_language", ElasticFieldType.TEXT)
     QUALITY_MEDIAL = ("properties.ccm:oeh_quality_medial", ElasticFieldType.TEXT)
-    QUALITY_DIAGNOSTICS = (
-        "properties.ccm:oeh_quality_didactics",
+    QUALITY_NEUTRALNESS = (
+        "properties.ccm:oeh_quality_neutralness",
+        ElasticFieldType.TEXT,
+    )
+    QUALITY_PERSONAL_LAW = (
+        "properties.ccm:oeh_quality_personal_law",
+        ElasticFieldType.TEXT,
+    )
+    QUALITY_PROTECTION_OF_MINORS = (
+        "properties.ccm:oeh_quality_protection_of_minors",
         ElasticFieldType.TEXT,
     )
     QUALITY_TRANSPARENTNESS = (
@@ -112,54 +176,19 @@ class ElasticResourceAttribute(ElasticField):
         ElasticFieldType.TEXT,
     )
 
-    ACCESSIBILITY_OPEN = (
-        "properties.ccm:oeh_accessibility_open",
-        ElasticFieldType.TEXT,
-    )
-    ACCESSIBILITY_FIND = (
-        "properties.ccm:oeh_accessibility_find",
-        ElasticFieldType.TEXT,
-    )
-    ACCESSIBILITY_SUMMARY = (
-        "properties.ccm:accessibilitySummary",
-        ElasticFieldType.TEXT,
-    )
-    USABILITY = ("properties.ccm:oeh_usability", ElasticFieldType.TEXT)
-    INTEROPERABILITY = ("properties.ccm:oeh_interoperability", ElasticFieldType.TEXT)
-    PRICE = ("properties.ccm:price", ElasticFieldType.TEXT)
-    LOGIN = ("properties.ccm:oeh_quality_login", ElasticFieldType.TEXT)
-    ACCESSIBILITY_SECURITY = (
-        "properties.ccm:oeh_accessibility_security",
-        ElasticFieldType.TEXT,
-    )
-    LICENSED_UNTIL = ("properties.ccm:license_to", ElasticFieldType.TEXT)
-
-    PERMISSION_READ = ("permissions.Read", ElasticFieldType.TEXT)
-    PROTOCOL = ("nodeRef.storeRef.protocol", ElasticFieldType.KEYWORD)
-    PUBLISHER = ("properties.ccm:oeh_publisher_combined", ElasticFieldType.TEXT)
     REPLICATION_SOURCE = ("properties.ccm:replicationsource", ElasticFieldType.TEXT)
     REPLICATION_SOURCE_DE = ("replicationsource", ElasticFieldType.TEXT)
+    SIGNATURES = ("properties.ccm:oeh_signatures", ElasticFieldType.TEXT)
     STATUS = ("properties.cclom:status", ElasticFieldType.TEXT)
     SUBJECTS = ("properties.ccm:taxonid", ElasticFieldType.TEXT)
     SUBJECTS_DE = ("i18n.de_DE.ccm:taxonid", ElasticFieldType.TEXT)
+    SYSTEM_ID = ("properties.sys:node-uuid", ElasticFieldType.TEXT)
     TITLE = ("properties.cclom:title", ElasticFieldType.TEXT)
     TYPE = ("type", ElasticFieldType.KEYWORD)
-    WWW_URL = ("properties.ccm:wwwurl", ElasticFieldType.TEXT)
+    USABILITY = ("properties.ccm:oeh_usability", ElasticFieldType.TEXT)
 
-    AUTHOR = ("properties.ccm:author_freetext", ElasticFieldType.TEXT)
-    EDITORIAL_PUBLISHER = (
-        "properties.virtual:editorial_publisher",
-        ElasticFieldType.TEXT,
-    )
-    PUBLISHED = ("properties.ccm:published_date", ElasticFieldType.TEXT)
-    CREATED = ("properties.cm:created", ElasticFieldType.TEXT)
-    MODIFIED = ("properties.cm:modified", ElasticFieldType.TEXT)
     VERSION = ("properties.cm:versionLabel", ElasticFieldType.TEXT)
-
-    SYSTEM_ID = ("properties.sys:node-uuid", ElasticFieldType.TEXT)
-    PUBLISHER_HANDLE = ("properties.ccm:published_handle_id", ElasticFieldType.TEXT)
-    SIGNATURES = ("properties.ccm:oeh_signatures", ElasticFieldType.TEXT)
-    FEEDBACK = ("properties.feedback_comment", ElasticFieldType.TEXT)
+    WWW_URL = ("properties.ccm:wwwurl", ElasticFieldType.TEXT)
 
 
 class ResponseConfig:
@@ -172,8 +201,9 @@ class ResponseModel(BaseModel):
         pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class SortNode:
+    __slots__ = "title", "path", "children"
     title: str
     path: Optional[ElasticResourceAttribute]
     children: list[SortNode]
@@ -248,7 +278,7 @@ metadata_hierarchy: list[SortNode] = [
         title="Pädagogisch",
         children=[
             SortNode(
-                path=ElasticResourceAttribute.EDUENDUSERROLE_DE,
+                path=ElasticResourceAttribute.EDU_ENDUSERROLE_DE,
                 children=[],
                 title="intended_end_user_role",
             ),
@@ -429,6 +459,11 @@ metadata_hierarchy: list[SortNode] = [
                 title="published_date",
             ),
             SortNode(
+                path=ElasticResourceAttribute.PUBLISHING,
+                children=[],
+                title="publishing",
+            ),
+            SortNode(
                 path=ElasticResourceAttribute.CREATED, children=[], title="created"
             ),
             SortNode(
@@ -473,6 +508,27 @@ metadata_hierarchy: list[SortNode] = [
         ],
         path=None,
     ),
+    SortNode(
+        title="Erschließung und Kuratierung",
+        children=[
+            SortNode(
+                path=ElasticResourceAttribute.METADATA_CONTRIBUTER_CREATOR,
+                children=[],
+                title="creator",
+            ),
+            SortNode(
+                path=ElasticResourceAttribute.METADATA_CONTRIBUTER_PROVIDER,
+                children=[],
+                title="provider",
+            ),
+            SortNode(
+                path=ElasticResourceAttribute.METADATA_CONTRIBUTER_VALIDATOR,
+                children=[],
+                title="validator",
+            ),
+        ],
+        path=None,
+    ),
 ]
 
 required_collection_properties = {
@@ -480,8 +536,3 @@ required_collection_properties = {
     for node in metadata_hierarchy
     for child in node.children
 }
-
-_ELASTIC_RESOURCE = TypeVar("_ELASTIC_RESOURCE")
-_DESCENDANT_COLLECTIONS_MATERIALS_COUNTS = TypeVar(
-    "_DESCENDANT_COLLECTIONS_MATERIALS_COUNTS"
-)

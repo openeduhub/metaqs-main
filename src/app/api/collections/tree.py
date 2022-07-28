@@ -41,7 +41,15 @@ def build_hierarchy(
 
 
 def tree_search(node_id: uuid.UUID) -> Search:
-    s = Search().base_filters().query(qbool(filter=qterm(qfield="path", value=node_id)))
+    s = (
+        Search()
+        .base_filters()
+        .query(
+            qbool(
+                filter=qterm(qfield=ElasticResourceAttribute.PATH.path, value=node_id)
+            )
+        )
+    )
     s = s.source(
         [
             ElasticResourceAttribute.NODE_ID.path,
@@ -49,7 +57,7 @@ def tree_search(node_id: uuid.UUID) -> Search:
             ElasticResourceAttribute.COLLECTION_PATH.path,
             ElasticResourceAttribute.PARENT_ID.path,
         ]
-    ).sort("fullpath")[:ELASTIC_TOTAL_SIZE]
+    ).sort(ElasticResourceAttribute.FULLPATH.path)[:ELASTIC_TOTAL_SIZE]
     return s
 
 

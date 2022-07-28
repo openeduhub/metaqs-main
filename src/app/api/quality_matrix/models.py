@@ -9,7 +9,7 @@ from sqlalchemy.orm import declarative_base
 
 @dataclass(frozen=True)
 class QualityOutput:
-    metadatum: str
+    row_header: str
     level: Optional[
         int
     ]  # Needs to be optional since timeline database does not have levels - yet
@@ -17,7 +17,7 @@ class QualityOutput:
 
 
 class QualityOutputModel(BaseModel):
-    metadatum: str = Field(default="", description="Name of the evaluated metadatum.")
+    row_header: str = Field(default="", description="Name of the evaluated metadatum.")
     level: int = Field(default=1, description="Hierarchy level of this metadatum")
     columns: dict[str, float] = Field(
         description="The ratio of quality for the required columns."

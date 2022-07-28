@@ -56,7 +56,7 @@ def search_materials(query_str: str) -> Query:
             ElasticResourceAttribute.SUBJECTS_DE,
             ElasticResourceAttribute.LEARNINGRESOURCE_TYPE_DE,
             ElasticResourceAttribute.EDU_CONTEXT_DE,
-            ElasticResourceAttribute.EDUENDUSERROLE_DE,
+            ElasticResourceAttribute.EDU_ENDUSERROLE_DE,
         ],
         default_operator="and",
     )

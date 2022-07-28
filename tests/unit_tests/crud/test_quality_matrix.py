@@ -50,7 +50,7 @@ async def test_get_quality_matrix_no_sources_no_properties():
             mocked_get_properties.return_value = []
             mocked_get_sourced.return_value = {}
             quality, _ = await source_quality()
-            assert len(quality) == 9
+            assert len(quality) == 10
             assert quality[0].columns == {}
 
 
@@ -65,7 +65,7 @@ async def test_get_quality_matrix_no_sources():
             mocked_get_properties.return_value = ["dummy_properties"]
             mocked_get_sourced.return_value = {}
             quality, _ = await source_quality()
-            assert len(quality) == 9
+            assert len(quality) == 10
             assert quality[0].columns == {}
 
 
@@ -88,7 +88,7 @@ async def test_get_quality_matrix():
                 mocked_all_missing_properties.return_value = mocked_response
 
                 quality, _ = await source_quality()
-                assert len(quality) == 10
+                assert len(quality) == 11
 
                 assert quality[0].columns == {}
 
@@ -249,7 +249,7 @@ def compare_lists_of_dict(expected, actually) -> bool:
 def test_transpose():
     data = [
         QualityOutput(
-            metadatum="virtual",
+            row_header="virtual",
             columns={
                 "00abdb05-6c96-4604-831c-b9846eae7d2d": 13.0,
                 "3305f552-c931-4bcc-842b-939c99752bd5": 20.0,
@@ -258,29 +258,29 @@ def test_transpose():
             level=2,
         )
     ]
-    total = {
-        "00abdb05-6c96-4604-831c-b9846eae7d2d": 13.0,
-        "3305f552-c931-4bcc-842b-939c99752bd5": 20.0,
-        "35054614-72c8-49b2-9924-7b04c7f3bf71": -10.0,
-    }
+    columns = [
+        "00abdb05-6c96-4604-831c-b9846eae7d2d",
+        "3305f552-c931-4bcc-842b-939c99752bd5",
+        "35054614-72c8-49b2-9924-7b04c7f3bf71",
+    ]
 
-    assert transpose(data, total) == [
+    assert transpose(data, columns) == [
         QualityOutput(
-            metadatum="00abdb05-6c96-4604-831c-b9846eae7d2d",
+            row_header="00abdb05-6c96-4604-831c-b9846eae7d2d",
             columns={
                 "virtual": 13.0,
             },
             level=2,
         ),
         QualityOutput(
-            metadatum="3305f552-c931-4bcc-842b-939c99752bd5",
+            row_header="3305f552-c931-4bcc-842b-939c99752bd5",
             columns={
                 "virtual": 20.0,
             },
             level=2,
         ),
         QualityOutput(
-            metadatum="35054614-72c8-49b2-9924-7b04c7f3bf71",
+            row_header="35054614-72c8-49b2-9924-7b04c7f3bf71",
             columns={
                 "virtual": -10.0,
             },
@@ -290,7 +290,7 @@ def test_transpose():
 
     data = [
         QualityOutput(
-            metadatum="virtual",
+            row_header="virtual",
             columns={
                 "00abdb05-6c96-4604-831c-b9846eae7d2d": 13.0,
                 "3305f552-c931-4bcc-842b-939c99752bd5": 20.0,
@@ -299,7 +299,7 @@ def test_transpose():
             level=2,
         ),
         QualityOutput(
-            metadatum="actually",
+            row_header="actually",
             columns={
                 "00abdb05-6c96-4604-831c-b9846eae7d2d": 20,
                 "3305f552-c931-4bcc-842b-939c99752bd5": 21,
@@ -309,25 +309,19 @@ def test_transpose():
         ),
     ]
 
-    total = {
-        "00abdb05-6c96-4604-831c-b9846eae7d2d": 13.0,
-        "3305f552-c931-4bcc-842b-939c99752bd5": 20.0,
-        "35054614-72c8-49b2-9924-7b04c7f3bf71": -10.0,
-    }
-
-    assert transpose(data, total) == [
+    assert transpose(data, columns) == [
         QualityOutput(
-            metadatum="00abdb05-6c96-4604-831c-b9846eae7d2d",
+            row_header="00abdb05-6c96-4604-831c-b9846eae7d2d",
             columns={"virtual": 13.0, "actually": 20},
             level=2,
         ),
         QualityOutput(
-            metadatum="3305f552-c931-4bcc-842b-939c99752bd5",
+            row_header="3305f552-c931-4bcc-842b-939c99752bd5",
             columns={"virtual": 20.0, "actually": 21},
             level=2,
         ),
         QualityOutput(
-            metadatum="35054614-72c8-49b2-9924-7b04c7f3bf71",
+            row_header="35054614-72c8-49b2-9924-7b04c7f3bf71",
             columns={"virtual": -10.0, "actually": -1},
             level=2,
         ),
