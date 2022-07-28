@@ -108,7 +108,7 @@ def run():
         Row(id=uuid.UUID(value), title=key)
         for key, value in COLLECTION_NAME_TO_ID.items()
     ]
-    logger.info("Tree ready to iterate. Length: ", len(all_collections))
+    logger.info(f"Tree ready to iterate. Length: {len(all_collections)}")
 
     # TODO Refactor, this is very expensive
     search_store = []
