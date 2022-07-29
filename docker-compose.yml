@@ -79,7 +79,7 @@ services:
     environment:
       ROOT_PATH: "/api"
       ALLOWED_HOSTS: "${ALLOWED_HOSTS:-*}"
-      LOG_LEVEL: "${LOG_LEVEL:-debug}"
+      LOG_LEVEL: "${LOG_LEVEL:-20}"
       LOGGER: uvicorn
       ELASTICSEARCH_URL: "${ELASTICSEARCH_URL:-http://10.254.1.31:9200}"
       ELASTICSEARCH_TIMEOUT: 20
@@ -95,7 +95,7 @@ services:
     environment:
       ROOT_PATH: "/yovisto"
       ALLOWED_HOSTS: "${ALLOWED_HOSTS:-*}"
-      LOG_LEVEL: "${LOG_LEVEL:-debug}"
+      LOG_LEVEL: "${LOG_LEVEL:-20}"
       LOGGER: uvicorn
       WANT_RETRAINING: "${WANT_RETRAINING:-true}"
     command: bash -c "uvicorn --host 0.0.0.0 --port 80 --reload main:app"

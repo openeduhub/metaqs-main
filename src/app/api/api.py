@@ -334,9 +334,8 @@ async def material_counts_tree(
 async def read_stats(
     *,
     node_id: uuid.UUID = Depends(node_ids_for_major_collections),
-    oer_only: bool = Query(default=False),
 ):
-    return await overall_stats(node_id, oer_only)
+    return await overall_stats(node_id)
 
 
 @router.get(

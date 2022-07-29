@@ -50,7 +50,7 @@ async def test_get_quality_matrix_no_sources_no_properties():
             mocked_get_properties.return_value = []
             mocked_get_sourced.return_value = {}
             quality, _ = await source_quality()
-            assert len(quality) == 10
+            assert len(quality) == 11
             assert quality[0].columns == {}
 
 
@@ -65,7 +65,7 @@ async def test_get_quality_matrix_no_sources():
             mocked_get_properties.return_value = ["dummy_properties"]
             mocked_get_sourced.return_value = {}
             quality, _ = await source_quality()
-            assert len(quality) == 10
+            assert len(quality) == 11
             assert quality[0].columns == {}
 
 
@@ -88,7 +88,7 @@ async def test_get_quality_matrix():
                 mocked_all_missing_properties.return_value = mocked_response
 
                 quality, _ = await source_quality()
-                assert len(quality) == 11
+                assert len(quality) == 12
 
                 assert quality[0].columns == {}
 
@@ -152,6 +152,7 @@ def test_create_empty_entries_search():
 
 def test_create_sources_search():
     aggregation_name = "dummy_aggregation"
+    dummy_uuid = uuid.uuid4()
     expected_search = {
         "query": {
             "bool": {
@@ -159,6 +160,8 @@ def test_create_sources_search():
                     {"term": {"permissions.Read.keyword": "GROUP_EVERYONE"}},
                     {"term": {"properties.cm:edu_metadataset.keyword": "mds_oeh"}},
                     {"term": {"nodeRef.storeRef.protocol": "workspace"}},
+                    {"term": {"type": "ccm:io"}},
+                    {"term": {"path": dummy_uuid}},
                 ]
             }
         },
@@ -171,7 +174,9 @@ def test_create_sources_search():
             }
         },
     }
-    assert create_sources_search(aggregation_name).to_dict() == expected_search
+    assert (
+        create_sources_search(aggregation_name, dummy_uuid).to_dict() == expected_search
+    )
 
 
 @pytest.mark.skip(reason="Cannot mock Hit properly,yet. TODO")
