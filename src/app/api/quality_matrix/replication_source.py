@@ -14,21 +14,27 @@ from app.core.models import (
     required_collection_properties,
 )
 from app.elastic.dsl import qbool, qmatch
+from app.elastic.elastic import ResourceType, type_filter
 from app.elastic.search import Search
 
 PROPERTY_TYPE = list[str]
 PROPERTIES = "properties"
 
 
-def create_sources_search(aggregation_name: str) -> Search:
-    s = Search().base_filters()
-    s.aggs.bucket(
+def create_sources_search(aggregation_name: str, node_id: uuid.UUID) -> Search:
+    search = (
+        Search()
+        .base_filters()
+        .filter(*type_filter[ResourceType.MATERIAL])
+        .filter(Q("term", **{f"{ElasticResourceAttribute.PATH.path}": node_id}))
+    )
+    search.aggs.bucket(
         aggregation_name,
         "terms",
         field=f"{ElasticResourceAttribute.REPLICATION_SOURCE.path}.keyword",
         size=ELASTIC_TOTAL_SIZE,
     )
-    return s
+    return search
 
 
 def extract_sources_from_response(
@@ -40,9 +46,9 @@ def extract_sources_from_response(
     }
 
 
-def all_sources() -> dict[str, int]:
+def all_sources(node_id: uuid.UUID) -> dict[str, int]:
     aggregation_name = "unique_sources"
-    s = create_sources_search(aggregation_name)
+    s = create_sources_search(aggregation_name, node_id)
     response: Response = s.execute()
     return extract_sources_from_response(
         response=response, aggregation_name=aggregation_name
@@ -121,7 +127,7 @@ async def source_quality(
     match_keyword: str = ElasticResourceAttribute.REPLICATION_SOURCE.path,
 ) -> tuple[list[QualityOutput], dict[str, int]]:
     properties = get_properties()
-    columns = all_sources()
+    columns = all_sources(node_id)
     mapping = {key: key for key in columns.keys()}  # identity mapping
     quality = await _quality_matrix(
         columns, mapping, match_keyword, node_id, properties
