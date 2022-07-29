@@ -181,6 +181,12 @@ async def query_search_statistics(
 
 
 async def overall_stats(node_id: uuid.UUID) -> StatsResponse:
+    """
+    Calculating tree search counts
+
+    :param node_id:
+    :return:
+    """
     search_stats = await query_search_statistics(node_id=node_id)
     if not search_stats:
         raise StatsNotFoundException
