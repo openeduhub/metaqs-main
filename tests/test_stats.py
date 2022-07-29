@@ -79,7 +79,11 @@ async def test_overall_stats():
                         )
                     ]
 
-                    stats = await overall_stats(test_node)
+                    with mock.patch(
+                        "app.api.analytics.stats.oer_ratio"
+                    ) as mocked_oer_ratio:
+                        mocked_oer_ratio.return_value = 0
+                        stats = await overall_stats(uuid.UUID(test_node))
 
     assert len(stats.total_stats) == 1
     first_key_values = stats.total_stats[list(stats.total_stats.keys())[0]]
