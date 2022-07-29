@@ -25,6 +25,7 @@ from app.api.analytics.storage import (
     global_store,
 )
 from app.api.collections.models import CollectionNode
+from app.api.collections.oer import oer_ratio
 from app.api.collections.tree import collection_tree
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.models import ElasticResourceAttribute, required_collection_properties
@@ -179,7 +180,7 @@ async def query_search_statistics(
     return {}
 
 
-async def overall_stats(node_id) -> StatsResponse:
+async def overall_stats(node_id: uuid.UUID) -> StatsResponse:
     search_stats = await query_search_statistics(node_id=node_id)
     if not search_stats:
         raise StatsNotFoundException
@@ -204,6 +205,7 @@ async def overall_stats(node_id) -> StatsResponse:
         derived_at=datetime.datetime.now(),
         total_stats=stats_output,
         oer_stats=stats_output,
+        oer_ratio=oer_ratio(node_id),
     )
 
 
