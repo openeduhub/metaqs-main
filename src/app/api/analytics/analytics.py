@@ -55,6 +55,7 @@ class StatsResponse(ResponseModel):
     oer_stats: dict[
         str, dict[str, CountStatistics]
     ]  # node_id: search/material_types: UUID of the material
+    oer_ratio: int = Field(default=0)
 
 
 ValidationStatsT = TypeVar("ValidationStatsT")
