@@ -28,7 +28,20 @@ def test_missing_materials_search():
                             "must_not": [{"term": {"aspects": "ccm:io_childobject"}}]
                         }
                     },
-                    {"term": {"content.mimetype.keyword": "text/plain"}},
+                    {
+                        "terms": {
+                            "content.mimetype.keyword": [
+                                "text/plain",
+                                "application/pdf",
+                                "application/msword",
+                                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                                "application/vnd.oasis.opendocument.text",
+                                "text/html",
+                                "application/vnd.ms-powerpoint",
+                            ]
+                        }
+                    },
                 ],
                 "should": [
                     {"match": {"collections.path": dummy_uuid}},
@@ -79,13 +92,6 @@ def test_missing_materials_search_license():
                     {"term": {"permissions.Read.keyword": "GROUP_EVERYONE"}},
                     {"term": {"properties.cm:edu_metadataset.keyword": "mds_oeh"}},
                     {"term": {"nodeRef.storeRef.protocol": "workspace"}},
-                    {"term": {"type": "ccm:io"}},
-                    {
-                        "bool": {
-                            "must_not": [{"term": {"aspects": "ccm:io_childobject"}}]
-                        }
-                    },
-                    {"term": {"content.mimetype.keyword": "text/plain"}},
                     {
                         "bool": {
                             "should": [
@@ -108,6 +114,26 @@ def test_missing_materials_search_license():
                                 },
                             ],
                             "minimum_should_match": 1,
+                        }
+                    },
+                    {"term": {"type": "ccm:io"}},
+                    {
+                        "bool": {
+                            "must_not": [{"term": {"aspects": "ccm:io_childobject"}}]
+                        }
+                    },
+                    {
+                        "terms": {
+                            "content.mimetype.keyword": [
+                                "text/plain",
+                                "application/pdf",
+                                "application/msword",
+                                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                                "application/vnd.oasis.opendocument.text",
+                                "text/html",
+                                "application/vnd.ms-powerpoint",
+                            ]
                         }
                     },
                 ],

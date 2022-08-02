@@ -1,7 +1,7 @@
 import uuid
 from enum import Enum
 
-from elasticsearch_dsl.query import Query
+from elasticsearch_dsl.query import Query, Term
 
 from app.core.models import ElasticResourceAttribute
 from app.elastic.dsl import qbool, qboolor, qnotexists, qterm, qterms
@@ -14,10 +14,10 @@ class ResourceType(str, Enum):
 
 type_filter = {
     ResourceType.COLLECTION: [
-        qterm(qfield=ElasticResourceAttribute.TYPE, value="ccm:map"),
+        Term(**{ElasticResourceAttribute.TYPE.path: "ccm:map"}),
     ],
     ResourceType.MATERIAL: [
-        qterm(qfield=ElasticResourceAttribute.TYPE, value="ccm:io"),
+        Term(**{ElasticResourceAttribute.TYPE.path: "ccm:io"}),
     ],
 }
 

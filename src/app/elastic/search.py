@@ -1,12 +1,14 @@
 from pprint import pformat
 
 import elasticsearch_dsl
+from elasticsearch_dsl.query import Term
 from elasticsearch_dsl.response import Response
 
 from app.core.config import ELASTIC_INDEX
 from app.core.logging import logger
 from app.core.models import ElasticResourceAttribute
 from app.elastic.dsl import qterm
+from app.elastic.elastic import ResourceType
 
 
 class Search(elasticsearch_dsl.Search):
@@ -26,6 +28,16 @@ class Search(elasticsearch_dsl.Search):
             return search
 
         return add_base_filters(self)
+
+    def type_filter(self, resource_type: ResourceType):
+        def add_filter(search: Search, entry: Term) -> Search:
+            return search.filter(entry)
+
+        if resource_type == ResourceType.COLLECTION:
+            return add_filter(
+                self, Term(**{ElasticResourceAttribute.TYPE.path: "ccm:map"})
+            )
+        return add_filter(self, Term(**{ElasticResourceAttribute.TYPE.path: "ccm:io"}))
 
     def execute(self, ignore_cache=False) -> Response:
         logger.debug(f"Sending query to elastic:\n{pformat(self.to_dict())}")

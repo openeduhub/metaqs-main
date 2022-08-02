@@ -11,11 +11,7 @@ from app.api.collections.utils import map_elastic_response_to_model
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.models import ElasticResourceAttribute, ResponseModel
 from app.elastic.dsl import ElasticField, qbool, qmatch
-from app.elastic.elastic import (
-    ResourceType,
-    query_missing_material_license,
-    type_filter,
-)
+from app.elastic.elastic import ResourceType, query_missing_material_license
 from app.elastic.search import Search
 
 
@@ -131,11 +127,26 @@ def missing_attributes_search(
             qmatch(**{"collections.path": node_id}),
             qmatch(**{"collections.nodeRef.id": node_id}),
         ],
-        "filter": [
-            *type_filter[
-                ResourceType.MATERIAL
-            ].copy(),  # copy otherwise appending the query causes mutation
-            Q("bool", **{"must_not": [{"term": {"aspects": "ccm:io_childobject"}}]}),
+        "filter": [],
+    }
+    if missing_attribute == ElasticResourceAttribute.LICENSES.path:
+        query["filter"].append(query_missing_material_license().to_dict())
+    else:
+        query.update(
+            {
+                "must_not": Q("wildcard", **{missing_attribute: {"value": "*"}}),
+            }
+        )
+
+    return (
+        Search()
+        .base_filters()
+        .query(qbool(**query))
+        .type_filter(ResourceType.MATERIAL)
+        .filter(
+            Q("bool", **{"must_not": [{"term": {"aspects": "ccm:io_childobject"}}]})
+        )
+        .filter(
             Q(
                 {
                     "terms": {
@@ -152,21 +163,7 @@ def missing_attributes_search(
                     }
                 }
             ),
-        ],
-    }
-    if missing_attribute == ElasticResourceAttribute.LICENSES.path:
-        query["filter"].append(query_missing_material_license().to_dict())
-    else:
-        query.update(
-            {
-                "must_not": Q("wildcard", **{missing_attribute: {"value": "*"}}),
-            }
         )
-
-    return (
-        Search()
-        .base_filters()
-        .query(qbool(**query))
         .source(includes=[source.path for source in missing_attributes_source_fields])[
             :max_hits
         ]
