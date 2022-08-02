@@ -45,9 +45,7 @@ def background_task():
     run()
 
 
-def import_data_from_elasticsearch(
-    derived_at: datetime, query: Callable, path: str, storage_path: str
-):
+def import_data_from_elasticsearch(derived_at: datetime, query: Callable, path: str):
     search = search_query(query, path)
 
     seen = set()
@@ -63,7 +61,7 @@ def import_data_from_elasticsearch(
                     derived_at=derived_at,
                 )
             )
-    app.api.analytics.storage.global_storage[storage_path] = collections
+    return collections
 
 
 def search_query(query: Callable, path: str) -> Search:
@@ -81,18 +79,20 @@ def run():
     derived_at = datetime.now()
     logger.info(f"{os.getpid()}: Starting analytics import at: {derived_at}")
 
-    import_data_from_elasticsearch(
+    app.api.analytics.storage.global_storage[
+        _COLLECTIONS
+    ] = import_data_from_elasticsearch(
         derived_at=derived_at,
-        query=query_collections,
+        query=lambda node_id: query_many(ResourceType.COLLECTION, node_id),
         path=ElasticResourceAttribute.PATH.path,
-        storage_path=_COLLECTIONS,
     )
 
-    import_data_from_elasticsearch(
+    app.api.analytics.storage.global_storage[
+        _MATERIALS
+    ] = import_data_from_elasticsearch(
         derived_at=derived_at,
-        query=query_materials,
+        query=lambda node_id: query_many(ResourceType.MATERIAL, node_id),
         path=ElasticResourceAttribute.COLLECTION_NODEREF_ID.path,
-        storage_path=_MATERIALS,
     )
 
     logger.info("Collection and materials imported")

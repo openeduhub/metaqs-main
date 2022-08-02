@@ -35,14 +35,6 @@ def query_many(resource_type: ResourceType, node_id: uuid.UUID = None) -> Query:
     return qbool(filter=qfilter)
 
 
-def query_collections(node_id: uuid.UUID = None) -> Query:
-    return query_many(ResourceType.COLLECTION, node_id=node_id)
-
-
-def query_materials(node_id: uuid.UUID = None) -> Query:
-    return query_many(ResourceType.MATERIAL, node_id=node_id)
-
-
 def query_missing_material_license() -> Query:
     qfield = ElasticResourceAttribute.LICENSES
     return qboolor(

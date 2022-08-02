@@ -1,10 +1,12 @@
 from app.api.analytics.background_task import search_query
 from app.core.models import required_collection_properties
-from app.elastic.elastic import query_collections, query_materials
+from app.elastic.elastic import ResourceType, query_many
 
 
 def test_search_query_collections():
-    query = search_query(query_collections, "path")
+    query = search_query(
+        lambda node_id: query_many(ResourceType.COLLECTION, node_id), "path"
+    )
     query_dict = query.to_dict()
 
     assert len(query_dict["_source"]["includes"]) == 63

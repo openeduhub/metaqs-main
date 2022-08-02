@@ -51,6 +51,11 @@ def calc_weighted_score(collection_scores: dict, material_scores: dict) -> int:
 
 
 def get_score_search(node_id: uuid.UUID, resource_type: ResourceType) -> Search:
+    search = (
+        Search()
+        .base_filters()
+        .query(query_many(resource_type=resource_type, node_id=node_id))
+    )
     if resource_type is ResourceType.COLLECTION:
         aggs = aggs_collection_validation
     else:  # ResourceType.MATERIAL

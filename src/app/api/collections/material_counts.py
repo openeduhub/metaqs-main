@@ -13,7 +13,7 @@ from app.api.collections.utils import all_source_fields, map_elastic_response_to
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.models import ElasticResourceAttribute, ResponseModel
 from app.elastic.dsl import aterms, qbool, qmatch
-from app.elastic.elastic import ResourceType, query_materials, type_filter
+from app.elastic.elastic import ResourceType, query_many, type_filter
 from app.elastic.search import Search
 
 _COLLECTION = TypeVar("_COLLECTION")
@@ -81,7 +81,11 @@ def material_counts_by_children(
 
 
 def material_counts_search(node_id: uuid.UUID):
-    s = Search().base_filters().query(query_materials(node_id=node_id))
+    s = (
+        Search()
+        .base_filters()
+        .query(query_many(resource_type=ResourceType.MATERIAL, node_id=node_id))
+    )
     s.aggs.bucket("grouped_by_collection", agg_materials_by_collection()).pipeline(
         "sorted_by_count",
         A("bucket_sort", sort=[{"_count": {"order": "asc"}}]),
