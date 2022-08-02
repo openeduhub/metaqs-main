@@ -210,6 +210,8 @@ async def overall_stats(node_id: uuid.UUID) -> StatsResponse:
     :param node_id:
     :return:
     """
+
+    # TODO: Refactor this, doubles everywhere
     search_stats = await query_search_statistics(node_id=node_id)
     if not search_stats:
         raise StatsNotFoundException
