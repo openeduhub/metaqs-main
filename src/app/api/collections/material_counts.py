@@ -13,7 +13,7 @@ from app.api.collections.utils import all_source_fields, map_elastic_response_to
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.models import ElasticResourceAttribute, ResponseModel
 from app.elastic.dsl import aterms, qbool, qmatch
-from app.elastic.elastic import ResourceType, query_many, type_filter
+from app.elastic.elastic import ResourceType, query_many
 from app.elastic.search import Search
 
 _COLLECTION = TypeVar("_COLLECTION")
@@ -84,6 +84,7 @@ def material_counts_search(node_id: uuid.UUID):
     s = (
         Search()
         .base_filters()
+        .type_filter(resource_type=ResourceType.MATERIAL)
         .query(query_many(resource_type=ResourceType.MATERIAL, node_id=node_id))
     )
     s.aggs.bucket("grouped_by_collection", agg_materials_by_collection()).pipeline(
@@ -116,7 +117,6 @@ material_counts_spec = {
 
 def descendants_search(node_id: uuid.UUID, max_hits: int):
     query = {
-        "filter": [*type_filter[ResourceType.COLLECTION]],
         "minimum_should_match": 1,
         "should": [
             qmatch(**{"path": node_id}),
@@ -127,6 +127,7 @@ def descendants_search(node_id: uuid.UUID, max_hits: int):
         Search()
         .base_filters()
         .query(qbool(**query))
+        .type_filter(ResourceType.COLLECTION)
         .source(includes=[source.path for source in all_source_fields])[:max_hits]
     )
 

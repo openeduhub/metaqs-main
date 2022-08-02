@@ -11,7 +11,7 @@ from app.api.collections.utils import all_source_fields, map_elastic_response_to
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.models import ElasticResourceAttribute
 from app.elastic.dsl import qbool, qmatch
-from app.elastic.elastic import ResourceType, type_filter
+from app.elastic.elastic import ResourceType
 from app.elastic.search import Search
 
 missing_attribute_filter = [
@@ -48,7 +48,6 @@ def missing_attributes_search(
     node_id: uuid.UUID, missing_attribute: str, max_hits: int
 ) -> Search:
     query = {
-        "filter": [*type_filter[ResourceType.COLLECTION]],
         "minimum_should_match": 1,
         "should": [
             qmatch(**{"path": node_id}),
@@ -61,6 +60,7 @@ def missing_attributes_search(
         Search()
         .base_filters()
         .query(qbool(**query))
+        .type_filter(ResourceType.COLLECTION)
         .source(includes=[source.path for source in all_source_fields])[:max_hits]
     )
 

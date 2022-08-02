@@ -54,6 +54,7 @@ def get_score_search(node_id: uuid.UUID, resource_type: ResourceType) -> Search:
     search = (
         Search()
         .base_filters()
+        .type_filter(resource_type=resource_type)
         .query(query_many(resource_type=resource_type, node_id=node_id))
     )
     if resource_type is ResourceType.COLLECTION:

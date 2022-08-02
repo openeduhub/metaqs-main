@@ -2,7 +2,6 @@ import asyncio
 import os
 import uuid
 from datetime import datetime
-from typing import Callable
 
 from fastapi import APIRouter
 from fastapi_utils.tasks import repeat_every
@@ -45,8 +44,10 @@ def background_task():
     run()
 
 
-def import_data_from_elasticsearch(derived_at: datetime, query: Callable, path: str):
-    search = search_query(query, path)
+def import_data_from_elasticsearch(
+    derived_at: datetime, resource_type: ResourceType, path: str
+):
+    search = search_query(resource_type=resource_type, path=path)
 
     seen = set()
     collections = []
@@ -64,10 +65,11 @@ def import_data_from_elasticsearch(derived_at: datetime, query: Callable, path: 
     return collections
 
 
-def search_query(query: Callable, path: str) -> Search:
+def search_query(resource_type: ResourceType, path: str) -> Search:
     search = (
         Search()
-        .query(query(node_id=COLLECTION_ROOT_ID))
+        .type_filter(resource_type)
+        .query(query_many(resource_type=resource_type, node_id=COLLECTION_ROOT_ID))
         .source(
             includes=["nodeRef.*", path, *list(required_collection_properties.keys())]
         )
@@ -83,7 +85,7 @@ def run():
         _COLLECTIONS
     ] = import_data_from_elasticsearch(
         derived_at=derived_at,
-        query=lambda node_id: query_many(ResourceType.COLLECTION, node_id),
+        resource_type=ResourceType.COLLECTION,
         path=ElasticResourceAttribute.PATH.path,
     )
 
@@ -91,7 +93,7 @@ def run():
         _MATERIALS
     ] = import_data_from_elasticsearch(
         derived_at=derived_at,
-        query=lambda node_id: query_many(ResourceType.MATERIAL, node_id),
+        resource_type=ResourceType.MATERIAL,
         path=ElasticResourceAttribute.COLLECTION_NODEREF_ID.path,
     )
 

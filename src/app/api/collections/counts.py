@@ -42,6 +42,7 @@ def collection_counts_search(
     search = (
         Search()
         .base_filters()
+        .type_filter(resource_type=ResourceType.MATERIAL)
         .query(query_many(resource_type=ResourceType.MATERIAL, node_id=node_id))
     )
     if oer_only:

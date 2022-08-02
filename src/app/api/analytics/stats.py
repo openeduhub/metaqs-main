@@ -96,7 +96,7 @@ def build_material_search(query_string: str):
     s = (
         Search()
         .base_filters()
-        .query(query_many(resource_type=ResourceType.MATERIAL))
+        .type_filter(resource_type=ResourceType.MATERIAL)
         .query(search_materials(query_string))
     )
     s.aggs.bucket("material_types", agg_material_types())

@@ -1,7 +1,7 @@
 import uuid
 from enum import Enum
 
-from elasticsearch_dsl.query import Query, Term
+from elasticsearch_dsl.query import Query
 
 from app.core.models import ElasticResourceAttribute
 from app.elastic.dsl import qbool, qboolor, qnotexists, qterm, qterms
@@ -12,18 +12,8 @@ class ResourceType(str, Enum):
     MATERIAL = "MATERIAL"
 
 
-type_filter = {
-    ResourceType.COLLECTION: [
-        Term(**{ElasticResourceAttribute.TYPE.path: "ccm:map"}),
-    ],
-    ResourceType.MATERIAL: [
-        Term(**{ElasticResourceAttribute.TYPE.path: "ccm:io"}),
-    ],
-}
-
-
 def query_many(resource_type: ResourceType, node_id: uuid.UUID = None) -> Query:
-    qfilter = [*type_filter[resource_type]]
+    qfilter = []
     if node_id:
         if resource_type is ResourceType.COLLECTION:
             qfilter.append(qterm(qfield=ElasticResourceAttribute.PATH, value=node_id))
