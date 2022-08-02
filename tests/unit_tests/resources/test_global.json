@@ -30,6 +30,15 @@
       }
     }
   ],
+  "counts_oer": [
+    {
+      "noderef_id": "f3dc9ea1-d608-4b4e-a78c-98063a3e8461",
+      "total": 18025,
+      "counts": {
+        "test_lrt": 3
+      }
+    }
+  ],
   "materials": [
     {
       "id": "263afc5b-6445-4a5a-b014-a77f1db473b9",

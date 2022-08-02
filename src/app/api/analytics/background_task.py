@@ -113,6 +113,7 @@ def run():
 
     # TODO Refactor, this is very expensive
     search_store = []
+    oer_search_store = []
     for row in all_collections:
         sub_collections: list[Row] = asyncio.run(get_ids_to_iterate(node_id=row.id))
         logger.info(f"Working on: {row.title}, {len(sub_collections)}")
@@ -124,6 +125,16 @@ def run():
             SearchStore(node_id=row.id, missing_materials=missing_materials)
         )
 
+        missing_materials = {
+            sub.id: search_hits_by_material_type(sub.title, oer_only=True)
+            for sub in sub_collections
+        }
+
+        oer_search_store.append(
+            SearchStore(node_id=row.id, missing_materials=missing_materials)
+        )
+
     global_store.search = search_store
+    global_store.oer_search = oer_search_store
 
     logger.info("Background task done")
