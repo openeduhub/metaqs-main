@@ -150,7 +150,7 @@ def missing_attributes_search(
             Q(
                 {
                     "terms": {
-                        "content.mimetype.keyword": [
+                        f"{ElasticResourceAttribute.MIMETYPE.path}.keyword": [
                             "text/plain",
                             "application/pdf",
                             "application/msword",

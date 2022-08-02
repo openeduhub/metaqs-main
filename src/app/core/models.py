@@ -115,7 +115,7 @@ class ElasticResourceAttribute(ElasticField):
         "properties.ccm:metadatacontributer_provider",
         ElasticFieldType.TEXT,
     )
-    MIMETYPE = ("mimetype", ElasticFieldType.TEXT)
+    MIMETYPE = ("content.mimetype", ElasticFieldType.TEXT)
     MODIFIED = ("properties.cm:modified", ElasticFieldType.TEXT)
     NAME = ("properties.cm:name", ElasticFieldType.TEXT)
     NODE_ID = ("nodeRef.id", ElasticFieldType.KEYWORD)
