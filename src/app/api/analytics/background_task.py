@@ -28,7 +28,7 @@ from app.core.config import BACKGROUND_TASK_TIME_INTERVAL
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.core.logging import logger
 from app.core.models import ElasticResourceAttribute, required_collection_properties
-from app.elastic.elastic import ResourceType, query_many
+from app.elastic.elastic import ResourceType
 from app.elastic.search import Search
 
 background_router = APIRouter(tags=["Background"])
@@ -68,8 +68,7 @@ def import_data_from_elasticsearch(
 def search_query(resource_type: ResourceType, path: str) -> Search:
     search = (
         Search()
-        .type_filter(resource_type)
-        .query(query_many(resource_type=resource_type, node_id=COLLECTION_ROOT_ID))
+        .node_filter(resource_type=resource_type, node_id=COLLECTION_ROOT_ID)
         .source(
             includes=["nodeRef.*", path, *list(required_collection_properties.keys())]
         )

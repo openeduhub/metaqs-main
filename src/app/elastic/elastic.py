@@ -11,20 +11,6 @@ class ResourceType(str, Enum):
     COLLECTION = "COLLECTION"
     MATERIAL = "MATERIAL"
 
-
-def query_many(resource_type: ResourceType, node_id: uuid.UUID = None) -> Query:
-    qfilter = []
-    if node_id:
-        if resource_type is ResourceType.COLLECTION:
-            qfilter.append(qterm(qfield=ElasticResourceAttribute.PATH, value=node_id))
-        elif resource_type is ResourceType.MATERIAL:
-            qfilter.append(
-                qterm(qfield=ElasticResourceAttribute.COLLECTION_PATH, value=node_id)
-            )
-
-    return qbool(filter=qfilter)
-
-
 def query_missing_material_license() -> Query:
     qfield = ElasticResourceAttribute.LICENSES
     return qboolor(

@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.models import ElasticResourceAttribute
-from app.elastic.elastic import ResourceType, query_many
+from app.elastic.elastic import ResourceType
 from app.elastic.search import Search
 
 oer_license = ["CC_0", "PDM", "CC_BY", "CC_BY_SA"]
@@ -42,8 +42,7 @@ def collection_counts_search(
     search = (
         Search()
         .base_filters()
-        .type_filter(resource_type=ResourceType.MATERIAL)
-        .query(query_many(resource_type=ResourceType.MATERIAL, node_id=node_id))
+        .node_filter(resource_type=ResourceType.MATERIAL, node_id=node_id)
     )
     if oer_only:
         # Match with keyword for exact match, contrary to direct text matching, which is partial

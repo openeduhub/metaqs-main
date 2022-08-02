@@ -11,7 +11,7 @@ from app.api.score.models import (
 )
 from app.core.models import ElasticResourceAttribute
 from app.elastic.dsl import afilter, amissing
-from app.elastic.elastic import ResourceType, query_many, query_missing_material_license
+from app.elastic.elastic import ResourceType, query_missing_material_license
 from app.elastic.search import Search
 
 material_terms_relevant_for_score = [
@@ -54,8 +54,7 @@ def get_score_search(node_id: uuid.UUID, resource_type: ResourceType) -> Search:
     search = (
         Search()
         .base_filters()
-        .type_filter(resource_type=resource_type)
-        .query(query_many(resource_type=resource_type, node_id=node_id))
+        .node_filter(resource_type=resource_type, node_id=node_id)
     )
     if resource_type is ResourceType.COLLECTION:
         aggs = aggs_collection_validation

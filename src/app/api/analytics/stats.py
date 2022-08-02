@@ -30,7 +30,7 @@ from app.api.collections.tree import collection_tree
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.models import ElasticResourceAttribute, required_collection_properties
 from app.elastic.dsl import ElasticField, aterms
-from app.elastic.elastic import ResourceType, query_many
+from app.elastic.elastic import ResourceType
 from app.elastic.search import Search
 
 
