@@ -124,6 +124,7 @@ def materials_filter_params(
 def missing_attributes_search(
     node_id: uuid.UUID, missing_attribute: str, max_hits: int
 ) -> Search:
+    # Mimetype filter based on https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
     query = {
         "minimum_should_match": 1,
         "should": [
@@ -135,7 +136,22 @@ def missing_attributes_search(
                 ResourceType.MATERIAL
             ].copy(),  # copy otherwise appending the query causes mutation
             Q("bool", **{"must_not": [{"term": {"aspects": "ccm:io_childobject"}}]}),
-            Q({"term": {"content.mimetype.keyword": "text/plain"}}),
+            Q(
+                {
+                    "terms": {
+                        "content.mimetype.keyword": [
+                            "text/plain",
+                            "application/pdf",
+                            "application/msword",
+                            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                            "application/vnd.oasis.opendocument.text",
+                            "text/html",
+                            "application/vnd.ms-powerpoint",
+                        ]
+                    }
+                }
+            ),
         ],
     }
     if missing_attribute == ElasticResourceAttribute.LICENSES.path:
