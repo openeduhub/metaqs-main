@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from pprint import pformat
 
 import elasticsearch_dsl
@@ -33,6 +34,13 @@ class Search(elasticsearch_dsl.Search):
         if resource_type == ResourceType.COLLECTION:
             return self.filter(Term(**{ElasticResourceAttribute.TYPE.path: "ccm:map"}))
         return self.filter(Term(**{ElasticResourceAttribute.TYPE.path: "ccm:io"}))
+
+    def node_filter(self, resource_type: ResourceType, node_id: uuid.UUID) -> Search:
+        search = self.type_filter(resource_type=resource_type)
+
+        if resource_type is ResourceType.COLLECTION:
+            return search.filter(qterm(qfield=ElasticResourceAttribute.PATH, value=node_id))
+        return search.filter(qterm(qfield=ElasticResourceAttribute.COLLECTION_PATH, value=node_id))
 
     def execute(self, ignore_cache=False) -> Response:
         logger.debug(f"Sending query to elastic:\n{pformat(self.to_dict())}")
