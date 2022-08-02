@@ -11,12 +11,7 @@ from app.api.score.models import (
 )
 from app.core.models import ElasticResourceAttribute
 from app.elastic.dsl import afilter, amissing
-from app.elastic.elastic import (
-    ResourceType,
-    query_collections,
-    query_materials,
-    query_missing_material_license,
-)
+from app.elastic.elastic import ResourceType, query_many, query_missing_material_license
 from app.elastic.search import Search
 
 material_terms_relevant_for_score = [
@@ -57,13 +52,12 @@ def calc_weighted_score(collection_scores: dict, material_scores: dict) -> int:
 
 def get_score_search(node_id: uuid.UUID, resource_type: ResourceType) -> Search:
     if resource_type is ResourceType.COLLECTION:
-        query, aggs = query_collections, aggs_collection_validation
+        aggs = aggs_collection_validation
     else:  # ResourceType.MATERIAL
-        query, aggs = query_materials, aggs_material_validation
-    s = Search().base_filters().query(query(node_id=node_id))
+        aggs = aggs_material_validation
     for name, _agg in aggs.items():
-        s.aggs.bucket(name, _agg)
-    return s
+        search.aggs.bucket(name, _agg)
+    return search
 
 
 def map_response_to_output(response: Response) -> dict:

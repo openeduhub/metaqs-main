@@ -29,7 +29,7 @@ from app.core.config import BACKGROUND_TASK_TIME_INTERVAL
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.core.logging import logger
 from app.core.models import ElasticResourceAttribute, required_collection_properties
-from app.elastic.elastic import query_collections, query_materials
+from app.elastic.elastic import ResourceType, query_many
 from app.elastic.search import Search
 
 background_router = APIRouter(tags=["Background"])

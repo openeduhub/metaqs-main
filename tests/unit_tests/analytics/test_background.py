@@ -28,7 +28,10 @@ def test_search_query_collections():
 
 
 def test_search_query_materials():
-    query = search_query(query_materials, "collections.nodeRef.id")
+    query = search_query(
+        lambda node_id: query_many(ResourceType.MATERIAL, node_id),
+        "collections.nodeRef.id",
+    )
     query_dict = query.to_dict()
 
     assert len(query_dict["_source"]["includes"]) == 63
