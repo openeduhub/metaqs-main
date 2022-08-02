@@ -165,7 +165,7 @@ def missing_attributes_search(
             ),
         )
         .source(includes=[source.path for source in missing_attributes_source_fields])
-        .extra(size=max_hits)
+        .extra(size=max_hits, from_=0)
     )
 
 
