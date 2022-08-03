@@ -38,7 +38,7 @@ async def test_overall_stats():
                     )
                     for entry in global_response[key]
                 ]
-            if key == "counts":
+            if key == "counts" or key == "counts_oer":
                 return [
                     CollectionTreeCount(
                         node_id=entry["noderef_id"],

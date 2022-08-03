@@ -11,11 +11,7 @@ from app.api.collections.utils import map_elastic_response_to_model
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.models import ElasticResourceAttribute, ResponseModel
 from app.elastic.dsl import ElasticField, qbool, qmatch
-from app.elastic.elastic import (
-    ResourceType,
-    query_missing_material_license,
-    type_filter,
-)
+from app.elastic.elastic import ResourceType, query_missing_material_license
 from app.elastic.search import Search
 
 
@@ -124,19 +120,14 @@ def materials_filter_params(
 def missing_attributes_search(
     node_id: uuid.UUID, missing_attribute: str, max_hits: int
 ) -> Search:
+    # Mimetype filter based on https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
     query = {
         "minimum_should_match": 1,
         "should": [
             qmatch(**{"collections.path": node_id}),
             qmatch(**{"collections.nodeRef.id": node_id}),
         ],
-        "filter": [
-            *type_filter[
-                ResourceType.MATERIAL
-            ].copy(),  # copy otherwise appending the query causes mutation
-            Q("bool", **{"must_not": [{"term": {"aspects": "ccm:io_childobject"}}]}),
-            Q({"term": {"content.mimetype.keyword": "text/plain"}}),
-        ],
+        "filter": [],
     }
     if missing_attribute == ElasticResourceAttribute.LICENSES.path:
         query["filter"].append(query_missing_material_license().to_dict())
@@ -151,9 +142,30 @@ def missing_attributes_search(
         Search()
         .base_filters()
         .query(qbool(**query))
-        .source(includes=[source.path for source in missing_attributes_source_fields])[
-            :max_hits
-        ]
+        .type_filter(ResourceType.MATERIAL)
+        .filter(
+            Q("bool", **{"must_not": [{"term": {"aspects": "ccm:io_childobject"}}]})
+        )
+        .filter(
+            Q(
+                {
+                    "terms": {
+                        f"{ElasticResourceAttribute.MIMETYPE.path}.keyword": [
+                            "text/plain",
+                            "application/pdf",
+                            "application/msword",
+                            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                            "application/vnd.oasis.opendocument.text",
+                            "text/html",
+                            "application/vnd.ms-powerpoint",
+                        ]
+                    }
+                }
+            ),
+        )
+        .source(includes=[source.path for source in missing_attributes_source_fields])
+        .extra(size=max_hits, from_=0)
     )
 
 

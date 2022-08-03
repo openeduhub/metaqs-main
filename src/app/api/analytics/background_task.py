@@ -2,7 +2,6 @@ import asyncio
 import os
 import uuid
 from datetime import datetime
-from typing import Callable
 
 from fastapi import APIRouter
 from fastapi_utils.tasks import repeat_every
@@ -29,7 +28,7 @@ from app.core.config import BACKGROUND_TASK_TIME_INTERVAL
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.core.logging import logger
 from app.core.models import ElasticResourceAttribute, required_collection_properties
-from app.elastic.elastic import query_collections, query_materials
+from app.elastic.elastic import ResourceType
 from app.elastic.search import Search
 
 background_router = APIRouter(tags=["Background"])
@@ -46,9 +45,9 @@ def background_task():
 
 
 def import_data_from_elasticsearch(
-    derived_at: datetime, query: Callable, path: str, storage_path: str
+    derived_at: datetime, resource_type: ResourceType, path: str
 ):
-    search = search_query(query, path)
+    search = search_query(resource_type=resource_type, path=path)
 
     seen = set()
     collections = []
@@ -63,13 +62,13 @@ def import_data_from_elasticsearch(
                     derived_at=derived_at,
                 )
             )
-    app.api.analytics.storage.global_storage[storage_path] = collections
+    return collections
 
 
-def search_query(query: Callable, path: str) -> Search:
+def search_query(resource_type: ResourceType, path: str) -> Search:
     search = (
         Search()
-        .query(query(node_id=COLLECTION_ROOT_ID))
+        .node_filter(resource_type=resource_type, node_id=COLLECTION_ROOT_ID)
         .source(
             includes=["nodeRef.*", path, *list(required_collection_properties.keys())]
         )
@@ -81,18 +80,20 @@ def run():
     derived_at = datetime.now()
     logger.info(f"{os.getpid()}: Starting analytics import at: {derived_at}")
 
-    import_data_from_elasticsearch(
+    app.api.analytics.storage.global_storage[
+        _COLLECTIONS
+    ] = import_data_from_elasticsearch(
         derived_at=derived_at,
-        query=query_collections,
+        resource_type=ResourceType.COLLECTION,
         path=ElasticResourceAttribute.PATH.path,
-        storage_path=_COLLECTIONS,
     )
 
-    import_data_from_elasticsearch(
+    app.api.analytics.storage.global_storage[
+        _MATERIALS
+    ] = import_data_from_elasticsearch(
         derived_at=derived_at,
-        query=query_materials,
+        resource_type=ResourceType.MATERIAL,
         path=ElasticResourceAttribute.COLLECTION_NODEREF_ID.path,
-        storage_path=_MATERIALS,
     )
 
     logger.info("Collection and materials imported")
@@ -112,6 +113,7 @@ def run():
 
     # TODO Refactor, this is very expensive
     search_store = []
+    oer_search_store = []
     for row in all_collections:
         sub_collections: list[Row] = asyncio.run(get_ids_to_iterate(node_id=row.id))
         logger.info(f"Working on: {row.title}, {len(sub_collections)}")
@@ -123,6 +125,16 @@ def run():
             SearchStore(node_id=row.id, missing_materials=missing_materials)
         )
 
+        missing_materials = {
+            sub.id: search_hits_by_material_type(sub.title, oer_only=True)
+            for sub in sub_collections
+        }
+
+        oer_search_store.append(
+            SearchStore(node_id=row.id, missing_materials=missing_materials)
+        )
+
     global_store.search = search_store
+    global_store.oer_search = oer_search_store
 
     logger.info("Background task done")

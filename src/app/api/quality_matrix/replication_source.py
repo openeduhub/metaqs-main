@@ -14,7 +14,7 @@ from app.core.models import (
     required_collection_properties,
 )
 from app.elastic.dsl import qbool, qmatch
-from app.elastic.elastic import ResourceType, type_filter
+from app.elastic.elastic import ResourceType
 from app.elastic.search import Search
 
 PROPERTY_TYPE = list[str]
@@ -25,7 +25,7 @@ def create_sources_search(aggregation_name: str, node_id: uuid.UUID) -> Search:
     search = (
         Search()
         .base_filters()
-        .filter(*type_filter[ResourceType.MATERIAL])
+        .type_filter(ResourceType.MATERIAL)
         .filter(Q("term", **{f"{ElasticResourceAttribute.PATH.path}": node_id}))
     )
     search.aggs.bucket(
