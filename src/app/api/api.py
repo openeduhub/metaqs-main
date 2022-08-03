@@ -26,7 +26,7 @@ from app.api.analytics.storage import global_storage
 from app.api.collections.counts import (
     AggregationMappings,
     CollectionTreeCount,
-    collection_counts,
+    oer_collection_counts,
 )
 from app.api.collections.material_counts import (
     CollectionMaterialsCount,
@@ -251,8 +251,7 @@ async def get_collection_counts(
         examples={key: {"value": key} for key in AggregationMappings},
     ),
 ):
-    counts = await collection_counts(node_id=node_id, facet=facet)
-    return counts
+    return await oer_collection_counts(node_id=node_id, facet=facet)
 
 
 @router.get(
