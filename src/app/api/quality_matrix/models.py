@@ -47,6 +47,20 @@ class Timeline(Base):
     total = Column(JSON, nullable=False)
 
 
+class TimelineNew(Base):
+    __tablename__ = "timeline_new"
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True,
+    )
+    timestamp = Column(Integer, nullable=False)
+    quality = Column(JSON, nullable=False)
+    form = Column(Text, nullable=False)
+    node_id = Column(UUID, nullable=False)
+    total = Column(JSON, nullable=False)
+
+
 class Forms(str, Enum):
     """
     The form of a quality matrix specifies what will be used as grouping.

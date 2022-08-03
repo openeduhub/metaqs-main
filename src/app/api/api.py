@@ -46,7 +46,7 @@ from app.api.collections.pending_collections import (
 )
 from app.api.collections.tree import collection_tree
 from app.api.quality_matrix.collections import collection_quality
-from app.api.quality_matrix.models import Forms, QualityOutputResponse, Timeline
+from app.api.quality_matrix.models import Forms, QualityOutputResponse, TimelineNew
 from app.api.quality_matrix.replication_source import source_quality
 from app.api.quality_matrix.timeline import quality_backup, timestamps
 from app.api.score.models import ScoreOutput
@@ -162,23 +162,25 @@ async def get_past_quality_matrix(
         },
     ),
 ):
-    print(node_id)
     if not timestamp:
         raise HTTPException(status_code=400, detail="Invalid or no timestamp given")
 
     s = (
-        select([Timeline])
-        .where(Timeline.timestamp == timestamp)
-        .where(Timeline.node_id == node_id)
+        select([TimelineNew])
+        .where(TimelineNew.timestamp == timestamp)
+        .where(TimelineNew.node_id == node_id)
     )
     await database.connect()
-    result: list[Mapping[Timeline]] = await database.fetch_all(s)
+    result: list[Mapping[TimelineNew]] = await database.fetch_all(s)
 
     if len(result) == 0:
         raise HTTPException(status_code=404, detail="Item not found")
     elif len(result) > 1:
         raise HTTPException(status_code=500, detail="More than one item found")
-    return QualityOutputResponse(data=json.loads(result[0].quality_matrix), total={})
+
+    quality = json.loads(result[0].quality)
+    total = json.loads(result[0].total)
+    return QualityOutputResponse(data=quality, total=total)
 
 
 @router.get(
@@ -210,8 +212,7 @@ async def get_timestamps(
         },
     ),
 ):
-    print(node_id)
-    return await timestamps(database, form, node_id)
+    return await timestamps(database, form, uuid.UUID(node_id))
 
 
 @router.get(
