@@ -84,8 +84,8 @@ def merge_agg_response(
 
 def search_hits_by_material_type(collection_title: str, oer_only: bool = False) -> dict:
     """Title used here to shotgun search for any matches with the title of the material"""
-    s = build_material_search(collection_title, oer_only)
-    response: Response = s[:0].execute()
+    search = build_material_search(collection_title, oer_only)
+    response: Response = search.extra(size=0, from_=0).execute()
 
     if response.success():
         # TODO: Clear and cleanup: what does this do?
