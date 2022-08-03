@@ -22,6 +22,8 @@ class CollectionTreeCount(BaseModel):
     node_id: uuid.UUID
     total: int
     counts: dict[str, int]
+    oer_counts: Optional[dict[str, int]]
+    oer_total: Optional[int]
 
 
 _AGGREGATION_NAME = "collection_id"
@@ -77,6 +79,23 @@ async def collection_counts(
     response = collection_counts_search(node_id, facet, oer_only).execute()
     if response.success():
         return build_counts(response)
+
+
+async def oer_collection_counts(
+    node_id: uuid.UUID, facet: AggregationMappings
+) -> Optional[list[CollectionTreeCount]]:
+    counts = await collection_counts(node_id=node_id, facet=facet, oer_only=False)
+    oer_counts = await collection_counts(node_id=node_id, facet=facet, oer_only=True)
+
+    if counts and oer_counts:
+        # merge counts and oer_counts
+        for count in counts:
+            for oer_count in oer_counts:
+                if count.node_id == oer_count.node_id:
+                    count.oer_counts = oer_count.counts
+                    count.oer_total = oer_count.total
+                    break
+    return counts
 
 
 def build_counts(response) -> list[CollectionTreeCount]:

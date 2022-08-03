@@ -84,8 +84,8 @@ def merge_agg_response(
 
 def search_hits_by_material_type(collection_title: str, oer_only: bool = False) -> dict:
     """Title used here to shotgun search for any matches with the title of the material"""
-    s = build_material_search(collection_title, oer_only)
-    response: Response = s[:0].execute()
+    search = build_material_search(collection_title, oer_only)
+    response: Response = search.extra(size=0, from_=0).execute()
 
     if response.success():
         # TODO: Clear and cleanup: what does this do?
@@ -151,7 +151,7 @@ async def get_ids_to_iterate(node_id: uuid.UUID) -> list[Row]:
 
 
 def query_material_types(
-    node_id: uuid.UUID, oer_only: bool = False
+    node_id: uuid.UUID, storage_path: str
 ) -> dict[str, CountStatistics]:
     # get collections with parent id equal to node_id
     # portal_id == node_id
@@ -162,10 +162,7 @@ def query_material_types(
     # Join filtered collections and filtered counts into one, now
     stats = {}
 
-    if oer_only:
-        counts = global_storage[_COLLECTION_COUNT_OER]
-    else:
-        counts = global_storage[_COLLECTION_COUNT]
+    counts = global_storage[storage_path]
 
     # TODO: Refactor with filter and dict comprehension
     for collection in collections:
@@ -211,7 +208,6 @@ async def overall_stats(node_id: uuid.UUID) -> StatsResponse:
     :return:
     """
 
-    # TODO: Refactor this, doubles everywhere
     search_stats = await query_search_statistics(node_id=node_id)
     if not search_stats:
         raise StatsNotFoundException
@@ -220,30 +216,16 @@ async def overall_stats(node_id: uuid.UUID) -> StatsResponse:
     if not search_stats:
         raise StatsNotFoundException
 
-    material_types_stats = query_material_types(node_id, oer_only=False)
+    material_types_stats = query_material_types(node_id, _COLLECTION_COUNT)
     if not material_types_stats:
         raise StatsNotFoundException
 
-    oer_material_types_stats = query_material_types(node_id, oer_only=True)
+    oer_material_types_stats = query_material_types(node_id, _COLLECTION_COUNT_OER)
     if not oer_material_types_stats:
         raise StatsNotFoundException
 
-    # TODO: DRY
-    stats_output = {key: {"search": value} for key, value in search_stats.items()}
-
-    for key, value in material_types_stats.items():
-        if key in stats_output.keys():
-            stats_output[key].update({"material_types": value})
-        else:
-            stats_output.update({key: {"material_types": value}})
-
-    oer_output = {key: {"search": value} for key, value in oer_search_stats.items()}
-
-    for key, value in oer_material_types_stats.items():
-        if key in oer_output.keys():
-            oer_output[key].update({"material_types": value})
-        else:
-            oer_output.update({key: {"material_types": value}})
+    stats_output = transform_output(material_types_stats, search_stats)
+    oer_output = transform_output(oer_material_types_stats, oer_search_stats)
 
     return StatsResponse(
         derived_at=datetime.datetime.now(),
@@ -251,6 +233,16 @@ async def overall_stats(node_id: uuid.UUID) -> StatsResponse:
         oer_stats=oer_output,
         oer_ratio=oer_ratio(node_id),
     )
+
+
+def transform_output(material_types_stats, search_stats):
+    stats_output = {key: {"search": value} for key, value in search_stats.items()}
+    for key, value in material_types_stats.items():
+        if key in stats_output.keys():
+            stats_output[key].update({"material_types": value})
+        else:
+            stats_output.update({key: {"material_types": value}})
+    return stats_output
 
 
 def collections_with_missing_properties(
