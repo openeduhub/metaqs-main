@@ -1,14 +1,17 @@
+from __future__ import annotations
+
+import uuid
 from pprint import pformat
 
 import elasticsearch_dsl
+from elasticsearch_dsl.query import Term
 from elasticsearch_dsl.response import Response
-from starlette_context import context
-from starlette_context.errors import ContextDoesNotExistError
 
 from app.core.config import ELASTIC_INDEX
 from app.core.logging import logger
 from app.core.models import ElasticResourceAttribute
 from app.elastic.dsl import qterm
+from app.elastic.elastic import ResourceType
 
 
 class Search(elasticsearch_dsl.Search):
@@ -21,28 +24,26 @@ class Search(elasticsearch_dsl.Search):
     def __init__(self, index=ELASTIC_INDEX, **kwargs):
         super(Search, self).__init__(index=index, **kwargs)
 
-    def base_filters(self):
-        def add_base_filters(search: Search) -> Search:
-            for entry in self.__base_filter:
-                search = search.filter(entry)
-            return search
+    def base_filters(self) -> Search:
+        search = self
+        for entry in self.__base_filter:
+            search = search.filter(entry)
+        return search
 
-        return add_base_filters(self)
+    def type_filter(self, resource_type: ResourceType) -> Search:
+        if resource_type == ResourceType.COLLECTION:
+            return self.filter(Term(**{ElasticResourceAttribute.TYPE.path: "ccm:map"}))
+        return self.filter(Term(**{ElasticResourceAttribute.TYPE.path: "ccm:io"}))
+
+    def node_filter(self, resource_type: ResourceType, node_id: uuid.UUID) -> Search:
+        search = self.type_filter(resource_type=resource_type)
+
+        if resource_type is ResourceType.COLLECTION:
+            return search.filter(qterm(qfield=ElasticResourceAttribute.PATH, value=node_id))
+        return search.filter(qterm(qfield=ElasticResourceAttribute.COLLECTION_PATH, value=node_id))
 
     def execute(self, ignore_cache=False) -> Response:
         logger.debug(f"Sending query to elastic:\n{pformat(self.to_dict())}")
-
         response = super(Search, self).execute(ignore_cache=ignore_cache)
-
         logger.debug(f"Response received from elastic:\n{pformat(response.to_dict())}")
-
-        # TODO: Refactor into speaking function,e.g. see RawcontextMiddleware
-        #  https://starlette-context.readthedocs.io/en/latest/middleware.html
-        try:
-            context["elastic_queries"] = context.get("elastic_queries", []) + [
-                {"query": self.to_dict(), "response": response.to_dict()}
-            ]
-        except ContextDoesNotExistError:
-            pass
-
         return response

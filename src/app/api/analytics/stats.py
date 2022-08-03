@@ -18,19 +18,21 @@ from app.api.analytics.analytics import (
 )
 from app.api.analytics.storage import (
     _COLLECTION_COUNT,
+    _COLLECTION_COUNT_OER,
     _COLLECTIONS,
     _MATERIALS,
     StorageModel,
     global_storage,
     global_store,
 )
+from app.api.collections.counts import oer_license
 from app.api.collections.models import CollectionNode
 from app.api.collections.oer import oer_ratio
 from app.api.collections.tree import collection_tree
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.models import ElasticResourceAttribute, required_collection_properties
 from app.elastic.dsl import ElasticField, aterms
-from app.elastic.elastic import query_materials
+from app.elastic.elastic import ResourceType
 from app.elastic.search import Search
 
 
@@ -80,9 +82,9 @@ def merge_agg_response(
     return merge(agg.buckets, op=op)
 
 
-def search_hits_by_material_type(collection_title: str) -> dict:
+def search_hits_by_material_type(collection_title: str, oer_only: bool = False) -> dict:
     """Title used here to shotgun search for any matches with the title of the material"""
-    s = build_material_search(collection_title)
+    s = build_material_search(collection_title, oer_only)
     response: Response = s[:0].execute()
 
     if response.success():
@@ -92,15 +94,24 @@ def search_hits_by_material_type(collection_title: str) -> dict:
         return stats
 
 
-def build_material_search(query_string: str):
-    s = (
+def build_material_search(query_string: str, oer_only: bool = False):
+    search = (
         Search()
         .base_filters()
-        .query(query_materials())
+        .type_filter(resource_type=ResourceType.MATERIAL)
         .query(search_materials(query_string))
     )
-    s.aggs.bucket("material_types", agg_material_types())
-    return s
+    if oer_only:
+        search = search.filter(
+            {
+                "terms": {
+                    f"{ElasticResourceAttribute.LICENSES.path}.keyword": oer_license
+                }
+            }
+        )
+        # search = search.filter(Terms({f"{ElasticResourceAttribute.LICENSES.path}.keyword": oer_license})
+    search.aggs.bucket("material_types", agg_material_types())
+    return search
 
 
 @dataclass
@@ -151,7 +162,10 @@ def query_material_types(
     # Join filtered collections and filtered counts into one, now
     stats = {}
 
-    counts = global_storage[_COLLECTION_COUNT]
+    if oer_only:
+        counts = global_storage[_COLLECTION_COUNT_OER]
+    else:
+        counts = global_storage[_COLLECTION_COUNT]
 
     # TODO: Refactor with filter and dict comprehension
     for collection in collections:
@@ -180,6 +194,15 @@ async def query_search_statistics(
     return {}
 
 
+async def oer_query_search_statistics(
+    node_id: uuid.UUID,
+) -> dict[str, CountStatistics]:
+    for stats in global_store.oer_search:
+        if str(node_id) == str(stats.node_id):
+            return {str(key): value for key, value in stats.missing_materials.items()}
+    return {}
+
+
 async def overall_stats(node_id: uuid.UUID) -> StatsResponse:
     """
     Calculating tree search counts
@@ -187,7 +210,13 @@ async def overall_stats(node_id: uuid.UUID) -> StatsResponse:
     :param node_id:
     :return:
     """
+
+    # TODO: Refactor this, doubles everywhere
     search_stats = await query_search_statistics(node_id=node_id)
+    if not search_stats:
+        raise StatsNotFoundException
+
+    oer_search_stats = await oer_query_search_statistics(node_id=node_id)
     if not search_stats:
         raise StatsNotFoundException
 
@@ -195,10 +224,11 @@ async def overall_stats(node_id: uuid.UUID) -> StatsResponse:
     if not material_types_stats:
         raise StatsNotFoundException
 
-    material_types_oer_stats = query_material_types(node_id, oer_only=True)
-    if not material_types_oer_stats:
+    oer_material_types_stats = query_material_types(node_id, oer_only=True)
+    if not oer_material_types_stats:
         raise StatsNotFoundException
 
+    # TODO: DRY
     stats_output = {key: {"search": value} for key, value in search_stats.items()}
 
     for key, value in material_types_stats.items():
@@ -207,10 +237,18 @@ async def overall_stats(node_id: uuid.UUID) -> StatsResponse:
         else:
             stats_output.update({key: {"material_types": value}})
 
+    oer_output = {key: {"search": value} for key, value in oer_search_stats.items()}
+
+    for key, value in oer_material_types_stats.items():
+        if key in oer_output.keys():
+            oer_output[key].update({"material_types": value})
+        else:
+            oer_output.update({key: {"material_types": value}})
+
     return StatsResponse(
         derived_at=datetime.datetime.now(),
         total_stats=stats_output,
-        oer_stats=stats_output,
+        oer_stats=oer_output,
         oer_ratio=oer_ratio(node_id),
     )
 

@@ -31,11 +31,12 @@ class SearchStore:
 
 @dataclass(frozen=False)
 class Store:
-    __slots__ = "search"
+    __slots__ = "search", "oer_search"
     search: list[SearchStore]
+    oer_search: list[SearchStore]
 
 
-global_store = Store(search=[])
+global_store = Store(search=[], oer_search=[])
 
 
 # TODO: Rename, as used for materials in background_task, as well
