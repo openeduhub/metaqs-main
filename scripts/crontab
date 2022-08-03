@@ -23,4 +23,5 @@
 #
 # m h  dom mon dow   command
 0 0 * * * curl --location --request GET 'https://c106-168.cloud.gwdg.de/api/quality?store_to_db=True'
+0 0 * * * curl --location --request GET 'https://c106-168.cloud.gwdg.de/api/quality/backup'
 5 0 * * * curl --location --request GET 'https://c106-168.cloud.gwdg.de/api/quality?store_to_db=True&form=Sammlungen'

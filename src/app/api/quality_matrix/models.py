@@ -4,6 +4,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 from sqlalchemy import JSON, Column, Integer, Text
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base
 
 
@@ -42,6 +43,8 @@ class Timeline(Base):
     timestamp = Column(Integer, nullable=False)
     quality_matrix = Column(JSON, nullable=False)
     form = Column(Text, nullable=False)
+    node_id = Column(UUID, nullable=False)
+    total = Column(JSON, nullable=False)
 
 
 class Forms(str, Enum):

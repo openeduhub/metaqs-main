@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 
 import sqlalchemy
@@ -29,7 +30,13 @@ async def close_db_connection(app: FastAPI) -> None:
         logger.exception("")
 
 
-async def store_in_timeline(data: list[QualityOutput], database: Database, form: Forms):
+async def store_in_timeline(
+    data: list[QualityOutput],
+    database: Database,
+    form: Forms,
+    node_id: uuid.UUID,
+    total: dict,
+):
     await database.connect()
     await database.execute(
         sqlalchemy.insert(Timeline).values(
@@ -37,6 +44,8 @@ async def store_in_timeline(data: list[QualityOutput], database: Database, form:
                 "timestamp": datetime.now().timestamp(),
                 "quality_matrix": data,
                 "form": form,
+                "node_id": node_id,
+                "total": total,
             }
         )
     )
