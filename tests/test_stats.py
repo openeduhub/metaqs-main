@@ -170,7 +170,7 @@ def test_query_material_types():
 
         mocked_global.__getitem__ = _get_item
 
-        result = query_material_types(dummy_node, False)
+        result = query_material_types(dummy_node, "counts")
 
     assert len(result) == 1
     first_value = result[list(result.keys())[0]]
