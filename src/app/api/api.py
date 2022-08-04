@@ -46,7 +46,7 @@ from app.api.collections.pending_collections import (
 )
 from app.api.collections.tree import collection_tree
 from app.api.quality_matrix.collections import collection_quality
-from app.api.quality_matrix.models import Forms, QualityOutputResponse, TimelineNew
+from app.api.quality_matrix.models import Forms, QualityOutputResponse, Timeline
 from app.api.quality_matrix.replication_source import source_quality
 from app.api.quality_matrix.timeline import quality_backup, timestamps
 from app.api.score.models import ScoreOutput
@@ -166,12 +166,12 @@ async def get_past_quality_matrix(
         raise HTTPException(status_code=400, detail="Invalid or no timestamp given")
 
     s = (
-        select([TimelineNew])
-        .where(TimelineNew.timestamp == timestamp)
-        .where(TimelineNew.node_id == node_id)
+        select([Timeline])
+        .where(Timeline.timestamp == timestamp)
+        .where(Timeline.node_id == node_id)
     )
     await database.connect()
-    result: list[Mapping[TimelineNew]] = await database.fetch_all(s)
+    result: list[Mapping[Timeline]] = await database.fetch_all(s)
 
     if len(result) == 0:
         raise HTTPException(status_code=404, detail="Item not found")

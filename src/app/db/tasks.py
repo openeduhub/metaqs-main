@@ -5,9 +5,9 @@ import sqlalchemy
 from databases import Database
 from fastapi import FastAPI
 
-from app.api.quality_matrix.models import Forms, QualityOutput, Timeline, TimelineNew
+from app.api.quality_matrix.models import Forms, QualityOutput, Timeline
 from app.core.logging import logger
-from app.db.core import create_timeline_table, database_url, has_table
+from app.db.core import database_url
 
 
 async def connect_to_db(app: FastAPI) -> None:
@@ -18,9 +18,6 @@ async def connect_to_db(app: FastAPI) -> None:
         app.state._db = database
     except Exception:
         logger.exception("")
-
-    if not await has_table(Timeline.__tablename__):
-        await create_timeline_table()
 
 
 async def close_db_connection(app: FastAPI) -> None:
@@ -39,7 +36,7 @@ async def store_in_timeline(
 ):
     await database.connect()
     await database.execute(
-        sqlalchemy.insert(TimelineNew).values(
+        sqlalchemy.insert(Timeline).values(
             {
                 "timestamp": datetime.now().timestamp(),
                 "quality": [

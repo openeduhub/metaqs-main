@@ -5,7 +5,7 @@ from databases import Database
 from sqlalchemy import select
 
 from app.api.quality_matrix.collections import collection_quality
-from app.api.quality_matrix.models import Forms, TimelineNew
+from app.api.quality_matrix.models import Forms, Timeline
 from app.api.quality_matrix.replication_source import source_quality
 from app.core.constants import COLLECTION_NAME_TO_ID
 from app.db.tasks import store_in_timeline
@@ -26,9 +26,9 @@ async def quality_backup(database: Database):
 
 async def timestamps(database: Database, form: Forms, node_id: uuid.UUID):
     query = (
-        select([TimelineNew.timestamp])
-        .where(TimelineNew.form == form)
-        .where(TimelineNew.node_id == node_id)
+        select([Timeline.timestamp])
+        .where(Timeline.form == form)
+        .where(Timeline.node_id == node_id)
     )
     await database.connect()
     result: list[Mapping] = await database.fetch_all(query)

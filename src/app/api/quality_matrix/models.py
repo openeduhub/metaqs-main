@@ -36,19 +36,23 @@ class QualityOutputResponse(BaseModel):
 
 Base = declarative_base()
 
+"""
+To create the following Timeline Table:
+
+create table timeline
+(
+    id        int,
+    timestamp int,
+    form      text,
+    quality   json,
+    total   json,
+    node_id   uuid
+);
+"""
+
 
 class Timeline(Base):
     __tablename__ = "timeline"
-    id = Column(Integer, primary_key=True, index=True)
-    timestamp = Column(Integer, nullable=False)
-    quality_matrix = Column(JSON, nullable=False)
-    form = Column(Text, nullable=False)
-    node_id = Column(UUID, nullable=False)
-    total = Column(JSON, nullable=False)
-
-
-class TimelineNew(Base):
-    __tablename__ = "timeline_new"
     id = Column(
         Integer,
         primary_key=True,
