@@ -316,7 +316,8 @@ async def filter_pending_collections(
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=[_TAG_COLLECTIONS],
-    description="""A list of missing entries for different types of materials by subcollection.
+    description="""A list of missing entries for different types of materials belonging to the collection and
+    its subcollectionsspecified by 'node_id'.
     Searches for materials with one of the following properties being empty or missing: """
     + f"{', '.join([entry.value for entry in missing_attribute_filter])}.",
 )

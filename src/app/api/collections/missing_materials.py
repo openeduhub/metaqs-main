@@ -121,16 +121,16 @@ def missing_attributes_search(
     node_id: uuid.UUID, missing_attribute: str, max_hits: int
 ) -> Search:
     # Mimetype filter based on https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
+    search = Search().base_filters()
     query = {
         "minimum_should_match": 1,
         "should": [
             qmatch(**{"collections.path": node_id}),
             qmatch(**{"collections.nodeRef.id": node_id}),
         ],
-        "filter": [],
     }
     if missing_attribute == ElasticResourceAttribute.LICENSES.path:
-        query["filter"].append(query_missing_material_license().to_dict())
+        search = search.filter(query_missing_material_license().to_dict())
     else:
         query.update(
             {
@@ -139,9 +139,7 @@ def missing_attributes_search(
         )
 
     return (
-        Search()
-        .base_filters()
-        .query(qbool(**query))
+        search.query(qbool(**query))
         .type_filter(ResourceType.MATERIAL)
         .filter(
             Q("bool", **{"must_not": [{"term": {"aspects": "ccm:io_childobject"}}]})
