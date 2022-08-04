@@ -48,7 +48,7 @@ from app.api.collections.tree import collection_tree
 from app.api.quality_matrix.collections import collection_quality
 from app.api.quality_matrix.models import Forms, QualityOutputResponse, Timeline
 from app.api.quality_matrix.replication_source import source_quality
-from app.api.quality_matrix.timeline import timestamps
+from app.api.quality_matrix.timeline import quality_backup, timestamps
 from app.api.score.models import ScoreOutput
 from app.api.score.score import (
     aggs_collection_validation,
@@ -59,7 +59,6 @@ from app.api.score.score import (
 from app.core.config import API_DEBUG, BACKGROUND_TASK_TIME_INTERVAL
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.core.models import ElasticResourceAttribute
-from app.db.tasks import store_in_timeline
 
 
 def get_database(request: Request) -> Database:
@@ -109,7 +108,6 @@ def node_ids_for_major_collections(
 )
 async def get_quality(
     *,
-    database: Database = Depends(get_database),
     node_id: str = Query(
         default=COLLECTION_ROOT_ID,
         examples={
@@ -117,7 +115,6 @@ async def get_quality(
             **{key: {"value": value} for key, value in COLLECTION_NAME_TO_ID.items()},
         },
     ),
-    store_to_db: bool = Query(default=False),
     form: Forms = Query(
         default=Forms.REPLICATION_SOURCE,
         examples={form: {"value": form} for form in Forms},
@@ -127,10 +124,21 @@ async def get_quality(
         quality_data, total = await source_quality(uuid.UUID(node_id))
     else:  # Forms.COLLECTIONS:
         quality_data, total = await collection_quality(uuid.UUID(node_id))
-
-    if store_to_db:
-        await store_in_timeline(quality_data, database, form)
     return {"data": quality_data, "total": total}
+
+
+@router.get(
+    "/quality/backup",
+    status_code=HTTP_200_OK,
+    responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
+    tags=[_TAG_STATISTICS],
+    description=QUALITY_MATRIX_DESCRIPTION,
+)
+async def get_quality_backup(
+    *,
+    database: Database = Depends(get_database),
+):
+    await quality_backup(database)
 
 
 @router.get(
@@ -143,12 +151,25 @@ async def get_quality(
     quality matrix at the respective date.""",
 )
 async def get_past_quality_matrix(
-    *, timestamp: int, database: Database = Depends(get_database)
+    *,
+    timestamp: int,
+    database: Database = Depends(get_database),
+    node_id: str = Query(
+        default=COLLECTION_ROOT_ID,
+        examples={
+            "Alle Fachportale": {"value": COLLECTION_ROOT_ID},
+            **{key: {"value": value} for key, value in COLLECTION_NAME_TO_ID.items()},
+        },
+    ),
 ):
     if not timestamp:
         raise HTTPException(status_code=400, detail="Invalid or no timestamp given")
 
-    s = select([Timeline]).where(Timeline.timestamp == timestamp)
+    s = (
+        select([Timeline])
+        .where(Timeline.timestamp == timestamp)
+        .where(Timeline.node_id == node_id)
+    )
     await database.connect()
     result: list[Mapping[Timeline]] = await database.fetch_all(s)
 
@@ -156,7 +177,10 @@ async def get_past_quality_matrix(
         raise HTTPException(status_code=404, detail="Item not found")
     elif len(result) > 1:
         raise HTTPException(status_code=500, detail="More than one item found")
-    return QualityOutputResponse(data=json.loads(result[0].quality_matrix), total={})
+
+    quality = json.loads(result[0].quality)
+    total = json.loads(result[0].total)
+    return QualityOutputResponse(data=quality, total=total)
 
 
 @router.get(
@@ -180,8 +204,15 @@ async def get_timestamps(
         default=Forms.REPLICATION_SOURCE,
         examples={form: {"value": form} for form in Forms},
     ),
+    node_id: str = Query(
+        default=COLLECTION_ROOT_ID,
+        examples={
+            "Alle Fachportale": {"value": COLLECTION_ROOT_ID},
+            **{key: {"value": value} for key, value in COLLECTION_NAME_TO_ID.items()},
+        },
+    ),
 ):
-    return await timestamps(database, form)
+    return await timestamps(database, form, uuid.UUID(node_id))
 
 
 @router.get(
