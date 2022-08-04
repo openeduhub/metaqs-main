@@ -1,8 +1,5 @@
 version: '3.9'
 
-volumes:
-  pg-data:
-
 networks:
   backend:
     driver: bridge
