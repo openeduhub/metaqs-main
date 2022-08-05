@@ -7,7 +7,6 @@ from app.api.collections.counts import (
 )
 
 
-# TODO: Remove if unused
 def oer_ratio(node_id: uuid.UUID) -> int:
     oer_statistics = collection_counts_search(node_id, AggregationMappings.license)
     response = oer_statistics.execute()
