@@ -66,14 +66,13 @@ def import_data_from_elasticsearch(
 
 
 def search_query(resource_type: ResourceType, path: str) -> Search:
-    search = (
+    return (
         Search()
         .node_filter(resource_type=resource_type, node_id=COLLECTION_ROOT_ID)
         .source(
             includes=["nodeRef.*", path, *list(required_collection_properties.keys())]
         )
     )
-    return search
 
 
 def run():

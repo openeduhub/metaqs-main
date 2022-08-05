@@ -25,12 +25,15 @@ from app.api.analytics.storage import (
     global_storage,
     global_store,
 )
-from app.api.collections.counts import oer_license
+from app.api.collections.counts import oer_ratio
 from app.api.collections.models import CollectionNode
-from app.api.collections.oer import oer_ratio
 from app.api.collections.tree import collection_tree
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.models import ElasticResourceAttribute, required_collection_properties
+from app.core.models import (
+    ElasticResourceAttribute,
+    oer_license,
+    required_collection_properties,
+)
 from app.elastic.dsl import ElasticField, aterms
 from app.elastic.elastic import ResourceType
 from app.elastic.search import Search

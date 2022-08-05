@@ -542,3 +542,4 @@ required_collection_properties = {
     for node in metadata_hierarchy
     for child in node.children
 }
+oer_license = ["CC_0", "PDM", "CC_BY", "CC_BY_SA"]
