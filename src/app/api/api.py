@@ -68,19 +68,6 @@ def get_database(request: Request) -> Database:
 router = APIRouter()
 router.include_router(background_router)
 
-QUALITY_MATRIX_DESCRIPTION = """Calculation of the quality matrix.
-    Depending on the chosen form the quality matrix returns the ratio of entries which miss this property compared to
-    the total number of entries.
-    A missing entry may be `cm:creator = null`.
-    Additional parameters:
-        node_id: Default collection root id. Node id of the collection for which to evaluate the quality.
-        store_to_db: Default False. Causes returned quality matrix to also be stored in the backend database.
-        forms: Default replication source. Choose what type of quality determination you want.
-        transpose_output: Default false. Transpose the output matrix.
-
-    The user chooses the node id in the editorial environment (german: Redaktionsumgebung) in the "Fach" selection.
-    """
-
 _TAG_STATISTICS = "Statistics"
 _TAG_COLLECTIONS = "Collections"
 
@@ -104,7 +91,6 @@ def node_ids_for_major_collections(
     response_model=QualityOutputResponse,
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[_TAG_STATISTICS],
-    description=QUALITY_MATRIX_DESCRIPTION,
 )
 async def get_quality(
     *,
@@ -115,11 +101,33 @@ async def get_quality(
             **{key: {"value": value} for key, value in COLLECTION_NAME_TO_ID.items()},
         },
     ),
-    form: Forms = Query(
-        default=Forms.REPLICATION_SOURCE,
-        examples={form: {"value": form} for form in Forms},
-    ),
+    form: Forms,
 ):
+    """
+    Calculate the quality matrix w.r.t. the replication source, or collection.
+
+    A quality matrix is a tabular datastructure that has two possible layouts depending on whether it is computed for
+    the replication source ('Bezugsquelle') or collection ('Sammlung').
+
+    - For the collection quality matrix, each column correspond to metadata fields and the rows correspond to
+      collections, identified via their UUID from the
+      [vocabulary](https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/discipline/index.html).
+    - For the replication source quality matrix, the columns correspond to the replication source (e.g. "YouTube",
+      "Wikipedia", ...), the rows correspond to the metadata fields.
+
+    For both cases, the individual cells hold the rations of materials where the metadata is "OK". The definition of
+    "OK" depends on the meta data field (e.g. "non-empty string" for the title of a material).
+
+    Parameters:
+
+    - node_id: The toplevel collection for which to compute the quality matrix. Default to the collection root id.
+                It must come from the collection
+                [vocabulary](https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/discipline/index.html).
+                In the "Sammlung" mode, this essentially defines the rows of the output matrix. It serves as an overall
+                filter for materials in both cases.
+    - form: Defines the "mode" of the quality matrix, i.e. whether to compute the collection ("Sammlung") or replication
+            source ("Bezugsquelle"). Defaults to "Bezugsquelle".
+    """
     if form == Forms.REPLICATION_SOURCE:
         quality_data, total = await source_quality(uuid.UUID(node_id))
     else:  # Forms.COLLECTIONS:
@@ -132,7 +140,6 @@ async def get_quality(
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[_TAG_STATISTICS],
-    description=QUALITY_MATRIX_DESCRIPTION,
 )
 async def get_quality_backup(
     *,
