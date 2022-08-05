@@ -2,6 +2,9 @@
 Architecture
 ############
 
+
+# fixme: below image is outdated.
+
 .. image:: assets/metaqs-service-architecture.png
 
 Core services
@@ -9,7 +12,7 @@ Core services
 
 postgres
 --------
-
+- Is used to track the changes of the quality matrix over time.
 - Uses postgres:14 docker image.
 
 Environment variables::
@@ -18,8 +21,6 @@ Environment variables::
     POSTGRES_DB	analytics
     POSTGRES_USER	postgres
     POSTGRES_PASSWORD	postgres
-
-These connection variables are shared with all services that need to connect to postgres (i.e. fastapi, dbt) (see docker-compose.yml).
 
 nginx
 -----
@@ -43,11 +44,6 @@ Environment variables::
     POSTGRES_HOST	postgres	docker maps services in internal networks to service names
     LOG_LEVEL	info	options [error, warn, info, debug ]
     ELASTICSEARCH_URL		example: http://elastic-host:elastic-port
-
-dbt
----
-
-Custom image based on stock python extended with the dbt data analytics framework.
 
 Optional services
 =================

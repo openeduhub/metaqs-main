@@ -8,15 +8,11 @@ Documentation Links
 -------------------
 
 - [docker base image](https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker)
-- [async pg client library](https://magicstack.github.io/asyncpg/current/index.html)
 - [sqlalchemy (sync pg client)](https://docs.sqlalchemy.org/en/14/tutorial/index.html)
 - [fastapi](https://fastapi.tiangolo.com/tutorial/)
 - [pydantic](https://pydantic-docs.helpmanual.io/)
 - [elasticsearch DSL query library](https://elasticsearch-dsl.readthedocs.io/en/latest/index.html)
 - [glom - pythonic data parsing](https://glom.readthedocs.io/en/latest/index.html)
-- [python http client](https://www.python-httpx.org/quickstart/)
-- [python jsonrpc client](https://www.jsonrpcclient.com/en/stable/index.html)
-- [python polling library](https://polling2.readthedocs.io/en/latest/index.html)
 
 
 How to add a new endpoint
@@ -90,31 +86,6 @@ DBT::
     docker-compose build dbt
     docker push community.docker.edu-sharing.com/metaqs-dbt:latest
 
-
-Preparing SQL
--------------
-
-Launch postgres container and connect to `analytics` database::
-
-    docker-compose up -d postgres
-    docker-compose exec -u postgres postgres psql -d analytics
-
-
-List all tables::
-
-    \l
-    \dt
-
-Get all relevant tables::
-
-    SELECT * FROM pg_catalog.pg_tables
-    WHERE schemaname != 'information_schema' AND
-    schemaname != 'pg_catalog';
-
-Create necessary tables::
-
-    CREATE TABLE [raw.collections]
-
 Launch environment
 ------------------
 
@@ -144,7 +115,6 @@ Run::
 If build folders are missing, run::
 
     mkdir src
-    mkdir dbt
 
 and run init again.
 
