@@ -12,4 +12,3 @@ WLO - MetaQS
 .. include:: overview.rst
 .. include:: architecture.rst
 .. include:: setup.rst
-.. include:: analytics.rst

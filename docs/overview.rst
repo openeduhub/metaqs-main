@@ -2,21 +2,16 @@
 Project Repositories
 ********************
 
-Clone the main repository to the production machine when setting up the application.
-
-All services are deployed from Docker images via docker-compose.
-
 Code is placed in the `MetaQS main repository`_.
 
 .. _MetaQS main repository: https://github.com/openeduhub/metaqs-main
 
 Defines the service architecture in docker-compose.yml and contains the project documentation you are currently reading.
 
-Background Tasks
+Background Task
 ----------------
 
-Near real-time analytics functionality hinges on three different background tasks running inside the fastapi service:
+Near real-time analytics functionality hinges on a background task running inside the fastapi service which periodically
+updates statistics from elasticsearch. These statistics are then served to the user. This avoids long response times,
+where the user would have to wait for slow elastics search queries to complete on every request.
 
-- data import from elastic to postgres and subsequent analytics run in the analytics service,
-- aggregate search stats from elastic and store in postgres,
-- read from spellcheck_queue table in postgres, submit items to spellcheck service and store spellcheck errors in postgres.
