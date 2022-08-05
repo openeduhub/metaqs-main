@@ -2,6 +2,7 @@ import uuid
 from typing import Optional
 
 from elasticsearch_dsl import Q
+from elasticsearch_dsl.query import Wildcard
 from fastapi.params import Path, Query
 from glom import Coalesce, Iter
 from pydantic import BaseModel, Extra
@@ -10,7 +11,7 @@ from pydantic.validators import str_validator
 from app.api.collections.utils import map_elastic_response_to_model
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.models import ElasticResourceAttribute, ResponseModel
-from app.elastic.dsl import ElasticField, qbool, qmatch
+from app.elastic.dsl import ElasticField
 from app.elastic.elastic import ResourceType, query_missing_material_license
 from app.elastic.search import Search
 
@@ -121,47 +122,36 @@ def missing_attributes_search(
     node_id: uuid.UUID, missing_attribute: str, max_hits: int
 ) -> Search:
     # Mimetype filter based on https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
-    search = Search().base_filters()
-    query = {
-        "minimum_should_match": 1,
-        "should": [
-            qmatch(**{"collections.path": node_id}),
-            qmatch(**{"collections.nodeRef.id": node_id}),
-        ],
-    }
+    search = (
+        Search()
+        .base_filters()
+        .query(
+            Q(
+                "bool",
+                should=[
+                    Q(
+                        "match",
+                        **{ElasticResourceAttribute.COLLECTION_PATH.path: node_id}
+                    ),
+                    Q(
+                        "match",
+                        **{ElasticResourceAttribute.COLLECTION_NODEREF_ID.path: node_id}
+                    ),
+                ],
+            )
+        )
+    )
+
     if missing_attribute == ElasticResourceAttribute.LICENSES.path:
         search = search.filter(query_missing_material_license().to_dict())
     else:
-        query.update(
-            {
-                "must_not": Q("wildcard", **{missing_attribute: {"value": "*"}}),
-            }
-        )
+        # ~ corresponds to inversion here, i.e., Wildcard must not be true
+        search = search.query(~Wildcard(**{missing_attribute: {"value": "*"}}))
 
     return (
-        search.query(qbool(**query))
-        .type_filter(ResourceType.MATERIAL)
-        .filter(
-            Q("bool", **{"must_not": [{"term": {"aspects": "ccm:io_childobject"}}]})
-        )
-        .filter(
-            Q(
-                {
-                    "terms": {
-                        f"{ElasticResourceAttribute.MIMETYPE.path}.keyword": [
-                            "text/plain",
-                            "application/pdf",
-                            "application/msword",
-                            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                            "application/vnd.oasis.opendocument.text",
-                            "text/html",
-                            "application/vnd.ms-powerpoint",
-                        ]
-                    }
-                }
-            ),
-        )
+        search.type_filter(ResourceType.MATERIAL)
+        .filter_serial_objects_out()
+        .filter_text_only_objects()
         .source(includes=[source.path for source in missing_attributes_source_fields])
         .extra(size=max_hits, from_=0)
     )
