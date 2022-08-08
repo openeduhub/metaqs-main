@@ -47,12 +47,12 @@ class Search(elasticsearch_dsl.Search):
             qterm(qfield=ElasticResourceAttribute.COLLECTION_PATH, value=node_id)
         )
 
-    def filter_serial_objects_out(self):
+    def non_series_objects_filter(self):
         return self.filter(
             Q("bool", **{"must_not": [{"term": {"aspects": "ccm:io_childobject"}}]})
         )
 
-    def filter_text_only_objects(self):
+    def text_only_filter(self):
         return self.filter(
             Q(
                 {

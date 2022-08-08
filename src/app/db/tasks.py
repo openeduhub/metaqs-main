@@ -47,7 +47,7 @@ async def store_in_timeline(
                     }
                     for entry in data
                 ],
-                "form": mode,
+                "mode": mode,
                 "node_id": node_id,
                 "total": total,
             }

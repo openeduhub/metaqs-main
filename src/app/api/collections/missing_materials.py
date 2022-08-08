@@ -150,8 +150,8 @@ def missing_attributes_search(
 
     return (
         search.type_filter(ResourceType.MATERIAL)
-        .filter_serial_objects_out()
-        .filter_text_only_objects()
+        .non_series_objects_filter()
+        .text_only_filter()
         .source(includes=[source.path for source in missing_attributes_source_fields])
         .extra(size=max_hits, from_=0)
     )
