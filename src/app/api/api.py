@@ -46,7 +46,7 @@ from app.api.collections.pending_collections import (
 )
 from app.api.collections.tree import collection_tree
 from app.api.quality_matrix.collections import collection_quality
-from app.api.quality_matrix.models import Forms, QualityOutputResponse, Timeline
+from app.api.quality_matrix.models import Mode, QualityOutputResponse, Timeline
 from app.api.quality_matrix.replication_source import source_quality
 from app.api.quality_matrix.timeline import quality_backup, timestamps
 from app.api.score.models import ScoreOutput
@@ -115,12 +115,12 @@ async def get_quality(
             **{key: {"value": value} for key, value in COLLECTION_NAME_TO_ID.items()},
         },
     ),
-    form: Forms = Query(
-        default=Forms.REPLICATION_SOURCE,
-        examples={form: {"value": form} for form in Forms},
+    mode: Mode = Query(
+        default=Mode.REPLICATION_SOURCE,
+        examples={mode: {"value": mode} for mode in Mode},
     ),
 ):
-    if form == Forms.REPLICATION_SOURCE:
+    if mode == Mode.REPLICATION_SOURCE:
         quality_data, total = await source_quality(uuid.UUID(node_id))
     else:  # Forms.COLLECTIONS:
         quality_data, total = await collection_quality(uuid.UUID(node_id))
@@ -195,14 +195,14 @@ async def get_past_quality_matrix(
     tags=[_TAG_STATISTICS],
     description="""Return timestamps in seconds since epoch of past calculations of the quality matrix.
     Additional parameters:
-        form: The desired form of quality. This is used to query only the relevant type of data.""",
+        mode: The desired mode of quality. This is used to query only the relevant type of data.""",
 )
 async def get_timestamps(
     *,
     database: Database = Depends(get_database),
-    form: Forms = Query(
-        default=Forms.REPLICATION_SOURCE,
-        examples={form: {"value": form} for form in Forms},
+    mode: Mode = Query(
+        default=Mode.REPLICATION_SOURCE,
+        examples={mode: {"value": mode} for mode in Mode},
     ),
     node_id: str = Query(
         default=COLLECTION_ROOT_ID,
@@ -212,7 +212,7 @@ async def get_timestamps(
         },
     ),
 ):
-    return await timestamps(database, form, uuid.UUID(node_id))
+    return await timestamps(database, mode, uuid.UUID(node_id))
 
 
 @router.get(
@@ -388,6 +388,7 @@ async def read_stats_validation_collection(
     return collections_with_missing_properties(node_id)
 
 
+# TODO: Rename to material-validation or similar
 @router.get(
     "/analytics/{node_id}/validation",
     response_model=list[ValidationStatsResponse[MaterialValidationStats]],

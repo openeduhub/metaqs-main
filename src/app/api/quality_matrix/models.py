@@ -43,7 +43,7 @@ create table timeline
 (
     id        int,
     timestamp int,
-    form      text,
+    mode      text,
     quality   json,
     total   json,
     node_id   uuid
@@ -60,12 +60,12 @@ class Timeline(Base):
     )
     timestamp = Column(Integer, nullable=False)
     quality = Column(JSON, nullable=False)
-    form = Column(Text, nullable=False)
+    mode = Column(Text, nullable=False)
     node_id = Column(UUID, nullable=False)
     total = Column(JSON, nullable=False)
 
 
-class Forms(str, Enum):
+class Mode(str, Enum):
     """
     The form of a quality matrix specifies what will be used as grouping.
     It defines the columns and row labels of the table.
@@ -75,5 +75,5 @@ class Forms(str, Enum):
     of the row.
     """
 
-    REPLICATION_SOURCE = "Bezugsquelle"
-    COLLECTIONS = "Sammlungen"
+    REPLICATION_SOURCE = "replication_source"
+    COLLECTIONS = "collections"
