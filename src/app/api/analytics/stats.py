@@ -284,6 +284,12 @@ def collections_with_missing_properties(
     ]
 
 
+def has_license_wrong_entries(entry: str, properties: dict) -> bool:
+    if properties[entry.split(".")[-1]] in ["UNTERRICHTS_UND_LEHRMEDIEN", "NONE", ""]:
+        return True
+    return False
+
+
 def materials_with_missing_properties(
     node_id,
 ) -> list[ValidationStatsResponse[MaterialValidationStats]]:
@@ -319,6 +325,12 @@ def materials_with_missing_properties(
                     if (
                         "properties" not in material.doc.keys()
                         or entry.split(".")[-1] not in material.doc["properties"].keys()
+                        or (
+                            entry == ElasticResourceAttribute.LICENSES.path
+                            and has_license_wrong_entries(
+                                entry, material.doc["properties"]
+                            )
+                        )
                     ):
                         entry_key = required_collection_properties[entry]
                         if entry_key not in missing_properties[collection.id].keys():
