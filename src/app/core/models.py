@@ -542,3 +542,18 @@ required_collection_properties = {
     for node in metadata_hierarchy
     for child in node.children
 }
+
+# only the properties, which editors need to fix in the frontend, only these need to be stored in global storage
+essential_frontend_properties = [
+    ElasticResourceAttribute.TITLE.path,
+    ElasticResourceAttribute.LEARNINGRESOURCE_TYPE.path,
+    ElasticResourceAttribute.SUBJECTS.path,
+    ElasticResourceAttribute.WWW_URL.path,
+    ElasticResourceAttribute.LICENSES.path,
+    ElasticResourceAttribute.PUBLISHER.path,
+    ElasticResourceAttribute.DESCRIPTION.path,
+    ElasticResourceAttribute.EDU_ENDUSERROLE_DE.path,
+    ElasticResourceAttribute.EDU_CONTEXT.path,
+]
+
+oer_license = ["CC_0", "PDM", "CC_BY", "CC_BY_SA"]

@@ -27,7 +27,7 @@ from app.api.collections.counts import AggregationMappings, collection_counts
 from app.core.config import BACKGROUND_TASK_TIME_INTERVAL
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.core.logging import logger
-from app.core.models import ElasticResourceAttribute, required_collection_properties
+from app.core.models import ElasticResourceAttribute, essential_frontend_properties
 from app.elastic.elastic import ResourceType
 from app.elastic.search import Search
 
@@ -66,14 +66,12 @@ def import_data_from_elasticsearch(
 
 
 def search_query(resource_type: ResourceType, path: str) -> Search:
-    search = (
+    return (
         Search()
+        .base_filters()
         .node_filter(resource_type=resource_type, node_id=COLLECTION_ROOT_ID)
-        .source(
-            includes=["nodeRef.*", path, *list(required_collection_properties.keys())]
-        )
+        .source(includes=["nodeRef.*", path, *essential_frontend_properties])
     )
-    return search
 
 
 def run():

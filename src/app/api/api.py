@@ -8,7 +8,11 @@ from fastapi.params import Param
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from starlette.requests import Request
-from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
+from starlette.status import (
+    HTTP_200_OK,
+    HTTP_404_NOT_FOUND,
+    HTTP_422_UNPROCESSABLE_ENTITY,
+)
 
 from app.api.analytics.analytics import (
     CollectionValidationStats,
@@ -46,7 +50,7 @@ from app.api.collections.pending_collections import (
 )
 from app.api.collections.tree import collection_tree
 from app.api.quality_matrix.collections import collection_quality
-from app.api.quality_matrix.models import Forms, QualityOutputResponse, Timeline
+from app.api.quality_matrix.models import Mode, QualityOutputResponse, Timeline
 from app.api.quality_matrix.replication_source import source_quality
 from app.api.quality_matrix.timeline import quality_backup, timestamps
 from app.api.score.models import ScoreOutput
@@ -72,14 +76,25 @@ _TAG_STATISTICS = "Statistics"
 _TAG_COLLECTIONS = "Collections"
 
 
+def valid_node_ids() -> dict:
+    return {
+        "Alle Fachportale": {"value": COLLECTION_ROOT_ID},
+        **{key: {"value": value} for key, value in COLLECTION_NAME_TO_ID.items()},
+    }
+
+
+def validate_node_id(node_id: uuid.UUID):
+    if str(node_id) not in {value["value"] for value in valid_node_ids().values()}:
+        raise HTTPException(
+            status_code=HTTP_422_UNPROCESSABLE_ENTITY, detail="Node id invalid"
+        )
+
+
 def node_ids_for_major_collections(
     *,
     node_id: uuid.UUID = Path(
-        ...,
-        examples={
-            "Alle Fachportale": {"value": COLLECTION_ROOT_ID},
-            **{key: {"value": value} for key, value in COLLECTION_NAME_TO_ID.items()},
-        },
+        default=...,
+        examples=valid_node_ids(),
     ),
 ) -> uuid.UUID:
     return node_id
@@ -95,13 +110,13 @@ def node_ids_for_major_collections(
 async def get_quality(
     *,
     node_id: str = Query(
-        default=COLLECTION_ROOT_ID,
-        examples={
-            "Alle Fachportale": {"value": COLLECTION_ROOT_ID},
-            **{key: {"value": value} for key, value in COLLECTION_NAME_TO_ID.items()},
-        },
+        default=...,
+        examples=valid_node_ids(),
     ),
-    form: Forms,
+    mode: Mode = Query(
+        default=Mode.REPLICATION_SOURCE,
+        examples={mode: {"value": mode} for mode in Mode},
+    ),
 ):
     """
     Calculate the quality matrix w.r.t. the replication source, or collection.
@@ -128,7 +143,8 @@ async def get_quality(
     - form: Defines the "mode" of the quality matrix, i.e. whether to compute the collection ("Sammlung") or replication
             source ("Bezugsquelle"). Defaults to "Bezugsquelle".
     """
-    if form == Forms.REPLICATION_SOURCE:
+    validate_node_id(uuid.UUID(node_id))
+    if mode == Mode.REPLICATION_SOURCE:
         quality_data, total = await source_quality(uuid.UUID(node_id))
     else:  # Forms.COLLECTIONS:
         quality_data, total = await collection_quality(uuid.UUID(node_id))
@@ -162,13 +178,11 @@ async def get_past_quality_matrix(
     timestamp: int,
     database: Database = Depends(get_database),
     node_id: str = Query(
-        default=COLLECTION_ROOT_ID,
-        examples={
-            "Alle Fachportale": {"value": COLLECTION_ROOT_ID},
-            **{key: {"value": value} for key, value in COLLECTION_NAME_TO_ID.items()},
-        },
+        default=...,
+        examples=valid_node_ids,
     ),
 ):
+    validate_node_id(uuid.UUID(node_id))
     if not timestamp:
         raise HTTPException(status_code=400, detail="Invalid or no timestamp given")
 
@@ -202,24 +216,22 @@ async def get_past_quality_matrix(
     tags=[_TAG_STATISTICS],
     description="""Return timestamps in seconds since epoch of past calculations of the quality matrix.
     Additional parameters:
-        form: The desired form of quality. This is used to query only the relevant type of data.""",
+        mode: The desired mode of quality. This is used to query only the relevant type of data.""",
 )
 async def get_timestamps(
     *,
     database: Database = Depends(get_database),
-    form: Forms = Query(
-        default=Forms.REPLICATION_SOURCE,
-        examples={form: {"value": form} for form in Forms},
+    mode: Mode = Query(
+        default=Mode.REPLICATION_SOURCE,
+        examples={mode: {"value": mode} for mode in Mode},
     ),
     node_id: str = Query(
-        default=COLLECTION_ROOT_ID,
-        examples={
-            "Alle Fachportale": {"value": COLLECTION_ROOT_ID},
-            **{key: {"value": value} for key, value in COLLECTION_NAME_TO_ID.items()},
-        },
+        default=...,
+        examples=valid_node_ids,
     ),
 ):
-    return await timestamps(database, form, uuid.UUID(node_id))
+    validate_node_id(uuid.UUID(node_id))
+    return await timestamps(database, mode, uuid.UUID(node_id))
 
 
 @router.get(
@@ -239,6 +251,7 @@ async def get_timestamps(
     """,
 )
 async def score(*, node_id: uuid.UUID = Depends(node_ids_for_major_collections)):
+    validate_node_id(node_id)
     return await get_score(node_id)
 
 
@@ -270,6 +283,7 @@ async def ping_api():
 async def get_collection_tree(
     *, node_id: uuid.UUID = Depends(node_ids_for_major_collections)
 ):
+    validate_node_id(node_id)
     return await collection_tree(node_id)
 
 
@@ -289,6 +303,7 @@ async def get_collection_counts(
         examples={key: {"value": key} for key in AggregationMappings},
     ),
 ):
+    validate_node_id(node_id)
     return await oer_collection_counts(node_id=node_id, facet=facet)
 
 
@@ -313,6 +328,7 @@ async def filter_pending_collections(
         },
     ),
 ):
+    validate_node_id(node_id)
     return await pending_collections(node_id, missing_attribute)
 
 
@@ -323,7 +339,8 @@ async def filter_pending_collections(
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=[_TAG_COLLECTIONS],
-    description="""A list of missing entries for different types of materials by subcollection.
+    description="""A list of missing entries for different types of materials belonging to the collection and
+    its subcollectionsspecified by 'node_id'.
     Searches for materials with one of the following properties being empty or missing: """
     + f"{', '.join([entry.value for entry in missing_attribute_filter])}.",
 )
@@ -335,6 +352,7 @@ async def filter_materials_with_missing_attributes(
         material_response_fields
     ),
 ):
+    validate_node_id(node_id)
     return await get_materials_with_missing_attributes(
         missing_attr_filter, node_id, response_fields
     )
@@ -352,6 +370,7 @@ async def filter_materials_with_missing_attributes(
 async def material_counts_tree(
     *, node_id: uuid.UUID = Depends(node_ids_for_major_collections)
 ):
+    validate_node_id(node_id)
     return await get_material_count_tree(node_id)
 
 
@@ -372,6 +391,7 @@ async def read_stats(
     *,
     node_id: uuid.UUID = Depends(node_ids_for_major_collections),
 ):
+    validate_node_id(node_id)
     return await overall_stats(node_id)
 
 
@@ -391,9 +411,11 @@ async def read_stats_validation_collection(
     *,
     node_id: uuid.UUID = Depends(node_ids_for_major_collections),
 ):
+    validate_node_id(node_id)
     return collections_with_missing_properties(node_id)
 
 
+# TODO: Rename to material-validation or similar
 @router.get(
     "/analytics/{node_id}/validation",
     response_model=list[ValidationStatsResponse[MaterialValidationStats]],
@@ -413,6 +435,7 @@ async def read_stats_validation(
     *,
     node_id: uuid.UUID = Depends(node_ids_for_major_collections),
 ):
+    validate_node_id(node_id)
     return materials_with_missing_properties(node_id)
 
 
