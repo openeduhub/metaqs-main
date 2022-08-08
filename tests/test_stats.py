@@ -9,6 +9,7 @@ from app.api.analytics.stats import (
     Row,
     build_material_search,
     collections_with_missing_properties,
+    has_license_wrong_entries,
     materials_with_missing_properties,
     overall_stats,
     query_material_types,
@@ -258,3 +259,12 @@ def test_materials_with_missing_properties():
 
     assert result[0].validation_stats.url.missing == [dummy_material_node]
     assert result[0].validation_stats.material_type is None
+
+
+def test_has_license_wrong_entries():
+    assert not has_license_wrong_entries("test_key", {"test_key": 0})
+
+    assert has_license_wrong_entries("test_key", {"test_key": ""})
+    assert has_license_wrong_entries(
+        "test_key", {"test_key": "UNTERRICHTS_UND_LEHRMEDIEN"}
+    )

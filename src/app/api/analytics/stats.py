@@ -25,12 +25,16 @@ from app.api.analytics.storage import (
     global_storage,
     global_store,
 )
-from app.api.collections.counts import oer_license
+from app.api.collections.counts import oer_ratio
 from app.api.collections.models import CollectionNode
-from app.api.collections.oer import oer_ratio
 from app.api.collections.tree import collection_tree
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.models import ElasticResourceAttribute, required_collection_properties
+from app.core.models import (
+    ElasticResourceAttribute,
+    essential_frontend_properties,
+    oer_license,
+    required_collection_properties,
+)
 from app.elastic.dsl import ElasticField, aterms
 from app.elastic.elastic import ResourceType
 from app.elastic.search import Search
@@ -280,6 +284,12 @@ def collections_with_missing_properties(
     ]
 
 
+def has_license_wrong_entries(entry: str, properties: dict) -> bool:
+    if properties[entry.split(".")[-1]] in ["UNTERRICHTS_UND_LEHRMEDIEN", "NONE", ""]:
+        return True
+    return False
+
+
 def materials_with_missing_properties(
     node_id,
 ) -> list[ValidationStatsResponse[MaterialValidationStats]]:
@@ -296,6 +306,10 @@ def materials_with_missing_properties(
     collections = filtered_collections(collections, node_id)
 
     materials: list[StorageModel] = global_storage[_MATERIALS]
+
+    if not collections or not materials:
+        return []
+
     # find materials belonging to each collection
     # check whether they are missing the required properties
     # if so, add them as a list to validation stats
@@ -305,12 +319,18 @@ def materials_with_missing_properties(
         missing_properties.update({collection.id: {}})
         for material in materials:
             if material.doc["collections"][0]["nodeRef"]["id"] == collection.id:
-                # check if property is present
+                # check if all essential properties are present
                 # if not, add the respective material id to the "missing" field of this property
-                for entry in required_collection_properties.keys():
+                for entry in essential_frontend_properties:
                     if (
                         "properties" not in material.doc.keys()
                         or entry.split(".")[-1] not in material.doc["properties"].keys()
+                        or (
+                            entry == ElasticResourceAttribute.LICENSES.path
+                            and has_license_wrong_entries(
+                                entry, material.doc["properties"]
+                            )
+                        )
                     ):
                         entry_key = required_collection_properties[entry]
                         if entry_key not in missing_properties[collection.id].keys():

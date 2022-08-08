@@ -6,11 +6,9 @@ from elasticsearch_dsl import A
 from pydantic import BaseModel
 
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.models import ElasticResourceAttribute
+from app.core.models import ElasticResourceAttribute, oer_license
 from app.elastic.elastic import ResourceType
 from app.elastic.search import Search
-
-oer_license = ["CC_0", "PDM", "CC_BY", "CC_BY_SA"]
 
 
 class CollectionTreeCount(BaseModel):
@@ -107,3 +105,17 @@ def build_counts(response) -> list[CollectionTreeCount]:
         )
         for data in response.aggregations[_AGGREGATION_NAME].buckets
     ]
+
+
+def oer_ratio(node_id: uuid.UUID) -> int:
+    oer_statistics = collection_counts_search(node_id, AggregationMappings.license)
+    response = oer_statistics.execute()
+    oer_elements = 0
+    oer_total = 0
+    for data in response.aggregations[_AGGREGATION_NAME].buckets:
+        for bucket in data["facet"]["buckets"]:
+            oer_total += bucket["doc_count"]
+            if bucket["key"] in oer_license:
+                oer_elements += bucket["doc_count"]
+
+    return round((oer_elements / oer_total) * 100)

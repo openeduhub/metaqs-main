@@ -3,7 +3,7 @@ import uuid
 from elasticsearch_dsl import Q
 from elasticsearch_dsl.response import Response
 
-from app.api.collections.oer import oer_ratio
+from app.api.collections.counts import oer_ratio
 from app.api.score.models import (
     MissingCollectionProperties,
     MissingMaterialProperties,
