@@ -80,7 +80,7 @@ class LearningMaterial(ResponseModel):
 
 
 def material_response_fields(
-    *, response_fields: set[ElasticResourceAttribute] = Query(None)
+        *, response_fields: set[ElasticResourceAttribute] = Query(None)
 ) -> set[ElasticResourceAttribute]:
     return response_fields
 
@@ -113,13 +113,13 @@ class MissingAttributeFilter(BaseModel):
 
 
 def materials_filter_params(
-    *, missing_attr: MissingMaterialField = Path(...)
+        *, missing_attr: MissingMaterialField = Path(...)
 ) -> MissingAttributeFilter:
     return MissingAttributeFilter(attr=missing_attr)
 
 
 def missing_attributes_search(
-    node_id: uuid.UUID, missing_attribute: str, max_hits: int
+        node_id: uuid.UUID, missing_attribute: str, max_hits: int
 ) -> Search:
     # Mimetype filter based on https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
     search = (
@@ -158,8 +158,8 @@ def missing_attributes_search(
 
 
 async def search_materials_with_missing_attributes(
-    node_id: Optional[uuid.UUID] = None,
-    missing_attr_filter: Optional[MissingAttributeFilter] = None,
+        node_id: Optional[uuid.UUID] = None,
+        missing_attr_filter: Optional[MissingAttributeFilter] = None,
 ) -> list[LearningMaterial]:
     search = missing_attributes_search(
         node_id, missing_attr_filter.attr.value, ELASTIC_TOTAL_SIZE
@@ -170,25 +170,3 @@ async def search_materials_with_missing_attributes(
             response, missing_materials_spec, LearningMaterial
         )
 
-
-# TODO is this really being used?
-def filter_response_fields(
-    items: list[BaseModel], response_fields: set[ElasticField] = None
-) -> list[BaseModel]:
-    if response_fields:
-        return [
-            i.copy(include={f.name.lower() for f in response_fields}) for i in items
-        ]
-    return items
-
-
-async def get_materials_with_missing_attributes(
-    missing_attr_filter, node_id, response_fields
-):
-    if response_fields:
-        response_fields.add(ElasticResourceAttribute.NODE_ID)
-    materials = await search_materials_with_missing_attributes(
-        node_id=node_id,
-        missing_attr_filter=missing_attr_filter,
-    )
-    return filter_response_fields(materials, response_fields=response_fields)

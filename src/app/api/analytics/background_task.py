@@ -24,7 +24,8 @@ from app.api.analytics.storage import (
     global_store,
 )
 from app.api.collections.counts import AggregationMappings, collection_counts
-from app.core.config import BACKGROUND_TASK_TIME_INTERVAL
+from app.api.collections.missing_materials import missing_attributes_search
+from app.core.config import BACKGROUND_TASK_TIME_INTERVAL, ELASTIC_TOTAL_SIZE
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.core.logging import logger
 from app.core.models import ElasticResourceAttribute, essential_frontend_properties
@@ -74,6 +75,20 @@ def search_query(resource_type: ResourceType, path: str) -> Search:
     )
 
 
+def create_collection_table(node_id):
+    output = {}
+    for attribute in missing_attributes:
+        search = missing_attributes_search(
+            node_id, attribute, ELASTIC_TOTAL_SIZE
+        )
+        response = search.execute()
+
+        for hit in response.hits:
+            if hit.collection_id == node_id:
+                # success, add material to output
+                output[attribute].append(hit)
+
+
 def run():
     derived_at = datetime.now()
     logger.info(f"{os.getpid()}: Starting analytics import at: {derived_at}")
@@ -93,6 +108,9 @@ def run():
         resource_type=ResourceType.MATERIAL,
         path=ElasticResourceAttribute.COLLECTION_NODEREF_ID.path,
     )
+
+    for node in toplevel_nodes:
+        global_storage[_COLLECTION_TABLE][node] = create_collection_table(node)
 
     logger.info("Collection and materials imported")
 
