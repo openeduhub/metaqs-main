@@ -111,3 +111,21 @@ class MaterialValidationResponse(BaseModel):
     collection_id: uuid.UUID
     derived_at: datetime = Field(default_factory=datetime.now)
     stats: MaterialValidationStats
+
+
+class PendingMaterials(BaseModel):
+    node_id: uuid.UUID
+    title: list[uuid.UUID]
+    edu_context: list[uuid.UUID]
+    url: list[uuid.UUID]
+    description: list[uuid.UUID]
+    license: list[uuid.UUID]
+    learning_resource_type: list[uuid.UUID]
+    taxon_id: list[uuid.UUID]
+    publisher: list[uuid.UUID]
+    intended_end_user_role: list[uuid.UUID]
+
+
+class PendingMaterialsResponse(BaseModel):
+    collection_id: uuid.UUID
+    missing_materials: list[PendingMaterials]

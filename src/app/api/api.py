@@ -17,13 +17,13 @@ from starlette.status import (
 from app.api.analytics.analytics import (
     CollectionValidationStats,
     StatsResponse,
-    ValidationStatsResponse, MaterialValidationResponse,
+    ValidationStatsResponse, MaterialValidationResponse, PendingMaterialsResponse,
 )
 from app.api.analytics.background_task import background_router
 from app.api.analytics.stats import (
     collections_with_missing_properties,
     materials_with_missing_properties,
-    overall_stats,
+    overall_stats, material_validation,
 )
 from app.api.analytics.storage import global_storage
 from app.api.collections.counts import (
@@ -353,12 +353,11 @@ async def filter_materials_with_missing_attributes(
         node_id: uuid.UUID = Depends(node_ids_for_major_collections),
         missing_attr_filter: MissingAttributeFilter = Depends(materials_filter_params),
 ):
-    validate_node_id(node_id)
+    # validate_node_id(node_id)
     return await search_materials_with_missing_attributes(
         node_id=node_id,
         missing_attr_filter=missing_attr_filter,
     )
-
 
 
 @router.get(
@@ -440,6 +439,30 @@ async def read_stats_validation(
 ):
     validate_node_id(node_id)
     return materials_with_missing_properties(node_id)
+
+
+# TODO: Rename to material-validation or similar
+@router.get(
+    "/material-validation/{node_id}",
+    response_model=PendingMaterialsResponse,
+    response_model_exclude_unset=True,
+    status_code=HTTP_200_OK,
+    responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
+    tags=[_TAG_STATISTICS],
+    description="""
+    Returns the number of materials missing certain properties for this collection's 'node_id' and its sub collections.
+
+    This endpoint is similar to '/analytics/node_id/validation/collections', but instead of showing missing
+    properties in collections, it counts the materials inside each collection that are missing that property."""
+                + f"It relies on background data and is read every {BACKGROUND_TASK_TIME_INTERVAL}s. "
+                + "This is the granularity of the data.",
+)
+async def read_material_validationn(
+        *,
+        node_id: uuid.UUID = Depends(node_ids_for_major_collections),
+):
+    # validate_node_id(node_id)
+    return material_validation(node_id)
 
 
 if API_DEBUG:

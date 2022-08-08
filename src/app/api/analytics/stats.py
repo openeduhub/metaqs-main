@@ -23,7 +23,7 @@ from app.api.analytics.storage import (
     _MATERIALS,
     StorageModel,
     global_storage,
-    global_store,
+    global_store, PendingMaterialsStore,
 )
 from app.api.collections.counts import oer_ratio
 from app.api.collections.models import CollectionNode
@@ -41,7 +41,7 @@ from app.elastic.search import Search
 
 
 def qsimplequerystring(
-    query: str, qfields: list[Union[ElasticField, str]], **kwargs
+        query: str, qfields: list[Union[ElasticField, str]], **kwargs
 ) -> Query:
     kwargs["query"] = query
     kwargs["fields"] = [
@@ -78,7 +78,7 @@ def agg_material_types(size: int = ELASTIC_TOTAL_SIZE) -> Agg:
 
 
 def merge_agg_response(
-    agg: AggResponse, key: str = "key", result_field: str = "doc_count"
+        agg: AggResponse, key: str = "key", result_field: str = "doc_count"
 ) -> dict:
     def op(carry: dict, bucket: dict):
         carry[bucket[key]] = bucket[result_field]
@@ -155,7 +155,7 @@ async def get_ids_to_iterate(node_id: uuid.UUID) -> list[Row]:
 
 
 def query_material_types(
-    node_id: uuid.UUID, storage_path: str
+        node_id: uuid.UUID, storage_path: str
 ) -> dict[str, CountStatistics]:
     # get collections with parent id equal to node_id
     # portal_id == node_id
@@ -187,7 +187,7 @@ def filtered_collections(collections: list[StorageModel], node_id: uuid.UUID):
 
 
 async def query_search_statistics(
-    node_id: uuid.UUID,
+        node_id: uuid.UUID,
 ) -> dict[str, CountStatistics]:
     for stats in global_store.search:
         if str(node_id) == str(stats.node_id):
@@ -196,7 +196,7 @@ async def query_search_statistics(
 
 
 async def oer_query_search_statistics(
-    node_id: uuid.UUID,
+        node_id: uuid.UUID,
 ) -> dict[str, CountStatistics]:
     for stats in global_store.oer_search:
         if str(node_id) == str(stats.node_id):
@@ -250,7 +250,7 @@ def transform_output(material_types_stats, search_stats):
 
 
 def collections_with_missing_properties(
-    node_id: uuid.UUID,
+        node_id: uuid.UUID,
 ) -> list[ValidationStatsResponse[CollectionValidationStats]]:
     """
     Check whether any of the following are missing:
@@ -267,8 +267,8 @@ def collections_with_missing_properties(
         for entry in required_collection_properties.keys():
             value = {required_collection_properties[entry]: ["missing"]}
             if (
-                "properties" not in collection.doc.keys()
-                or entry.split(".")[-1] not in collection.doc["properties"].keys()
+                    "properties" not in collection.doc.keys()
+                    or entry.split(".")[-1] not in collection.doc["properties"].keys()
             ):
                 missing_properties[collection.id].update(value)
 
@@ -291,7 +291,7 @@ def has_license_wrong_entries(entry: str, properties: dict) -> bool:
 
 
 def materials_with_missing_properties(
-    node_id,
+        node_id,
 ) -> list[ValidationStatsResponse[MaterialValidationStats]]:
     """
     Returns the number of materials missing certain properties for this collection node_id and its sub collections
@@ -323,14 +323,14 @@ def materials_with_missing_properties(
                 # if not, add the respective material id to the "missing" field of this property
                 for entry in essential_frontend_properties:
                     if (
-                        "properties" not in material.doc.keys()
-                        or entry.split(".")[-1] not in material.doc["properties"].keys()
-                        or (
+                            "properties" not in material.doc.keys()
+                            or entry.split(".")[-1] not in material.doc["properties"].keys()
+                            or (
                             entry == ElasticResourceAttribute.LICENSES.path
                             and has_license_wrong_entries(
-                                entry, material.doc["properties"]
-                            )
-                        )
+                        entry, material.doc["properties"]
+                    )
+                    )
                     ):
                         entry_key = required_collection_properties[entry]
                         if entry_key not in missing_properties[collection.id].keys():
@@ -352,3 +352,12 @@ def materials_with_missing_properties(
         )
         for key, value in missing_properties.items()
     ]
+
+
+def material_validation(
+        node_id,
+) -> PendingMaterialsStore:
+    all_materials: list[PendingMaterialsStore] = global_store.pending_materials
+    for material in all_materials:
+        if material.collection_id == node_id:
+            return material

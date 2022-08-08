@@ -125,22 +125,9 @@ def missing_attributes_search(
     search = (
         Search()
         .base_filters()
-        .query(
-            Q(
-                "bool",
-                should=[
-                    Q(
-                        "match",
-                        **{ElasticResourceAttribute.COLLECTION_PATH.path: node_id}
-                    ),
-                    Q(
-                        "match",
-                        **{ElasticResourceAttribute.COLLECTION_NODEREF_ID.path: node_id}
-                    ),
-                ],
-            )
-        )
-    )
+        # this query is supposed to filter to all materials that
+        # are part of the collection node_id or any of it's parent nodes.
+        .filter(Q("match", **{ElasticResourceAttribute.COLLECTION_PATH.path: node_id})))
 
     if missing_attribute == ElasticResourceAttribute.LICENSES.path:
         search = search.filter(query_missing_material_license().to_dict())
@@ -152,7 +139,9 @@ def missing_attributes_search(
         search.type_filter(ResourceType.MATERIAL)
         .non_series_objects_filter()
         .text_only_filter()
-        .source(includes=[source.path for source in missing_attributes_source_fields])
+        .source(includes=[ElasticResourceAttribute.COLLECTION_NODEREF_ID.path,
+                          ElasticResourceAttribute.COLLECTION_PATH.path,
+                          *[source.path for source in missing_attributes_source_fields]])
         .extra(size=max_hits, from_=0)
     )
 
@@ -169,4 +158,3 @@ async def search_materials_with_missing_attributes(
         return map_elastic_response_to_model(
             response, missing_materials_spec, LearningMaterial
         )
-

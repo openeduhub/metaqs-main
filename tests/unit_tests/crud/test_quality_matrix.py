@@ -34,9 +34,9 @@ async def test_get_properties():
     data = get_properties(False)
     assert "ccm:author_freetext" in data
     assert len(data) > 150
-    data = get_properties(True)
+    data = get_properties(use_required_properties_only=True)
     assert "cclom:title" in data
-    assert len(data) == 10
+    assert len(data) == 61
 
 
 @pytest.mark.asyncio
