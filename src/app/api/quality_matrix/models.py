@@ -18,8 +18,14 @@ class QualityOutput:
 
 
 class QualityOutputModel(BaseModel):
-    row_header: str = Field(default="", description="Name of the evaluated metadatum.")
-    level: int = Field(default=1, description="Hierarchy level of this metadatum")
+    row_header: str = Field(
+        default="",
+        description="Name of the evaluated attribute, e.g., metadatum or collection id.",
+    )
+    level: int = Field(
+        default=1,
+        description="Hierarchy level of this attribute. Only relevant for collections.",
+    )
     columns: dict[str, float] = Field(
         description="The ratio of quality for the required columns."
     )
@@ -27,7 +33,7 @@ class QualityOutputModel(BaseModel):
 
 class QualityOutputResponse(BaseModel):
     data: list[QualityOutputModel] = Field(
-        default=[], description="Quality data per metadatum and column"
+        default=[], description="Quality data per column"
     )
     total: dict[str, int] = Field(
         default={}, description="Column names and total materials per column"

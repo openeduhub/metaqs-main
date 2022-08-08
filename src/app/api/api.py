@@ -72,32 +72,17 @@ def get_database(request: Request) -> Database:
 router = APIRouter()
 router.include_router(background_router)
 
-QUALITY_MATRIX_DESCRIPTION = """Calculation of the quality matrix.
-    Depending on the chosen form the quality matrix returns the ratio of entries which miss this property compared to
-    the total number of entries.
-    A missing entry may be `cm:creator = null`.
-    Additional parameters:
-        node_id: Node id of the collection for which to evaluate the quality.
-        store_to_db: Default False. Causes returned quality matrix to also be stored in the backend database.
-        forms: Default replication source. Choose what type of quality determination you want.
-        transpose_output: Default false. Transpose the output matrix.
-
-    The user chooses the node id in the editorial environment (german: Redaktionsumgebung) in the "Fach" selection.
-    """
-
 _TAG_STATISTICS = "Statistics"
 _TAG_COLLECTIONS = "Collections"
 
-
-def valid_node_ids() -> dict:
-    return {
-        "Alle Fachportale": {"value": COLLECTION_ROOT_ID},
-        **{key: {"value": value} for key, value in COLLECTION_NAME_TO_ID.items()},
-    }
+valid_node_ids = {
+    "Alle Fachportale": {"value": COLLECTION_ROOT_ID},
+    **{key: {"value": value} for key, value in COLLECTION_NAME_TO_ID.items()},
+}
 
 
 def validate_node_id(node_id: uuid.UUID):
-    if str(node_id) not in {value["value"] for value in valid_node_ids().values()}:
+    if str(node_id) not in {value["value"] for value in valid_node_ids.values()}:
         raise HTTPException(
             status_code=HTTP_422_UNPROCESSABLE_ENTITY, detail="Node id invalid"
         )
@@ -107,7 +92,7 @@ def node_ids_for_major_collections(
     *,
     node_id: uuid.UUID = Path(
         default=...,
-        examples=valid_node_ids(),
+        examples=valid_node_ids,
     ),
 ) -> uuid.UUID:
     return node_id
@@ -119,23 +104,47 @@ def node_ids_for_major_collections(
     response_model=QualityOutputResponse,
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[_TAG_STATISTICS],
-    description=QUALITY_MATRIX_DESCRIPTION,
 )
 async def get_quality(
     *,
     node_id: str = Query(
         default=...,
-        examples=valid_node_ids(),
+        examples=valid_node_ids,
     ),
     mode: Mode = Query(
         default=Mode.REPLICATION_SOURCE,
         examples={mode: {"value": mode} for mode in Mode},
     ),
 ):
+    """
+    Calculate the quality matrix w.r.t. the replication source, or collection.
+
+    A quality matrix is a tabular datastructure that has two possible layouts depending on whether it is computed for
+    the replication source ('replication_source') or collection ('collections').
+
+    - For the collection quality matrix, each column correspond to metadata fields and the rows correspond to
+      collections, identified via their UUID from the
+      [vocabulary](https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/discipline/index.html).
+    - For the replication source quality matrix, the columns correspond to the replication source (e.g. "YouTube",
+      "Wikipedia", ...), the rows correspond to the metadata fields.
+
+    For both cases, the individual cells hold the rations of materials where the metadata is "OK". The definition of
+    "OK" depends on the meta data field (e.g. "non-empty string" for the title of a material).
+
+    Parameters:
+
+    - node_id: The toplevel collection for which to compute the quality matrix.
+                It must come from the collection
+                [vocabulary](https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/discipline/index.html).
+                In the "collections" mode, this essentially defines the rows of the output matrix.
+                It serves as an overall filter for materials in both cases.
+    - Mode: Defines the mode of the quality matrix, i.e. whether to compute the collection ("collections") or
+            replication source ("replication_source"). Defaults to "replication_source".
+    """
     validate_node_id(uuid.UUID(node_id))
     if mode == Mode.REPLICATION_SOURCE:
         quality_data, total = await source_quality(uuid.UUID(node_id))
-    else:  # Forms.COLLECTIONS:
+    else:  # Mode.COLLECTIONS:
         quality_data, total = await collection_quality(uuid.UUID(node_id))
     return {"data": quality_data, "total": total}
 
@@ -145,7 +154,6 @@ async def get_quality(
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[_TAG_STATISTICS],
-    description=QUALITY_MATRIX_DESCRIPTION,
 )
 async def get_quality_backup(
     *,
@@ -160,18 +168,26 @@ async def get_quality_backup(
     response_model=QualityOutputResponse,
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[_TAG_STATISTICS],
-    description="""An unix timestamp in integer seconds since epoch yields the
-    quality matrix at the respective date.""",
 )
 async def get_past_quality_matrix(
     *,
     timestamp: int,
     database: Database = Depends(get_database),
+    mode: Mode = Query(
+        default=Mode.REPLICATION_SOURCE,
+        examples={mode: {"value": mode} for mode in Mode},
+    ),
     node_id: str = Query(
         default=...,
         examples=valid_node_ids,
     ),
 ):
+    """
+    Return the quality matrix for the given timestamp.
+
+    This endpoint serves as a comparison to the current quality matrix. This way, differences due to automatic or
+    manual work on the metadata can be seen.
+    """
     validate_node_id(uuid.UUID(node_id))
     if not timestamp:
         raise HTTPException(status_code=400, detail="Invalid or no timestamp given")
@@ -179,6 +195,7 @@ async def get_past_quality_matrix(
     s = (
         select([Timeline])
         .where(Timeline.timestamp == timestamp)
+        .where(Timeline.mode == mode)
         .where(Timeline.node_id == node_id)
     )
     await database.connect()
