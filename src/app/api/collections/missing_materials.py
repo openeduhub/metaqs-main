@@ -80,7 +80,7 @@ class LearningMaterial(ResponseModel):
 
 
 def material_response_fields(
-        *, response_fields: set[ElasticResourceAttribute] = Query(None)
+    *, response_fields: set[ElasticResourceAttribute] = Query(None)
 ) -> set[ElasticResourceAttribute]:
     return response_fields
 
@@ -113,21 +113,56 @@ class MissingAttributeFilter(BaseModel):
 
 
 def materials_filter_params(
-        *, missing_attr: MissingMaterialField = Path(...)
+    *, missing_attr: MissingMaterialField = Path(...)
 ) -> MissingAttributeFilter:
     return MissingAttributeFilter(attr=missing_attr)
 
 
 def missing_attributes_search(
-        node_id: uuid.UUID, missing_attribute: str, max_hits: int
+    node_id: uuid.UUID, missing_attribute: str, max_hits: int
 ) -> Search:
+    """
+    Chemie:
+     = Material X
+     - Organisch
+       = Material Y
+     - Anorganisch
+
+                    1.           2.
+    Chemie:         3            1
+     - Organisch    0            1
+     - Anorganisch  0            0
+    Gesamt :        3            2
+                    35            24
+    1. Pending-Materials
+    2. Collection Details Table
+
+
+    node_id = 123
+    welche collection hat diese id?
+    bzw. welche collection beinhaltet in ihrem Pfad diese Id, ist also eine child node
+
+
+    My assumption: A material has some path attribute that is [category-root, chemie, anorganic-chemie, alkene]
+            path
+    Mat 1: [root, chemie]
+    ...
+    Mat 35: [root, chemie]
+
+    Mat 36: [root, chemie, anorganic]
+    ...
+    Mat 100: [root, chemie, anorganic]
+
+    query chemie: 35
+    query anorganic-chemie: potenziell mehr als 35 -> why?
+    """
     # Mimetype filter based on https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
     search = (
-        Search()
-        .base_filters()
+        Search().base_filters()
         # this query is supposed to filter to all materials that
         # are part of the collection node_id or any of it's parent nodes.
-        .filter(Q("match", **{ElasticResourceAttribute.COLLECTION_PATH.path: node_id})))
+        .filter(Q("match", **{ElasticResourceAttribute.COLLECTION_PATH.path: node_id}))
+    )
 
     if missing_attribute == ElasticResourceAttribute.LICENSES.path:
         search = search.filter(query_missing_material_license().to_dict())
@@ -139,16 +174,20 @@ def missing_attributes_search(
         search.type_filter(ResourceType.MATERIAL)
         .non_series_objects_filter()
         .text_only_filter()
-        .source(includes=[ElasticResourceAttribute.COLLECTION_NODEREF_ID.path,
-                          ElasticResourceAttribute.COLLECTION_PATH.path,
-                          *[source.path for source in missing_attributes_source_fields]])
+        .source(
+            includes=[
+                ElasticResourceAttribute.COLLECTION_NODEREF_ID.path,
+                ElasticResourceAttribute.COLLECTION_PATH.path,
+                *[source.path for source in missing_attributes_source_fields],
+            ]
+        )
         .extra(size=max_hits, from_=0)
     )
 
 
 async def search_materials_with_missing_attributes(
-        node_id: Optional[uuid.UUID] = None,
-        missing_attr_filter: Optional[MissingAttributeFilter] = None,
+    node_id: Optional[uuid.UUID] = None,
+    missing_attr_filter: Optional[MissingAttributeFilter] = None,
 ) -> list[LearningMaterial]:
     search = missing_attributes_search(
         node_id, missing_attr_filter.attr.value, ELASTIC_TOTAL_SIZE
