@@ -20,7 +20,6 @@ from app.api.analytics.analytics import (
     StatsResponse,
     ValidationStatsResponse,
 )
-from app.api.analytics.background_task import background_router
 from app.api.analytics.stats import (
     collections_with_missing_properties,
     material_validation,
@@ -68,7 +67,6 @@ def get_database(request: Request) -> Database:
 
 
 router = APIRouter()
-router.include_router(background_router)
 
 _TAG_STATISTICS = "Statistics"
 _TAG_COLLECTIONS = "Collections"

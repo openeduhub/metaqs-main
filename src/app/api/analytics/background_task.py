@@ -5,10 +5,7 @@ from datetime import datetime
 from typing import Optional, Union
 
 from elasticsearch_dsl.query import Bool, Query, Wildcard
-from fastapi import APIRouter
 from fastapi_utils.tasks import repeat_every
-from starlette.background import BackgroundTasks
-from starlette.status import HTTP_202_ACCEPTED
 
 import app.api.analytics.storage
 from app.api.analytics.stats import (
@@ -38,18 +35,6 @@ from app.core.models import (
 )
 from app.elastic.elastic import ResourceType, query_missing_material_license
 from app.elastic.search import Search
-
-background_router = APIRouter(tags=["Background"])
-
-
-@background_router.post("/run-analytics", status_code=HTTP_202_ACCEPTED)
-async def run_analytics(*, background_tasks: BackgroundTasks):
-    background_tasks.add_task(run)
-
-
-@repeat_every(seconds=BACKGROUND_TASK_TIME_INTERVAL, logger=logger)
-def background_task():
-    run()
 
 
 def import_data_from_elasticsearch(
@@ -82,7 +67,8 @@ def search_query(resource_type: ResourceType, path: str) -> Search:
     )
 
 
-def run():
+@repeat_every(seconds=BACKGROUND_TASK_TIME_INTERVAL, logger=logger)
+def background_task():
     derived_at = datetime.now()
     logger.info(f"{os.getpid()}: Starting analytics import at: {derived_at}")
 
