@@ -52,13 +52,8 @@ from app.api.quality_matrix.models import Mode, QualityOutputResponse, Timeline
 from app.api.quality_matrix.replication_source import source_quality
 from app.api.quality_matrix.timeline import quality_backup, timestamps
 from app.api.score.models import ScoreOutput
-from app.api.score.score import (
-    aggs_collection_validation,
-    aggs_material_validation,
-    field_names_used_for_score_calculation,
-    get_score,
-)
-from app.core.config import API_DEBUG, BACKGROUND_TASK_TIME_INTERVAL
+from app.api.score.score import get_score
+from app.core.config import API_DEBUG
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 
 
@@ -100,6 +95,7 @@ def node_ids_for_major_collections(
     response_model=QualityOutputResponse,
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[_TAG_STATISTICS],
+    summary="Calculate the replication source or collection quality matrix"
 )
 async def get_quality(
     *,
@@ -120,21 +116,20 @@ async def get_quality(
 
     - For the collection quality matrix, each column correspond to metadata fields and the rows correspond to
       collections, identified via their UUID from the
-      [vocabulary](https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/discipline/index.html).
-    - For the replication source quality matrix, the columns correspond to the replication source (e.g. "YouTube",
-      "Wikipedia", ...), the rows correspond to the metadata fields.
+      [vocabulary](https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/oeh-topics/5e40e372-735c-4b17-bbf7-e827a5702b57.html).
+    - For the replication source quality matrix, the columns correspond to the content source domain (e.g. "YouTube",
+      "Wikipedia", ...) from which the content was crawled, the rows correspond to the metadata fields.
 
     For both cases, the individual cells hold the rations of materials where the metadata is "OK". The definition of
     "OK" depends on the meta data field (e.g. "non-empty string" for the title of a material).
 
     Parameters:
-
     - node_id: The toplevel collection for which to compute the quality matrix.
                 It must come from the collection
-                [vocabulary](https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/discipline/index.html).
+                [vocabulary](https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/oeh-topics/5e40e372-735c-4b17-bbf7-e827a5702b57.html).
                 In the "collections" mode, this essentially defines the rows of the output matrix.
                 It serves as an overall filter for materials in both cases.
-    - Mode: Defines the mode of the quality matrix, i.e. whether to compute the collection ("collections") or
+    - mode: Defines the mode of the quality matrix, i.e. whether to compute the collection ("collections") or
             replication source ("replication_source"). Defaults to "replication_source".
     """
     validate_node_id(uuid.UUID(node_id))
@@ -164,6 +159,7 @@ async def get_quality_backup(
     response_model=QualityOutputResponse,
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[_TAG_STATISTICS],
+    summary="Get a historic quality matrix for a given timestamp"
 )
 async def get_past_quality_matrix(
     *,
@@ -217,9 +213,7 @@ async def get_past_quality_matrix(
         }
     },
     tags=[_TAG_STATISTICS],
-    description="""Return timestamps in seconds since epoch of past calculations of the quality matrix.
-    Additional parameters:
-        mode: The desired mode of quality. This is used to query only the relevant type of data.""",
+    summary="Get the timestamps for which history quality matrices are available"
 )
 async def get_timestamps(
     *,
@@ -233,6 +227,13 @@ async def get_timestamps(
         examples=valid_node_ids,
     ),
 ):
+    """
+    Return timestamps in seconds since epoch of past calculations of the quality matrix.
+
+    Parameters:
+      - mode: The desired mode of quality. This is used to query only the relevant type of data.
+      - node_id: The id of the collection for which the timestamps should be queried.
+    """
     validate_node_id(uuid.UUID(node_id))
     return await timestamps(database, mode, uuid.UUID(node_id))
 
@@ -243,17 +244,46 @@ async def get_timestamps(
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=[_TAG_COLLECTIONS],
-    description=f"""Returns the average ratio of non-empty properties for the chosen collection.
-    For certain properties, e.g. `properties.cclom:title`, the ratio of
-    elements which miss this entry compared to the total number of entries is calculated.
-    A missing entry may be `properties.cclom:title = null`. Not all properties are considered here.
-    The overall score is the average of all these ratios.
-    The queried properties are:
-    `{field_names_used_for_score_calculation(aggs_collection_validation)
-      + field_names_used_for_score_calculation(aggs_material_validation)}`.
-    """,
+    summary="The average ratio of non-empty properties for the chosen collection",
 )
 async def score(*, node_id: uuid.UUID = Depends(node_ids_for_major_collections)):
+    """
+    Validate attributes of sub-collections and materials of the given collection grouped by OER and non-OER content.
+
+    **fixme: document what "missing attribute" means here. E.g.: Is an empty title a missing attribute - or is it really
+             missing in Elasticsearch?**
+
+    Both, collections and materials, are checked for the following missing attributes:
+     - title (cclom:title for materials, cm:title for collections)
+     - description (cclom:general_description for materials, cm:description for collections)
+     - educational context (ccm:educationalcontext for both, probably provided via "ccm:educontext" aspect)
+
+    For materials the following additional attributes are checked:
+    - learning resource type (ccm:oeh_lrt)
+    - subjects (ccm:taxonid)
+    - URL (ccm:wwwurl)
+    - license (ccm:commonlicense_key, fixme: document extra logic!)
+    - publisher (ccm:oeh_publisher_combined)
+    - intended enduser role (i18n.de_DE.ccm:educationalintendedenduserrole)
+
+    **fixme: Why do we use i18n.de_DE.ccm:educationalintendedenduserrole here? There is also
+             properties.ccm:educationalintendedenduserrole that seems much more reasonable to use.**
+
+    For collections, besides checking that an attribute is present, title, keywords, and description are also validated
+    w.r.t their length:
+    - missing keywords (no keywords)
+    - few keywords (less than 3 keywords)
+    - short title (less than 5 characters)
+    - short description (less than 30 characters)
+
+    For materials, the above analysis is grouped w.r.t. whether the material is an OER or not. A material is considered
+    OER via its license (ccm:commonlicense_key, currently "CC_0", "PDM", "CC_BY", and "CC_BY_SA" are considered OER).
+
+    The overall score is a combination of material and collection ratios.
+
+    **fixme: Improve documentation of overall score, or eventually completely refactor it (separate collection and
+             materials)**
+    """
     validate_node_id(node_id)
     return await get_score(node_id)
 
@@ -267,11 +297,13 @@ class Ping(BaseModel):
 
 @router.get(
     "/_ping",
-    description="Ping function for automatic health check.",
     response_model=Ping,
     tags=["Healthcheck"],
 )
 async def ping_api():
+    """
+    Ping function for automatic health check.
+    """
     return {"status": "ok"}
 
 
@@ -281,18 +313,26 @@ async def ping_api():
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=[_TAG_COLLECTIONS],
-    description="Returns the tree of collections.",
+    summary="Provide the sub-tree of the collection hierarchy starting at given node",
 )
 async def get_collection_tree(
     *, node_id: uuid.UUID = Depends(node_ids_for_major_collections)
 ):
+    """
+    Returns a list of the immediate child nodes of the provided parent node (`node_id` path parameter).
+
+    The individual entries of the list hold their respective child collections until the leafs of the collection tree
+    are reached.
+
+    **FIXME: See [Issue-86](https://github.com/openeduhub/metaqs-main/issues/86)**
+    """
     validate_node_id(node_id)
     return await collection_tree(node_id)
 
 
 @router.get(
     "/collections/{node_id}/counts",
-    summary="Return the material counts for each collection id which this collection tree includes",
+    summary="Provide the number of materials in the collection subtree grouped by the provided facet.",
     response_model=list[CollectionTreeCount],
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
@@ -306,6 +346,16 @@ async def get_collection_counts(
         examples={key: {"value": key} for key in AggregationMappings},
     ),
 ):
+    """
+    Returns a list where each entry corresponds to a sub-collection of the provided collection id (`node_id` path
+    parameter).
+
+    **⚠️Elements of the list are not necessarily direct children of the requested node - i.e. the list is a flattened
+    version of the subtree of the requested node with unspecified order.
+    See also [Issue-88](https://github.com/openeduhub/metaqs-main/issues/88)⚠️**
+
+    Within the elements of the list, the number of materials is grouped by OER vs Non-OER and the selected facet.
+    """
     validate_node_id(node_id)
     return await oer_collection_counts(node_id=node_id, facet=facet)
 
@@ -317,9 +367,6 @@ async def get_collection_counts(
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=[_TAG_COLLECTIONS],
-    description="""A list of missing entries for different types of materials by subcollection.
-    Searches for entries with one of the following properties being empty or missing: """
-    + f"{', '.join([entry.value for entry in missing_attribute_filter])}.",
 )
 async def filter_pending_collections(
     *,
@@ -331,6 +378,26 @@ async def filter_pending_collections(
         },
     ),
 ):
+    """
+    Provides a list of missing entries for different types of materials by sub-collection.
+
+    Searches for entries with one of the following properties being empty or missing:
+
+      - title (cm:title)
+      - name (cm:name)
+      - keywords (cclom:general_keyword)
+      - description (cclom:general_description)
+      - license (ccm:commonlicense_key)
+
+    <b>
+    TODO:
+      - how can a collection have a license? why is it part of the missing_attribute_filter?
+      - why do we use cclom:general_description? Isn't this an attribute of a material?
+      - why do we use cm:name? According to T.S. cm:name does not have any user relevance.
+      - why do we use cclom:general_keyword? I think this is an attribute of a material.
+      - while cclom:general_keyword seems not to be a collection attribute, cclom:general_description is one?
+    </b>
+    """
     validate_node_id(node_id)
     return await pending_collections(node_id, missing_attribute)
 
@@ -342,16 +409,46 @@ async def filter_pending_collections(
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=[_TAG_COLLECTIONS],
-    description="""A list of missing entries for different types of materials belonging to the collection and
-    its subcollectionsspecified by 'node_id'.
-    Searches for materials with one of the following properties being empty or missing: """
-    + f"{', '.join([entry.value for entry in missing_attribute_filter])}.",
 )
 async def filter_materials_with_missing_attributes(
     *,
     node_id: uuid.UUID = Depends(node_ids_for_major_collections),
     missing_attr_filter: MissingAttributeFilter = Depends(materials_filter_params),
 ):
+    """
+    A list of missing entries for different types of materials belonging to the collection and its sub-collections
+    specified by 'node_id'.
+
+    Searches for materials with one of the following properties being empty or missing:
+    - title (properties.cclom:title)
+    - learning resource type or category (properties.ccm:oeh_lrt)
+    - subjects (properties.ccm:taxonid)
+    - URL (properties.ccm:wwwurl)
+    - license (properties.ccm:commonlicense_key)
+    - publisher (properties.ccm:oeh_publisher_combined)
+    - description (properties.cclom:general_description)
+    - educational end user role (i18n.de_DE.ccm:educationalintendedenduserrole)
+    - educational context (properties.ccm:educationalcontext)
+    - cover (preview)
+    - node id (nodeRef.id)
+    - name (properties.cm:name)
+    - type (type)
+    - keywords (properties.cclom:general_keyword)
+
+    <b>
+    TODO:
+      - align implementation of pending-materials and pending-collection endpoints
+        - path parameter name
+        - path parameter handling (pending-materials works via an enum hence allows only the possible choices.
+          however, it leaks the elasticsearch internals)
+      - Use properties.ccm:educationalintendedenduserrole instead of i18n.de_DE.ccm:educationalintendedenduserrole?
+      - remove nodeRef.id search functionality? Can this even be missing/empty? How would that be relevant for the user?
+      - remove name (cm:name) search functionality? According to T.S. this is purely technical and is unrelated to
+        content or metadata quality.
+      - remove type search functionality! We search for materials, i.e. all found documents will have type=ccm:io...
+      -
+    </b>
+    """
     validate_node_id(node_id)
     return await search_materials_with_missing_attributes(
         node_id=node_id,
@@ -365,12 +462,20 @@ async def filter_materials_with_missing_attributes(
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=[_TAG_COLLECTIONS],
-    description="""Returns the number of materials connected to all collections
-    below this 'node_id' as a flat list.""",
+    summary="Provide the total number of materials per collection",
 )
 async def material_counts_tree(
     *, node_id: uuid.UUID = Depends(node_ids_for_major_collections)
 ):
+    """
+    Returns the number of materials connected to all collections below this 'node_id' as a flat list.
+
+    <b>
+    TODO: This endpoint seems to be unused in the frontend at the moment (it's only use is behind an if statement
+          that should always evaluate to false. Further, the current implementation of this endpoint seems to return
+          only zeros as counts.
+    </b>
+    """
     validate_node_id(node_id)
     return await get_material_count_tree(node_id)
 
@@ -381,17 +486,19 @@ async def material_counts_tree(
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=[_TAG_STATISTICS],
-    description=f"""
-    Returns the number of materials found connected to the this collection's 'node_id' and its sub
-    collections as well as materials containing the name of the respective collection, e.g., in the title.
-    It is therefore an overview of materials, which could be added to a collection in the future.
-    It relies on background data and is read every {BACKGROUND_TASK_TIME_INTERVAL}s.
-    This is the granularity of the data.""",
 )
 async def read_stats(
     *,
     node_id: uuid.UUID = Depends(node_ids_for_major_collections),
 ):
+    """
+    Returns the number of materials found connected to the collection (`node_id` path parameter) and its
+    sub-collections as well as materials containing the name of the respective collection, e.g., in the title.
+    It is therefore an overview of materials, which could be added to a collection in the future.
+
+    This endpoint relies on an internal periodic background process which is scheduled to regularly update the data.
+    Its frequency can be configured via the BACKGROUND_TASK_TIME_INTERVAL environment variable.
+    """
     validate_node_id(node_id)
     return await overall_stats(node_id)
 
@@ -403,15 +510,18 @@ async def read_stats(
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=[_TAG_STATISTICS],
-    description=f"""
-    Returns the number of collections missing certain properties for this collection's 'node_id' and its sub
-    collections. It relies on background data and is read every {BACKGROUND_TASK_TIME_INTERVAL}s.
-    This is the granularity of the data.""",
 )
 async def read_stats_validation_collection(
     *,
     node_id: uuid.UUID = Depends(node_ids_for_major_collections),
 ):
+    """
+    Returns the number of collections missing certain properties for this collection's 'node_id' and its
+    sub-collections.
+
+    This endpoint relies on an internal periodic background process which is scheduled to regularly update the data.
+    Its frequency can be configured via the BACKGROUND_TASK_TIME_INTERVAL environment variable.
+    """
     validate_node_id(node_id)
     return collections_with_missing_properties(node_id)
 
@@ -423,18 +533,21 @@ async def read_stats_validation_collection(
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=[_TAG_STATISTICS],
-    description="""
-    Returns the number of materials missing certain properties for this collection's 'node_id' and its sub collections.
-
-    This endpoint is similar to '/analytics/node_id/validation/collections', but instead of showing missing
-    properties in collections, it counts the materials inside each collection that are missing that property."""
-    + f"It relies on background data and is read every {BACKGROUND_TASK_TIME_INTERVAL}s. "
-    + "This is the granularity of the data.",
 )
 async def read_material_validationn(
     *,
     node_id: uuid.UUID = Depends(node_ids_for_major_collections),
 ):
+    """
+    Returns the number of materials missing certain properties for this collection's 'node_id' and its
+    sub-collections.
+
+    This endpoint is similar to '/analytics/node_id/validation/collections', but instead of showing missing
+    properties in collections, it counts the materials inside each collection that are missing that property.
+
+    This endpoint relies on an internal periodic background process which is scheduled to regularly update the data.
+    Its frequency can be configured via the BACKGROUND_TASK_TIME_INTERVAL environment variable.
+    """
     validate_node_id(node_id)
     return material_validation(
         collection_id=node_id, pending_materials=global_store.pending_materials
