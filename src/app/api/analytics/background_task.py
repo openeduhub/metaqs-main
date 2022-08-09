@@ -1,8 +1,11 @@
 import asyncio
 import os
+import time
 import uuid
 from datetime import datetime
 
+from elasticsearch_dsl import Q
+from elasticsearch_dsl.query import Wildcard
 from fastapi import APIRouter
 from fastapi_utils.tasks import repeat_every
 from starlette.background import BackgroundTasks
@@ -26,7 +29,7 @@ from app.api.analytics.storage import (
     PendingMaterialsStore
 )
 from app.api.collections.counts import AggregationMappings, collection_counts
-from app.api.collections.missing_materials import missing_attributes_search
+from app.api.collections.missing_materials import missing_attributes_search, base_missing_material_search
 from app.core.config import BACKGROUND_TASK_TIME_INTERVAL, ELASTIC_TOTAL_SIZE
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.core.logging import logger
@@ -89,17 +92,16 @@ def uuids_of_materials_with_missing_attributes(node_id: uuid.UUID, attribute: st
     Returns a list of UUIDS for the materials that lack the given attribute and are part of the given collection
     (node_id).
     """
-    search = missing_attributes_search(node_id, attribute, ELASTIC_TOTAL_SIZE)
-    response = search.execute()
 
-    return [uuid.UUID(hit.to_dict()["nodeRef"]["id"]) for hit in response.hits]
+    return [uuid.UUID(hit.to_dict()["nodeRef"]["id"]) for hit in
+            missing_attributes_search(node_id, attribute).execute().hits]
 
 
 def run():
     derived_at = datetime.now()
     logger.info(f"{os.getpid()}: Starting analytics import at: {derived_at}")
-
-    if False:
+    debug = True
+    if debug:
         app.api.analytics.storage.global_storage[
             _COLLECTIONS
         ] = import_data_from_elasticsearch(
@@ -108,15 +110,7 @@ def run():
             path=ElasticResourceAttribute.PATH.path,
         )
 
-        app.api.analytics.storage.global_storage[
-            _MATERIALS
-        ] = import_data_from_elasticsearch(
-            derived_at=derived_at,
-            resource_type=ResourceType.MATERIAL,
-            path=ElasticResourceAttribute.COLLECTION_NODEREF_ID.path,
-        )
-
-        logger.info("Collection and materials imported")
+        logger.info("Collection imported")
 
         app.api.analytics.storage.global_storage[_COLLECTION_COUNT] = asyncio.run(
             collection_counts(COLLECTION_ROOT_ID, AggregationMappings.lrt)
@@ -124,6 +118,8 @@ def run():
         app.api.analytics.storage.global_storage[_COLLECTION_COUNT_OER] = asyncio.run(
             collection_counts(COLLECTION_ROOT_ID, AggregationMappings.lrt, oer_only=True)
         )
+
+        logger.info("Counts imported")
 
     all_collections = [
         Row(id=uuid.UUID(value), title=key)
@@ -135,16 +131,17 @@ def run():
     search_store = []
     oer_search_store = []
     pending_materials_store = []
-    for row in all_collections:
-        sub_collections: list[Row] = asyncio.run(get_ids_to_iterate(node_id=row.id))
-        logger.info(f"Working on: {row.title}, {len(sub_collections)}")
-        if False:
+    for counter, collection in enumerate(all_collections):
+        sub_collections: list[Row] = asyncio.run(get_ids_to_iterate(node_id=collection.id))
+        logger.info(f"Working on: {collection.title}, #{counter} of {len(all_collections)}, "
+                    f"# of subcollections: {len(sub_collections)}")
+        if debug:
             missing_materials = {
                 sub.id: search_hits_by_material_type(sub.title) for sub in sub_collections
             }
 
             search_store.append(
-                SearchStore(node_id=row.id, missing_materials=missing_materials)
+                SearchStore(node_id=collection.id, missing_materials=missing_materials)
             )
 
             missing_materials = {
@@ -153,23 +150,75 @@ def run():
             }
 
             oer_search_store.append(
-                SearchStore(node_id=row.id, missing_materials=missing_materials)
+                SearchStore(node_id=collection.id, missing_materials=missing_materials)
             )
 
         # TODO: Loop over attributes
+        start_time = time.perf_counter()
         materials = []
-        for i, sub in enumerate(sub_collections[:5]):
+        for i, sub in enumerate(sub_collections):
+            loop_start = time.perf_counter()
             print(f"{i} of {len(sub_collections)}")
+
+            # TODO: these two collections seem broken. For some reason I get a lot of data for these
+            if str(sub.id) in ["4a799453-cb51-4854-9924-14d4f429989b", "d7fc9b61-f244-4a16-849a-814e47f5849a"]:
+                continue
             pending_materials = {"node_id": sub.id}
-            for attribute in essential_frontend_properties:
-                pending_materials.update({required_collection_properties[
-                                              attribute]: uuids_of_materials_with_missing_attributes(sub.id,
-                                                                                                     attribute)})
+
+            """
+            pending_materials.update({
+                required_collection_properties[attribute]: uuids_of_materials_with_missing_attributes(sub.id, attribute)
+                for attribute in essential_frontend_properties})
+            """
+            loop_mid = time.perf_counter()
+
+            # Redoing the query, but with a list of materials in one query, just to get a feeling for the time need
+            base_search = base_missing_material_search(sub.id)
+            base_search = base_search.filter(
+                Q("bool",
+                  **{"minimum_should_match": 1, "should": [~Wildcard(**{attribute: {"value": "*"}}) for attribute in
+                                                           essential_frontend_properties]}))
+
+            # now we have the query
+            hits = base_search.execute().hits
+            loop_3rd = time.perf_counter()
+
+            # and now we have to construct the dictionary from it
+            pending_materials.update(
+                {required_collection_properties[attribute]: [] for attribute in essential_frontend_properties})
+
+            for hit in hits:
+                # this is expensive
+                data = hit.to_dict()
+                print(data["properties"].keys())
+                for attribute in essential_frontend_properties:
+                    # this is expensive
+                    values = pending_materials[required_collection_properties[attribute]]
+                    print(attribute)
+
+                    if attribute == ElasticResourceAttribute.EDU_ENDUSERROLE_DE.path:
+                        if "i18n" in data.keys() and "de_DE" in data["i18n"].keys() and attribute.split(".")[-1] not in \
+                                data["i18n"]["de_DE"].keys():
+                            print("Found match!")
+                            values.append(uuid.UUID(data["nodeRef"]["id"]))
+
+                    elif attribute.split(".")[-1] not in data["properties"].keys():
+                        print("Found match!")
+                        values.append(uuid.UUID(data["nodeRef"]["id"]))
+
+                print("value; ", attribute, values)
 
             materials.append(PendingMaterials(**pending_materials))
+            now = time.perf_counter()
+            print("Time it took: ", now - loop_start, now - loop_mid, now - loop_3rd)
 
-        pending_materials_store.append(PendingMaterialsStore(collection_id=row.id, missing_materials=materials))
+        mid = time.perf_counter()
+        pending_materials_store.append(PendingMaterialsStore(collection_id=collection.id, missing_materials=materials))
         print(pending_materials_store)
+        now = time.perf_counter()
+        print("Whole time it took: ", now - start_time, now - mid)
+
+    logger.info("Storing in global store.")
 
     global_store.search = search_store
     global_store.oer_search = oer_search_store

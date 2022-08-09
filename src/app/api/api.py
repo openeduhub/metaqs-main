@@ -417,31 +417,6 @@ async def read_stats_validation_collection(
     return collections_with_missing_properties(node_id)
 
 
-# TODO: Rename to material-validation or similar
-@router.get(
-    "/analytics/{node_id}/validation",
-    response_model=list[MaterialValidationResponse],
-    response_model_exclude_unset=True,
-    status_code=HTTP_200_OK,
-    responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=[_TAG_STATISTICS],
-    description="""
-    Returns the number of materials missing certain properties for this collection's 'node_id' and its sub collections.
-
-    This endpoint is similar to '/analytics/node_id/validation/collections', but instead of showing missing
-    properties in collections, it counts the materials inside each collection that are missing that property."""
-                + f"It relies on background data and is read every {BACKGROUND_TASK_TIME_INTERVAL}s. "
-                + "This is the granularity of the data.",
-)
-async def read_stats_validation(
-        *,
-        node_id: uuid.UUID = Depends(node_ids_for_major_collections),
-):
-    validate_node_id(node_id)
-    return materials_with_missing_properties(node_id)
-
-
-# TODO: Rename to material-validation or similar
 @router.get(
     "/material-validation/{node_id}",
     response_model=PendingMaterialsResponse,
