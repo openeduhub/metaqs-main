@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Union
 
 from elasticsearch_dsl import Q
-from elasticsearch_dsl.query import Wildcard
+from elasticsearch_dsl.query import Query, Wildcard
 from fastapi import APIRouter
 from fastapi_utils.tasks import repeat_every
 from starlette.background import BackgroundTasks
@@ -40,7 +40,7 @@ from app.core.models import (
     essential_frontend_properties,
     required_collection_properties,
 )
-from app.elastic.elastic import ResourceType
+from app.elastic.elastic import ResourceType, query_missing_material_license
 from app.elastic.search import Search
 
 background_router = APIRouter(tags=["Background"])
@@ -166,56 +166,10 @@ def run():
             SearchStore(node_id=collection.id, missing_materials=missing_materials)
         )
 
-        materials = []
-        for i, sub in enumerate(sub_collections):
-            print(f"{i} of {len(sub_collections)}")
-
-            # TODO: Take care of license separately
-
-            # Redoing the query, but with a list of materials in one query, just to get a feeling for the time need
-            base_search = base_missing_material_search(sub.id)
-            base_search = base_search.filter(
-                Q(
-                    "bool",
-                    **{
-                        "minimum_should_match": 1,
-                        "should": [
-                            ~Wildcard(**{attribute: {"value": "*"}})
-                            for attribute in essential_frontend_properties
-                        ],
-                    },
-                )
-            )
-
-            # now we have the query
-            # and now we have to construct the dictionary from it
-            pending_materials: dict[str, Union[uuid.UUID, list[uuid.UUID]]] = {
-                "node_id": sub.id,
-                **{
-                    required_collection_properties[attribute]: []
-                    for attribute in essential_frontend_properties
-                },
-            }
-
-            for hit in base_search.execute().hits:
-                data = hit.to_dict()
-                for attribute in essential_frontend_properties:
-                    values: list[uuid.UUID] = pending_materials[
-                        required_collection_properties[attribute]
-                    ]
-
-                    if attribute == ElasticResourceAttribute.EDU_ENDUSERROLE_DE.path:
-                        if (
-                            "i18n" not in data.keys()
-                            or "de_DE" not in data["i18n"].keys()
-                            or attribute.split(".")[-1]
-                            not in data["i18n"]["de_DE"].keys()
-                        ):
-                            values.append(uuid.UUID(data["nodeRef"]["id"]))
-                    elif attribute.split(".")[-1] not in data["properties"].keys():
-                        values.append(uuid.UUID(data["nodeRef"]["id"]))
-
-            materials.append(PendingMaterials(**pending_materials))
+        materials = [
+            PendingMaterials(**build_pending_materials(collection))
+            for collection in sub_collections
+        ]
 
         pending_materials_store.append(
             PendingMaterialsStore(
@@ -229,5 +183,62 @@ def run():
     global_store.oer_search = oer_search_store
     global_store.pending_materials = pending_materials_store
 
-    print("len(pending_materials_store): ", len(pending_materials_store))
     logger.info("Background task done")
+
+
+def build_pending_materials(
+    collection: Row,
+) -> dict[str, Union[uuid.UUID, list[uuid.UUID]]]:
+    logger.info(f"Working on {collection.title}")
+
+    pending_materials: dict[str, Union[uuid.UUID, list[uuid.UUID]]] = {
+        "node_id": collection.id,
+        **{
+            required_collection_properties[attribute]: []
+            for attribute in essential_frontend_properties
+        },
+    }
+
+    for hit in pending_materials_search(collection.id).execute().hits:
+        data = hit.to_dict()
+        for attribute in essential_frontend_properties:
+            if value := update_values_with_pending_materials(attribute, data):
+                pending_materials[required_collection_properties[attribute]].append(
+                    value
+                )
+    return pending_materials
+
+
+def update_values_with_pending_materials(attribute, data):
+    if attribute == ElasticResourceAttribute.EDU_ENDUSERROLE_DE.path:
+        if (
+            "i18n" not in data.keys()
+            or "de_DE" not in data["i18n"].keys()
+            or attribute.split(".")[-1] not in data["i18n"]["de_DE"].keys()
+        ):
+            return uuid.UUID(data["nodeRef"]["id"])
+    elif attribute.split(".")[-1] not in data["properties"].keys():
+        return uuid.UUID(data["nodeRef"]["id"])
+    return
+
+
+def pending_materials_search(node_id: uuid.UUID):
+    base_search = base_missing_material_search(node_id)
+
+    def attribute_specific_query(attribute: str) -> Query:
+        if attribute == ElasticResourceAttribute.LICENSES.path:
+            return query_missing_material_license().to_dict()
+        return ~Wildcard(**{attribute: {"value": "*"}})
+
+    return base_search.filter(
+        Q(
+            "bool",
+            **{
+                "minimum_should_match": 1,
+                "should": [
+                    attribute_specific_query(attribute)
+                    for attribute in essential_frontend_properties
+                ],
+            },
+        )
+    )
