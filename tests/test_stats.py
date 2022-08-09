@@ -10,10 +10,11 @@ from app.api.analytics.stats import (
     build_material_search,
     collections_with_missing_properties,
     has_license_wrong_entries,
+    material_validation,
     overall_stats,
     query_material_types,
 )
-from app.api.analytics.storage import SearchStore, StorageModel
+from app.api.analytics.storage import PendingMaterialsStore, SearchStore, StorageModel
 from app.api.collections.counts import CollectionTreeCount
 
 
@@ -225,3 +226,20 @@ def test_has_license_wrong_entries():
     assert has_license_wrong_entries(
         "test_key", {"test_key": "UNTERRICHTS_UND_LEHRMEDIEN"}
     )
+
+
+def test_material_validation():
+    dummy_uuid = uuid.uuid4()
+    response = material_validation(dummy_uuid, [])
+    assert response is None
+
+    desired_store = PendingMaterialsStore(
+        collection_id=dummy_uuid, missing_materials=[]
+    )
+    undesired_store = PendingMaterialsStore(
+        collection_id=uuid.uuid4(), missing_materials=[]
+    )
+    pending_materials = [desired_store, undesired_store]
+
+    response = material_validation(dummy_uuid, pending_materials)
+    assert response is not None and response == desired_store

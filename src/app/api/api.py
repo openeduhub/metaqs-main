@@ -354,7 +354,7 @@ async def filter_materials_with_missing_attributes(
     node_id: uuid.UUID = Depends(node_ids_for_major_collections),
     missing_attr_filter: MissingAttributeFilter = Depends(materials_filter_params),
 ):
-    # validate_node_id(node_id)
+    validate_node_id(node_id)
     return await search_materials_with_missing_attributes(
         node_id=node_id,
         missing_attr_filter=missing_attr_filter,
@@ -437,8 +437,8 @@ async def read_material_validationn(
     *,
     node_id: uuid.UUID = Depends(node_ids_for_major_collections),
 ):
-    # validate_node_id(node_id)
-    return material_validation(node_id)
+    validate_node_id(node_id)
+    return material_validation(node_id, global_storage.pending_materials)
 
 
 if API_DEBUG:
