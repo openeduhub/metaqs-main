@@ -3,7 +3,7 @@ from datetime import datetime
 from enum import Enum
 from typing import ClassVar, Generic, Optional, TypeVar
 
-from pydantic import BaseModel, Extra, Field, validator
+from pydantic import BaseModel, Extra, Field
 from pydantic.generics import GenericModel
 from starlette.exceptions import HTTPException
 from starlette.status import HTTP_404_NOT_FOUND
@@ -95,6 +95,7 @@ class MaterialValidationStats(BaseModel):
     """
     The UUIDs within the optional lists identify materials.
     """
+
     subjects: Optional[list[uuid.UUID]]
     license: Optional[list[uuid.UUID]]
     url: Optional[list[uuid.UUID]]

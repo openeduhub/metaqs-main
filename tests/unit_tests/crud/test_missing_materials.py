@@ -8,10 +8,8 @@ def test_missing_materials_search():
     dummy_uuid = uuid.uuid4()
     dummy_attribute = "properties.cm:title"
     dummy_missing_attribute = missing_attribute_filter[0].value
-    dummy_maximum_size = 3
-    search = missing_attributes_search(
-        dummy_uuid, dummy_missing_attribute, dummy_maximum_size
-    )
+    dummy_maximum_size = 500_000
+    search = missing_attributes_search(dummy_uuid, dummy_missing_attribute)
     actual = search.to_dict()
     actual_source = actual["_source"]["includes"]
     actual["_source"] = []
@@ -31,7 +29,6 @@ def test_missing_materials_search():
                     {
                         "terms": {
                             "content.mimetype.keyword": [
-                                "text/plain",
                                 "application/pdf",
                                 "application/msword",
                                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -44,8 +41,8 @@ def test_missing_materials_search():
                     },
                 ],
                 "should": [
-                    {"match": {"collections.path": dummy_uuid}},
-                    {"match": {"collections.nodeRef.id": dummy_uuid}},
+                    {"match": {"collections.path.keyword": dummy_uuid}},
+                    {"match": {"collections.nodeRef.id.keyword": dummy_uuid}},
                 ],
                 "minimum_should_match": 1,
                 "must_not": [{"wildcard": {dummy_attribute: {"value": "*"}}}],
@@ -56,14 +53,11 @@ def test_missing_materials_search():
         "_source": [],
     }
     expected_source = [
-        "properties.cclom:general_keyword",
         "properties.ccm:taxonid",
         "properties.ccm:wwwurl",
         "nodeRef.id",
-        "type",
         "properties.ccm:commonlicense_key",
         "properties.cclom:general_description",
-        "properties.cm:name",
         "properties.cclom:title",
         "properties.ccm:educationalcontext",
         "properties.ccm:oeh_lrt",
@@ -78,10 +72,8 @@ def test_missing_materials_search_license():
     dummy_uuid = uuid.uuid4()
     dummy_attribute = "properties.ccm:commonlicense_key"
     dummy_missing_attribute = missing_attribute_filter[4].value
-    dummy_maximum_size = 3
-    search = missing_attributes_search(
-        dummy_uuid, dummy_missing_attribute, dummy_maximum_size
-    )
+    dummy_maximum_size = 500_000
+    search = missing_attributes_search(dummy_uuid, dummy_missing_attribute)
     actual = search.to_dict()
     actual["_source"] = []
 
@@ -92,6 +84,25 @@ def test_missing_materials_search_license():
                     {"term": {"permissions.Read.keyword": "GROUP_EVERYONE"}},
                     {"term": {"properties.cm:edu_metadataset.keyword": "mds_oeh"}},
                     {"term": {"nodeRef.storeRef.protocol": "workspace"}},
+                    {"term": {"type": "ccm:io"}},
+                    {
+                        "bool": {
+                            "must_not": [{"term": {"aspects": "ccm:io_childobject"}}]
+                        }
+                    },
+                    {
+                        "terms": {
+                            "content.mimetype.keyword": [
+                                "application/pdf",
+                                "application/msword",
+                                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                                "application/vnd.oasis.opendocument.text",
+                                "text/html",
+                                "application/vnd.ms-powerpoint",
+                            ]
+                        }
+                    },
                     {
                         "bool": {
                             "should": [
@@ -116,30 +127,10 @@ def test_missing_materials_search_license():
                             "minimum_should_match": 1,
                         }
                     },
-                    {"term": {"type": "ccm:io"}},
-                    {
-                        "bool": {
-                            "must_not": [{"term": {"aspects": "ccm:io_childobject"}}]
-                        }
-                    },
-                    {
-                        "terms": {
-                            "content.mimetype.keyword": [
-                                "text/plain",
-                                "application/pdf",
-                                "application/msword",
-                                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                                "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                                "application/vnd.oasis.opendocument.text",
-                                "text/html",
-                                "application/vnd.ms-powerpoint",
-                            ]
-                        }
-                    },
                 ],
                 "should": [
-                    {"match": {"collections.path": dummy_uuid}},
-                    {"match": {"collections.nodeRef.id": dummy_uuid}},
+                    {"match": {"collections.path.keyword": dummy_uuid}},
+                    {"match": {"collections.nodeRef.id.keyword": dummy_uuid}},
                 ],
                 "minimum_should_match": 1,
             }

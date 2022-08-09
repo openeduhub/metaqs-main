@@ -17,6 +17,7 @@ class ElasticField(str, Enum):
         obj._value_ = path
         obj.path = path
         obj.field_type = field_type
+        obj.keyword = f"{path}.keyword"
         return obj
 
 

@@ -58,7 +58,6 @@ class Search(elasticsearch_dsl.Search):
                 {
                     "terms": {
                         f"{ElasticResourceAttribute.MIMETYPE.path}.keyword": [
-                            "text/plain",
                             "application/pdf",
                             "application/msword",
                             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

@@ -1,6 +1,6 @@
 import json
 import uuid
-from typing import Mapping, Optional
+from typing import Mapping
 
 from databases import Database
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
@@ -16,14 +16,15 @@ from starlette.status import (
 
 from app.api.analytics.analytics import (
     CollectionValidationStats,
+    PendingMaterialsResponse,
     StatsResponse,
-    ValidationStatsResponse, MaterialValidationResponse, PendingMaterialsResponse,
+    ValidationStatsResponse,
 )
 from app.api.analytics.background_task import background_router
 from app.api.analytics.stats import (
     collections_with_missing_properties,
-    materials_with_missing_properties,
-    overall_stats, material_validation,
+    material_validation,
+    overall_stats,
 )
 from app.api.analytics.storage import global_storage
 from app.api.collections.counts import (
@@ -38,7 +39,8 @@ from app.api.collections.material_counts import (
 from app.api.collections.missing_materials import (
     LearningMaterial,
     MissingAttributeFilter,
-    materials_filter_params, search_materials_with_missing_attributes,
+    materials_filter_params,
+    search_materials_with_missing_attributes,
 )
 from app.api.collections.models import CollectionNode, MissingMaterials
 from app.api.collections.pending_collections import (
@@ -59,7 +61,6 @@ from app.api.score.score import (
 )
 from app.core.config import API_DEBUG, BACKGROUND_TASK_TIME_INTERVAL
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
-from app.core.models import ElasticResourceAttribute
 
 
 def get_database(request: Request) -> Database:
@@ -86,11 +87,11 @@ def validate_node_id(node_id: uuid.UUID):
 
 
 def node_ids_for_major_collections(
-        *,
-        node_id: uuid.UUID = Path(
-            default=...,
-            examples=valid_node_ids,
-        ),
+    *,
+    node_id: uuid.UUID = Path(
+        default=...,
+        examples=valid_node_ids,
+    ),
 ) -> uuid.UUID:
     return node_id
 
@@ -103,15 +104,15 @@ def node_ids_for_major_collections(
     tags=[_TAG_STATISTICS],
 )
 async def get_quality(
-        *,
-        node_id: str = Query(
-            default=...,
-            examples=valid_node_ids,
-        ),
-        mode: Mode = Query(
-            default=Mode.REPLICATION_SOURCE,
-            examples={mode: {"value": mode} for mode in Mode},
-        ),
+    *,
+    node_id: str = Query(
+        default=...,
+        examples=valid_node_ids,
+    ),
+    mode: Mode = Query(
+        default=Mode.REPLICATION_SOURCE,
+        examples={mode: {"value": mode} for mode in Mode},
+    ),
 ):
     """
     Calculate the quality matrix w.r.t. the replication source, or collection.
@@ -153,8 +154,8 @@ async def get_quality(
     tags=[_TAG_STATISTICS],
 )
 async def get_quality_backup(
-        *,
-        database: Database = Depends(get_database),
+    *,
+    database: Database = Depends(get_database),
 ):
     await quality_backup(database)
 
@@ -167,17 +168,17 @@ async def get_quality_backup(
     tags=[_TAG_STATISTICS],
 )
 async def get_past_quality_matrix(
-        *,
-        timestamp: int,
-        database: Database = Depends(get_database),
-        mode: Mode = Query(
-            default=Mode.REPLICATION_SOURCE,
-            examples={mode: {"value": mode} for mode in Mode},
-        ),
-        node_id: str = Query(
-            default=...,
-            examples=valid_node_ids,
-        ),
+    *,
+    timestamp: int,
+    database: Database = Depends(get_database),
+    mode: Mode = Query(
+        default=Mode.REPLICATION_SOURCE,
+        examples={mode: {"value": mode} for mode in Mode},
+    ),
+    node_id: str = Query(
+        default=...,
+        examples=valid_node_ids,
+    ),
 ):
     """
     Return the quality matrix for the given timestamp.
@@ -223,16 +224,16 @@ async def get_past_quality_matrix(
         mode: The desired mode of quality. This is used to query only the relevant type of data.""",
 )
 async def get_timestamps(
-        *,
-        database: Database = Depends(get_database),
-        mode: Mode = Query(
-            default=Mode.REPLICATION_SOURCE,
-            examples={mode: {"value": mode} for mode in Mode},
-        ),
-        node_id: str = Query(
-            default=...,
-            examples=valid_node_ids,
-        ),
+    *,
+    database: Database = Depends(get_database),
+    mode: Mode = Query(
+        default=Mode.REPLICATION_SOURCE,
+        examples={mode: {"value": mode} for mode in Mode},
+    ),
+    node_id: str = Query(
+        default=...,
+        examples=valid_node_ids,
+    ),
 ):
     validate_node_id(uuid.UUID(node_id))
     return await timestamps(database, mode, uuid.UUID(node_id))
@@ -285,7 +286,7 @@ async def ping_api():
     description="Returns the tree of collections.",
 )
 async def get_collection_tree(
-        *, node_id: uuid.UUID = Depends(node_ids_for_major_collections)
+    *, node_id: uuid.UUID = Depends(node_ids_for_major_collections)
 ):
     validate_node_id(node_id)
     return await collection_tree(node_id)
@@ -300,12 +301,12 @@ async def get_collection_tree(
     tags=[_TAG_COLLECTIONS],
 )
 async def get_collection_counts(
-        *,
-        node_id: uuid.UUID = Depends(node_ids_for_major_collections),
-        facet: AggregationMappings = Param(
-            default=AggregationMappings.lrt,
-            examples={key: {"value": key} for key in AggregationMappings},
-        ),
+    *,
+    node_id: uuid.UUID = Depends(node_ids_for_major_collections),
+    facet: AggregationMappings = Param(
+        default=AggregationMappings.lrt,
+        examples={key: {"value": key} for key in AggregationMappings},
+    ),
 ):
     validate_node_id(node_id)
     return await oer_collection_counts(node_id=node_id, facet=facet)
@@ -320,17 +321,17 @@ async def get_collection_counts(
     tags=[_TAG_COLLECTIONS],
     description="""A list of missing entries for different types of materials by subcollection.
     Searches for entries with one of the following properties being empty or missing: """
-                + f"{', '.join([entry.value for entry in missing_attribute_filter])}.",
+    + f"{', '.join([entry.value for entry in missing_attribute_filter])}.",
 )
 async def filter_pending_collections(
-        *,
-        node_id: uuid.UUID = Depends(node_ids_for_major_collections),
-        missing_attribute: str = Path(
-            ...,
-            examples={
-                form.name: {"value": form.value} for form in missing_attribute_filter
-            },
-        ),
+    *,
+    node_id: uuid.UUID = Depends(node_ids_for_major_collections),
+    missing_attribute: str = Path(
+        ...,
+        examples={
+            form.name: {"value": form.value} for form in missing_attribute_filter
+        },
+    ),
 ):
     validate_node_id(node_id)
     return await pending_collections(node_id, missing_attribute)
@@ -346,12 +347,12 @@ async def filter_pending_collections(
     description="""A list of missing entries for different types of materials belonging to the collection and
     its subcollectionsspecified by 'node_id'.
     Searches for materials with one of the following properties being empty or missing: """
-                + f"{', '.join([entry.value for entry in missing_attribute_filter])}.",
+    + f"{', '.join([entry.value for entry in missing_attribute_filter])}.",
 )
 async def filter_materials_with_missing_attributes(
-        *,
-        node_id: uuid.UUID = Depends(node_ids_for_major_collections),
-        missing_attr_filter: MissingAttributeFilter = Depends(materials_filter_params),
+    *,
+    node_id: uuid.UUID = Depends(node_ids_for_major_collections),
+    missing_attr_filter: MissingAttributeFilter = Depends(materials_filter_params),
 ):
     # validate_node_id(node_id)
     return await search_materials_with_missing_attributes(
@@ -370,7 +371,7 @@ async def filter_materials_with_missing_attributes(
     below this 'node_id' as a flat list.""",
 )
 async def material_counts_tree(
-        *, node_id: uuid.UUID = Depends(node_ids_for_major_collections)
+    *, node_id: uuid.UUID = Depends(node_ids_for_major_collections)
 ):
     validate_node_id(node_id)
     return await get_material_count_tree(node_id)
@@ -390,8 +391,8 @@ async def material_counts_tree(
     This is the granularity of the data.""",
 )
 async def read_stats(
-        *,
-        node_id: uuid.UUID = Depends(node_ids_for_major_collections),
+    *,
+    node_id: uuid.UUID = Depends(node_ids_for_major_collections),
 ):
     validate_node_id(node_id)
     return await overall_stats(node_id)
@@ -410,8 +411,8 @@ async def read_stats(
     This is the granularity of the data.""",
 )
 async def read_stats_validation_collection(
-        *,
-        node_id: uuid.UUID = Depends(node_ids_for_major_collections),
+    *,
+    node_id: uuid.UUID = Depends(node_ids_for_major_collections),
 ):
     validate_node_id(node_id)
     return collections_with_missing_properties(node_id)
@@ -429,18 +430,19 @@ async def read_stats_validation_collection(
 
     This endpoint is similar to '/analytics/node_id/validation/collections', but instead of showing missing
     properties in collections, it counts the materials inside each collection that are missing that property."""
-                + f"It relies on background data and is read every {BACKGROUND_TASK_TIME_INTERVAL}s. "
-                + "This is the granularity of the data.",
+    + f"It relies on background data and is read every {BACKGROUND_TASK_TIME_INTERVAL}s. "
+    + "This is the granularity of the data.",
 )
 async def read_material_validationn(
-        *,
-        node_id: uuid.UUID = Depends(node_ids_for_major_collections),
+    *,
+    node_id: uuid.UUID = Depends(node_ids_for_major_collections),
 ):
     # validate_node_id(node_id)
     return material_validation(node_id)
 
 
 if API_DEBUG:
+
     @router.get(
         "/global",
         description="""A debug endpoint to access the data stored inside the global storage.""",

@@ -1,4 +1,3 @@
-import time
 import uuid
 from typing import Optional
 
@@ -11,7 +10,7 @@ from pydantic.validators import str_validator
 
 from app.api.collections.utils import map_elastic_response_to_model
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.models import ElasticResourceAttribute, ResponseModel, essential_frontend_properties
+from app.core.models import ElasticResourceAttribute, ResponseModel
 from app.elastic.dsl import ElasticField
 from app.elastic.elastic import ResourceType, query_missing_material_license
 from app.elastic.search import Search
@@ -81,7 +80,7 @@ class LearningMaterial(ResponseModel):
 
 
 def material_response_fields(
-        *, response_fields: set[ElasticResourceAttribute] = Query(None)
+    *, response_fields: set[ElasticResourceAttribute] = Query(None)
 ) -> set[ElasticResourceAttribute]:
     return response_fields
 
@@ -111,7 +110,7 @@ class MissingAttributeFilter(BaseModel):
 
 
 def materials_filter_params(
-        *, missing_attr: MissingMaterialField = Path(...)
+    *, missing_attr: MissingMaterialField = Path(...)
 ) -> MissingAttributeFilter:
     return MissingAttributeFilter(attr=missing_attr)
 
@@ -163,18 +162,42 @@ def missing_attributes_search(node_id: uuid.UUID, missing_attribute: str) -> Sea
 def base_missing_material_search(node_id: uuid.UUID) -> Search:
     # this query is supposed to filter to all materials that
     # are part of the collection node_id or any of its parent nodes.
-    return Search().base_filters() \
-        .filter(Q("match", **{ElasticResourceAttribute.COLLECTION_PATH.path: node_id})) \
-        .type_filter(ResourceType.MATERIAL) \
-        .non_series_objects_filter() \
-        .text_only_filter() \
-        .source(includes=[source.path for source in missing_attributes_source_fields]) \
+    return (
+        Search()
+        .base_filters()
+        .query(
+            Q(
+                "bool",
+                **{
+                    "minimum_should_match": 1,
+                    "should": [
+                        Q(
+                            "match",
+                            **{
+                                ElasticResourceAttribute.COLLECTION_PATH.keyword: node_id
+                            }
+                        ),
+                        Q(
+                            "match",
+                            **{
+                                ElasticResourceAttribute.COLLECTION_NODEREF_ID.keyword: node_id
+                            }
+                        ),
+                    ],
+                }
+            )
+        )
+        .type_filter(ResourceType.MATERIAL)
+        .non_series_objects_filter()
+        .text_only_filter()
+        .source(includes=[source.path for source in missing_attributes_source_fields])
         .extra(size=ELASTIC_TOTAL_SIZE, from_=0)
+    )
 
 
 async def search_materials_with_missing_attributes(
-        node_id: Optional[uuid.UUID] = None,
-        missing_attr_filter: Optional[MissingAttributeFilter] = None,
+    node_id: Optional[uuid.UUID] = None,
+    missing_attr_filter: Optional[MissingAttributeFilter] = None,
 ) -> list[LearningMaterial]:
     search = missing_attributes_search(node_id, missing_attr_filter.attr.value)
     response = search.execute()

@@ -219,6 +219,7 @@ def test_collections_with_missing_properties():
     )
 
 
+@pytest.mark.skip(reason="Dropped, because global store changed")
 def test_materials_with_missing_properties():
     directory = "tests/unit_tests/resources"
 
