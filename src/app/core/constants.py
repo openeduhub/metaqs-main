@@ -1,5 +1,8 @@
 COLLECTION_NAME_TO_ID: dict[str, str] = {
     "Chemie": "4940d5da-9b21-4ec0-8824-d16e0409e629",
+}
+"""
+
     "Physik": "94f22c9b-0d3a-4c1c-8987-4c8e83f3a92e",
     "Mathematik": "bd8be6d5-0fbe-4534-a4b3-773154ba6abc",
     "Biologie": "15fce411-54d9-467f-8f35-61ea374a298d",
@@ -25,7 +28,8 @@ COLLECTION_NAME_TO_ID: dict[str, str] = {
     "Musik": "2eda0065-f69b-46c8-ae09-d258c8226a5e",
     "Philosophie": "9d364fd0-4374-40b4-a153-3c722b9cda35",
     "Geografie": "f1049950-bdda-45f5-9c73-38b51ea66c74",
-}
+"""
+
 
 OPEN_API_VERSION = "2.1.0"
 COLLECTION_ROOT_ID = "5e40e372-735c-4b17-bbf7-e827a5702b57"

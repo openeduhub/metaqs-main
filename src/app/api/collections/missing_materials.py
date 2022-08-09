@@ -97,6 +97,9 @@ missing_attributes_source_fields = {
     ElasticResourceAttribute.EDU_CONTEXT,
     ElasticResourceAttribute.COVER,
     ElasticResourceAttribute.NODE_ID,
+    ElasticResourceAttribute.NAME,
+    ElasticResourceAttribute.TYPE,
+    ElasticResourceAttribute.KEYWORDS,
 }
 
 MissingMaterialField = ElasticField(
