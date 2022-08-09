@@ -2,10 +2,9 @@ import asyncio
 import os
 import uuid
 from datetime import datetime
-from typing import Union
+from typing import Optional, Union
 
-from elasticsearch_dsl import Q
-from elasticsearch_dsl.query import Query, Wildcard
+from elasticsearch_dsl.query import Bool, Query, Wildcard
 from fastapi import APIRouter
 from fastapi_utils.tasks import repeat_every
 from starlette.background import BackgroundTasks
@@ -28,10 +27,7 @@ from app.api.analytics.storage import (
     global_store,
 )
 from app.api.collections.counts import AggregationMappings, collection_counts
-from app.api.collections.missing_materials import (
-    base_missing_material_search,
-    missing_attributes_search,
-)
+from app.api.collections.missing_materials import base_missing_material_search
 from app.core.config import BACKGROUND_TASK_TIME_INTERVAL
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.core.logging import logger
@@ -84,27 +80,6 @@ def search_query(resource_type: ResourceType, path: str) -> Search:
         .node_filter(resource_type=resource_type, node_id=COLLECTION_ROOT_ID)
         .source(includes=["nodeRef.*", path, *essential_frontend_properties])
     )
-
-
-def filter_by_id(hit, node_id):
-    for collection in hit.collections:
-        if node_id in collection["path"] or node_id == collection["nodeRef"]["id"]:
-            return True
-    return False
-
-
-def uuids_of_materials_with_missing_attributes(
-    node_id: uuid.UUID, attribute: str
-) -> list[uuid.UUID]:
-    """
-    Returns a list of UUIDS for the materials that lack the given attribute and are part of the given collection
-    (node_id).
-    """
-
-    return [
-        uuid.UUID(hit.to_dict()["nodeRef"]["id"])
-        for hit in missing_attributes_search(node_id, attribute).execute().hits
-    ]
 
 
 def run():
@@ -209,7 +184,9 @@ def build_pending_materials(
     return pending_materials
 
 
-def update_values_with_pending_materials(attribute, data):
+def update_values_with_pending_materials(
+    attribute: str, data: dict
+) -> Optional[uuid.UUID]:
     if attribute == ElasticResourceAttribute.EDU_ENDUSERROLE_DE.path:
         if (
             "i18n" not in data.keys()
@@ -217,12 +194,17 @@ def update_values_with_pending_materials(attribute, data):
             or attribute.split(".")[-1] not in data["i18n"]["de_DE"].keys()
         ):
             return uuid.UUID(data["nodeRef"]["id"])
-    elif attribute.split(".")[-1] not in data["properties"].keys():
+
+    elif (
+        "properties" not in data.keys()
+        or attribute.split(".")[-1] not in data["properties"].keys()
+    ):
         return uuid.UUID(data["nodeRef"]["id"])
-    return
+
+    return None
 
 
-def pending_materials_search(node_id: uuid.UUID):
+def pending_materials_search(node_id: uuid.UUID) -> Search:
     base_search = base_missing_material_search(node_id)
 
     def attribute_specific_query(attribute: str) -> Query:
@@ -231,14 +213,13 @@ def pending_materials_search(node_id: uuid.UUID):
         return ~Wildcard(**{attribute: {"value": "*"}})
 
     return base_search.filter(
-        Q(
-            "bool",
+        Bool(
             **{
                 "minimum_should_match": 1,
                 "should": [
                     attribute_specific_query(attribute)
                     for attribute in essential_frontend_properties
                 ],
-            },
+            }
         )
     )

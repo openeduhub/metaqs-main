@@ -1,17 +1,12 @@
 import uuid
 
-import pytest
-
 from app.api.analytics.background_task import (
     pending_materials_search,
     search_query,
-    uuids_of_materials_with_missing_attributes,
+    update_values_with_pending_materials,
 )
-from app.api.analytics.stats import Row, get_ids_to_iterate
-from app.core.config import ELASTICSEARCH_URL
-from app.core.models import ElasticResourceAttribute, essential_frontend_properties
+from app.core.models import essential_frontend_properties
 from app.elastic.elastic import ResourceType
-from app.elastic.utils import connect_to_elastic
 
 
 def test_search_query_collections():
@@ -76,49 +71,6 @@ def test_search_query_materials():
             }
         },
     }
-
-
-@pytest.mark.asyncio
-@pytest.mark.skipif(
-    condition=True or ELASTICSEARCH_URL is None, reason="No connection to Elasticsearch"
-)
-async def test_uuids_of_materials_with_missing_attributes_chemistry():
-    await connect_to_elastic()
-
-    chemistry = "4940d5da-9b21-4ec0-8824-d16e0409e629"
-    attribute = ElasticResourceAttribute.WWW_URL
-    response = uuids_of_materials_with_missing_attributes(chemistry, attribute)
-
-    assert len(response) == 1
-
-
-@pytest.mark.asyncio
-@pytest.mark.skipif(
-    condition=True or ELASTICSEARCH_URL is None, reason="No connection to Elasticsearch"
-)
-async def test_uuids_of_materials_with_missing_attributes_sub_collections():
-    await connect_to_elastic()
-
-    chemistry = "4940d5da-9b21-4ec0-8824-d16e0409e629"
-    attribute = ElasticResourceAttribute.WWW_URL  # so far 35, but found 501
-    # attribute = ElasticResourceAttribute.DESCRIPTION  # so far 57, but found 385ish
-    # attribute = ElasticResourceAttribute.LICENSES  # so far 1, but 206
-
-    expected = uuids_of_materials_with_missing_attributes(chemistry, attribute)
-    assert len(expected) == len(set(expected)), "Found duplicate materials"
-    assert len(expected) == 35, "Currently know value. replace ASAP"
-
-    sub_collections: list[Row] = await get_ids_to_iterate(node_id=uuid.UUID(chemistry))
-
-    seen = set()
-    for collection in sub_collections:
-        ids = uuids_of_materials_with_missing_attributes(collection.id, attribute)
-        print(collection, ids)
-        seen = seen.union(set(ids))
-
-    print("seen")
-    print(seen)
-    assert len(seen) == len(expected)
 
 
 def test_pending_materials_search():
@@ -325,3 +277,40 @@ def test_pending_materials_search():
     }
 
     assert sorted(actual_source) == sorted(expected_source)
+
+
+def test_update_values_with_pending_materials():
+    dummy_uuid = uuid.uuid4()
+    node_ref_dictionary: dict = {"nodeRef": {"id": str(dummy_uuid)}}
+    assert update_values_with_pending_materials("", node_ref_dictionary) == dummy_uuid
+
+    data = node_ref_dictionary.copy()
+    data.update({"properties": {}})
+    assert update_values_with_pending_materials("", data) == dummy_uuid
+
+    data = node_ref_dictionary.copy()
+    data.update({"properties": {"dummy_attribute": []}})
+    assert (
+        update_values_with_pending_materials("properties.dummy_attribute", data) is None
+    )
+
+    data = node_ref_dictionary.copy()
+    data.update({"i18n": {}})
+    end_user_role_attribute = "i18n.de_DE.ccm:educationalintendedenduserrole"
+    assert (
+        update_values_with_pending_materials(end_user_role_attribute, data)
+        == dummy_uuid
+    )
+
+    data = node_ref_dictionary.copy()
+    data.update({"i18n": {"de_DE": {}}})
+    end_user_role_attribute = "i18n.de_DE.ccm:educationalintendedenduserrole"
+    assert (
+        update_values_with_pending_materials(end_user_role_attribute, data)
+        == dummy_uuid
+    )
+
+    data = node_ref_dictionary.copy()
+    end_user_role_attribute = "i18n.de_DE.ccm:educationalintendedenduserrole"
+    data.update({"i18n": {"de_DE": {"ccm:educationalintendedenduserrole": []}}})
+    assert update_values_with_pending_materials(end_user_role_attribute, data) is None

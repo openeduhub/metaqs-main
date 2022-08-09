@@ -1,14 +1,12 @@
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel
 
 from app.api.analytics.analytics import CountStatistics
 
 _COLLECTIONS = "collections"
-_MATERIALS = "materials"
 _COLLECTION_COUNT = "counts"
 _COLLECTION_COUNT_OER = "counts_oer"
 
@@ -17,7 +15,6 @@ A quick fix for a global storage
 """
 global_storage = {
     _COLLECTIONS: [],
-    _MATERIALS: [],
     _COLLECTION_COUNT: {},
     _COLLECTION_COUNT_OER: {},
 }  # TODO: Refactor me ASAP
@@ -32,7 +29,18 @@ class SearchStore:
 
 @dataclass(frozen=True)
 class PendingMaterials:
-    __slots__ = "node_id", "title", "edu_context", "url", "description", "license", 'learning_resource_type', 'taxon_id', 'publisher', 'intended_end_user_role'
+    __slots__ = (
+        "node_id",
+        "title",
+        "edu_context",
+        "url",
+        "description",
+        "license",
+        "learning_resource_type",
+        "taxon_id",
+        "publisher",
+        "intended_end_user_role",
+    )
     node_id: uuid.UUID
     title: list[uuid.UUID]
     edu_context: list[uuid.UUID]
