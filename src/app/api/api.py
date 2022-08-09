@@ -438,7 +438,9 @@ async def read_material_validationn(
     node_id: uuid.UUID = Depends(node_ids_for_major_collections),
 ):
     validate_node_id(node_id)
-    return material_validation(node_id, global_storage.pending_materials)
+    return material_validation(
+        collection_id=node_id, pending_materials=global_storage.pending_materials
+    )
 
 
 if API_DEBUG:

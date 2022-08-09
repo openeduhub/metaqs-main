@@ -167,7 +167,7 @@ def build_pending_materials(
     logger.info(f"Working on {collection.title}")
 
     pending_materials: dict[str, Union[uuid.UUID, list[uuid.UUID]]] = {
-        "node_id": collection.id,
+        "collection_id": collection.id,
         **{
             required_collection_properties[attribute]: []
             for attribute in essential_frontend_properties

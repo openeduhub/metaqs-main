@@ -289,9 +289,11 @@ def has_license_wrong_entries(entry: str, properties: dict) -> bool:
 
 
 def material_validation(
-    node_id: uuid.UUID, pending_materials: list[PendingMaterialsStore]
+    collection_id: uuid.UUID, pending_materials: list[PendingMaterialsStore]
 ) -> PendingMaterialsStore:
     return next(
-        filter(lambda material: material.collection_id == node_id, pending_materials),
+        filter(
+            lambda material: material.collection_id == collection_id, pending_materials
+        ),
         None,
     )

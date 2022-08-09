@@ -115,7 +115,7 @@ class MaterialValidationResponse(BaseModel):
 
 
 class PendingMaterials(BaseModel):
-    node_id: uuid.UUID
+    collection_id: uuid.UUID
     title: list[uuid.UUID]
     edu_context: list[uuid.UUID]
     url: list[uuid.UUID]

@@ -30,7 +30,7 @@ class SearchStore:
 @dataclass(frozen=True)
 class PendingMaterials:
     __slots__ = (
-        "node_id",
+        "collection_id",
         "title",
         "edu_context",
         "url",
@@ -41,7 +41,7 @@ class PendingMaterials:
         "publisher",
         "intended_end_user_role",
     )
-    node_id: uuid.UUID
+    collection_id: uuid.UUID
     title: list[uuid.UUID]
     edu_context: list[uuid.UUID]
     url: list[uuid.UUID]
@@ -60,7 +60,7 @@ class PendingMaterialsStore:
     missing_materials: list[PendingMaterials]
 
 
-@dataclass(frozen=False)
+@dataclass
 class Store:
     __slots__ = "search", "oer_search", "pending_materials"
     search: list[SearchStore]
