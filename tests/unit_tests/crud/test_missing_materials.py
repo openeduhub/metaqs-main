@@ -64,6 +64,9 @@ def test_missing_materials_search():
         "properties.ccm:oeh_publisher_combined",
         "i18n.de_DE.ccm:educationalintendedenduserrole",
         "preview",
+        "properties.cclom:general_keyword",
+        "properties.cm:name",
+        "type",
     ]
     assert sorted(actual_source) == sorted(expected_source)
 
