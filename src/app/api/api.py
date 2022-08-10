@@ -26,7 +26,7 @@ from app.api.analytics.stats import (
     material_validation,
     overall_stats,
 )
-from app.api.analytics.storage import global_storage
+from app.api.analytics.storage import global_storage, global_store
 from app.api.collections.counts import (
     AggregationMappings,
     CollectionTreeCount,
@@ -439,7 +439,7 @@ async def read_material_validationn(
 ):
     validate_node_id(node_id)
     return material_validation(
-        collection_id=node_id, pending_materials=global_storage.pending_materials
+        collection_id=node_id, pending_materials=global_store.pending_materials
     )
 
 
