@@ -79,6 +79,7 @@ class Mode(str, Enum):
     be metadata fields.
     The values in the cells correspond to the percentages of fields that are missing given the replication source
     of the row.
+
     """
 
     REPLICATION_SOURCE = "replication_source"
