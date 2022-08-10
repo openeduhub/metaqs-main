@@ -1,6 +1,6 @@
 import json
 import uuid
-from typing import Mapping, Optional
+from typing import Mapping
 
 from databases import Database
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
@@ -16,14 +16,14 @@ from starlette.status import (
 
 from app.api.analytics.analytics import (
     CollectionValidationStats,
-    MaterialValidationStats,
+    PendingMaterialsResponse,
     StatsResponse,
     ValidationStatsResponse,
 )
 from app.api.analytics.background_task import background_router
 from app.api.analytics.stats import (
     collections_with_missing_properties,
-    materials_with_missing_properties,
+    material_validation,
     overall_stats,
 )
 from app.api.analytics.storage import global_storage
@@ -39,9 +39,8 @@ from app.api.collections.material_counts import (
 from app.api.collections.missing_materials import (
     LearningMaterial,
     MissingAttributeFilter,
-    get_materials_with_missing_attributes,
-    material_response_fields,
     materials_filter_params,
+    search_materials_with_missing_attributes,
 )
 from app.api.collections.models import CollectionNode, MissingMaterials
 from app.api.collections.pending_collections import (
@@ -62,7 +61,6 @@ from app.api.score.score import (
 )
 from app.core.config import API_DEBUG, BACKGROUND_TASK_TIME_INTERVAL
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
-from app.core.models import ElasticResourceAttribute
 
 
 def get_database(request: Request) -> Database:
@@ -355,13 +353,11 @@ async def filter_materials_with_missing_attributes(
     *,
     node_id: uuid.UUID = Depends(node_ids_for_major_collections),
     missing_attr_filter: MissingAttributeFilter = Depends(materials_filter_params),
-    response_fields: Optional[set[ElasticResourceAttribute]] = Depends(
-        material_response_fields
-    ),
 ):
     validate_node_id(node_id)
-    return await get_materials_with_missing_attributes(
-        missing_attr_filter, node_id, response_fields
+    return await search_materials_with_missing_attributes(
+        node_id=node_id,
+        missing_attr_filter=missing_attr_filter,
     )
 
 
@@ -422,10 +418,9 @@ async def read_stats_validation_collection(
     return collections_with_missing_properties(node_id)
 
 
-# TODO: Rename to material-validation or similar
 @router.get(
-    "/analytics/{node_id}/validation",
-    response_model=list[ValidationStatsResponse[MaterialValidationStats]],
+    "/material-validation/{node_id}",
+    response_model=PendingMaterialsResponse,
     response_model_exclude_unset=True,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
@@ -438,12 +433,14 @@ async def read_stats_validation_collection(
     + f"It relies on background data and is read every {BACKGROUND_TASK_TIME_INTERVAL}s. "
     + "This is the granularity of the data.",
 )
-async def read_stats_validation(
+async def read_material_validationn(
     *,
     node_id: uuid.UUID = Depends(node_ids_for_major_collections),
 ):
     validate_node_id(node_id)
-    return materials_with_missing_properties(node_id)
+    return material_validation(
+        collection_id=node_id, pending_materials=global_storage.pending_materials
+    )
 
 
 if API_DEBUG:

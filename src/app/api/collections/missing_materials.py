@@ -97,8 +97,8 @@ missing_attributes_source_fields = {
     ElasticResourceAttribute.EDU_CONTEXT,
     ElasticResourceAttribute.COVER,
     ElasticResourceAttribute.NODE_ID,
-    ElasticResourceAttribute.TYPE,
     ElasticResourceAttribute.NAME,
+    ElasticResourceAttribute.TYPE,
     ElasticResourceAttribute.KEYWORDS,
 }
 
@@ -118,42 +118,83 @@ def materials_filter_params(
     return MissingAttributeFilter(attr=missing_attr)
 
 
-def missing_attributes_search(
-    node_id: uuid.UUID, missing_attribute: str, max_hits: int
-) -> Search:
-    # Mimetype filter based on https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
-    search = (
+def missing_attributes_search(node_id: uuid.UUID, missing_attribute: str) -> Search:
+    """
+    Chemie:
+     = Material X
+     - Organisch
+       = Material Y
+     - Anorganisch
+
+                    1.           2.
+    Chemie:         3            1
+     - Organisch    0            1
+     - Anorganisch  0            0
+    Gesamt :        3            2
+                    35            24
+    1. Pending-Materials
+    2. Collection Details Table
+
+
+    node_id = 123
+    welche collection hat diese id?
+    bzw. welche collection beinhaltet in ihrem Pfad diese Id, ist also eine child node
+
+
+    My assumption: A material has some path attribute that is [category-root, chemie, anorganic-chemie, alkene]
+            path
+    Mat 1: [root, chemie]
+    ...
+    Mat 35: [root, chemie]
+
+    Mat 36: [root, chemie, anorganic]
+    ...
+    Mat 100: [root, chemie, anorganic]
+
+    query chemie: 35
+    query anorganic-chemie: potenziell mehr als 35 -> why?
+    """
+    search = base_missing_material_search(node_id)
+
+    if missing_attribute == ElasticResourceAttribute.LICENSES.path:
+        return search.filter(query_missing_material_license().to_dict())
+    # ~ corresponds to inversion here, i.e., Wildcard must not be true
+    return search.query(~Wildcard(**{missing_attribute: {"value": "*"}}))
+
+
+def base_missing_material_search(node_id: uuid.UUID) -> Search:
+    # this query is supposed to filter to all materials that
+    # are part of the collection node_id or any of its parent nodes.
+    return (
         Search()
         .base_filters()
         .query(
             Q(
                 "bool",
-                should=[
-                    Q(
-                        "match",
-                        **{ElasticResourceAttribute.COLLECTION_PATH.path: node_id}
-                    ),
-                    Q(
-                        "match",
-                        **{ElasticResourceAttribute.COLLECTION_NODEREF_ID.path: node_id}
-                    ),
-                ],
+                **{
+                    "minimum_should_match": 1,
+                    "should": [
+                        Q(
+                            "match",
+                            **{
+                                ElasticResourceAttribute.COLLECTION_PATH.keyword: node_id
+                            }
+                        ),
+                        Q(
+                            "match",
+                            **{
+                                ElasticResourceAttribute.COLLECTION_NODEREF_ID.keyword: node_id
+                            }
+                        ),
+                    ],
+                }
             )
         )
-    )
-
-    if missing_attribute == ElasticResourceAttribute.LICENSES.path:
-        search = search.filter(query_missing_material_license().to_dict())
-    else:
-        # ~ corresponds to inversion here, i.e., Wildcard must not be true
-        search = search.query(~Wildcard(**{missing_attribute: {"value": "*"}}))
-
-    return (
-        search.type_filter(ResourceType.MATERIAL)
+        .type_filter(ResourceType.MATERIAL)
         .non_series_objects_filter()
         .text_only_filter()
         .source(includes=[source.path for source in missing_attributes_source_fields])
-        .extra(size=max_hits, from_=0)
+        .extra(size=ELASTIC_TOTAL_SIZE, from_=0)
     )
 
 
@@ -161,34 +202,9 @@ async def search_materials_with_missing_attributes(
     node_id: Optional[uuid.UUID] = None,
     missing_attr_filter: Optional[MissingAttributeFilter] = None,
 ) -> list[LearningMaterial]:
-    search = missing_attributes_search(
-        node_id, missing_attr_filter.attr.value, ELASTIC_TOTAL_SIZE
-    )
+    search = missing_attributes_search(node_id, missing_attr_filter.attr.value)
     response = search.execute()
     if response.success():
         return map_elastic_response_to_model(
             response, missing_materials_spec, LearningMaterial
         )
-
-
-# TODO is this really being used?
-def filter_response_fields(
-    items: list[BaseModel], response_fields: set[ElasticField] = None
-) -> list[BaseModel]:
-    if response_fields:
-        return [
-            i.copy(include={f.name.lower() for f in response_fields}) for i in items
-        ]
-    return items
-
-
-async def get_materials_with_missing_attributes(
-    missing_attr_filter, node_id, response_fields
-):
-    if response_fields:
-        response_fields.add(ElasticResourceAttribute.NODE_ID)
-    materials = await search_materials_with_missing_attributes(
-        node_id=node_id,
-        missing_attr_filter=missing_attr_filter,
-    )
-    return filter_response_fields(materials, response_fields=response_fields)

@@ -10,11 +10,11 @@ from app.api.analytics.stats import (
     build_material_search,
     collections_with_missing_properties,
     has_license_wrong_entries,
-    materials_with_missing_properties,
+    material_validation,
     overall_stats,
     query_material_types,
 )
-from app.api.analytics.storage import SearchStore, StorageModel
+from app.api.analytics.storage import PendingMaterialsStore, SearchStore, StorageModel
 from app.api.collections.counts import CollectionTreeCount
 
 
@@ -219,48 +219,6 @@ def test_collections_with_missing_properties():
     )
 
 
-def test_materials_with_missing_properties():
-    directory = "tests/unit_tests/resources"
-
-    with open(f"{directory}/test_global.json") as file:
-        global_response = json.load(file)
-
-    dummy_node = uuid.UUID("11bdb8a0-a9f5-4028-becc-cbf8e328dd4b")
-    with mock.patch("app.api.analytics.stats.global_storage") as mocked_global:
-
-        def _get_item(_, key):
-            if key in ["collections", "materials"]:
-                return [
-                    StorageModel(
-                        id=entry["id"],
-                        doc=entry["doc"],
-                        derived_at=entry["derived_at"],
-                    )
-                    for entry in global_response[key]
-                ]
-            if key == "counts":
-                return [
-                    CollectionTreeCount(
-                        node_id=entry["noderef_id"],
-                        total=entry["total"],
-                        counts=entry["counts"],
-                    )
-                    for entry in global_response[key]
-                ]
-            return global_response[key]
-
-        mocked_global.__getitem__ = _get_item
-
-        result = materials_with_missing_properties(dummy_node)
-
-    assert len(result) == 1
-    assert result[0].noderef_id == uuid.UUID("f3dc9ea1-d608-4b4e-a78c-98063a3e8461")
-    dummy_material_node = uuid.UUID("263afc5b-6445-4a5a-b014-a77f1db473b9")
-
-    assert result[0].validation_stats.url.missing == [dummy_material_node]
-    assert result[0].validation_stats.material_type is None
-
-
 def test_has_license_wrong_entries():
     assert not has_license_wrong_entries("test_key", {"test_key": 0})
 
@@ -268,3 +226,20 @@ def test_has_license_wrong_entries():
     assert has_license_wrong_entries(
         "test_key", {"test_key": "UNTERRICHTS_UND_LEHRMEDIEN"}
     )
+
+
+def test_material_validation():
+    dummy_uuid = uuid.uuid4()
+    response = material_validation(dummy_uuid, [])
+    assert response is None
+
+    desired_store = PendingMaterialsStore(
+        collection_id=dummy_uuid, missing_materials=[]
+    )
+    undesired_store = PendingMaterialsStore(
+        collection_id=uuid.uuid4(), missing_materials=[]
+    )
+    pending_materials = [desired_store, undesired_store]
+
+    response = material_validation(dummy_uuid, pending_materials)
+    assert response is not None and response == desired_store

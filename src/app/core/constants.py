@@ -20,11 +20,11 @@ COLLECTION_NAME_TO_ID: dict[str, str] = {
     "OER": "a87c092d-e3b5-43ef-81db-757ab1967646",
     "Zeitgemaesse Bildung": "a3291cd2-5fe4-444e-9b7b-65807d9b0024",
     "Wirtschaft": "f0109e16-a8fc-48b5-9461-369571fd59f2",
-    "Geografie": "f1049950-bdda-45f5-9c73-38b51ea66c74",
     "Paedagogik": "7e2a3536-8441-4328-8ee6-ab0068bb13f8",
     "Franzoesisch": "86b990ef-0955-45ad-bdae-ec2623cf0e1a",
     "Musik": "2eda0065-f69b-46c8-ae09-d258c8226a5e",
     "Philosophie": "9d364fd0-4374-40b4-a153-3c722b9cda35",
+    "Geografie": "f1049950-bdda-45f5-9c73-38b51ea66c74",
 }
 
 OPEN_API_VERSION = "2.1.0"

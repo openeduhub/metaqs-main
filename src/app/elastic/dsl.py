@@ -19,6 +19,10 @@ class ElasticField(str, Enum):
         obj.field_type = field_type
         return obj
 
+    @property
+    def keyword(self):
+        return f"{self.path}.keyword"
+
 
 def qterm(qfield: Union[ElasticField, str], value, **kwargs) -> Query:
     kwargs[handle_text_field(qfield)] = value

@@ -3,7 +3,7 @@ from datetime import datetime
 from enum import Enum
 from typing import ClassVar, Generic, Optional, TypeVar
 
-from pydantic import BaseModel, Extra, Field, validator
+from pydantic import BaseModel, Extra, Field
 from pydantic.generics import GenericModel
 from starlette.exceptions import HTTPException
 from starlette.status import HTTP_404_NOT_FOUND
@@ -91,27 +91,42 @@ class CollectionValidationStats(ElasticValidationStats[list[OehValidationError]]
     pass
 
 
-def none_to_empty_list(v: list) -> Optional[list]:
-    if v is None:
-        return []
-    return v
+class MaterialValidationStats(BaseModel):
+    """
+    The UUIDs within the optional lists identify materials.
+    """
+
+    subjects: Optional[list[uuid.UUID]]
+    license: Optional[list[uuid.UUID]]
+    url: Optional[list[uuid.UUID]]
+    publisher: Optional[list[uuid.UUID]]
+    intended_end_user_role: Optional[list[uuid.UUID]]
+    material_type: Optional[list[uuid.UUID]]
+    title: Optional[list[uuid.UUID]]
+    keywords: Optional[list[uuid.UUID]]
+    description: Optional[list[uuid.UUID]]
+    edu_context: Optional[list[uuid.UUID]]
 
 
-class MaterialFieldValidation(BaseModel):
-    missing: Optional[list[uuid.UUID]]
-    too_short: Optional[list[uuid.UUID]]
-    too_few: Optional[list[uuid.UUID]]
-    lacks_clarity: Optional[list[uuid.UUID]]
-    invalid_spelling: Optional[list[uuid.UUID]]
-
-    # validators
-    _none_to_empty_list = validator("*", pre=True, allow_reuse=True)(none_to_empty_list)
+class MaterialValidationResponse(BaseModel):
+    collection_id: uuid.UUID
+    derived_at: datetime = Field(default_factory=datetime.now)
+    stats: MaterialValidationStats
 
 
-class MaterialValidationStats(ElasticValidationStats[MaterialFieldValidation]):
-    subjects: Optional[MaterialFieldValidation]
-    license: Optional[MaterialFieldValidation]
-    url: Optional[MaterialFieldValidation]
-    publisher: Optional[MaterialFieldValidation]
-    intended_end_user_role: Optional[MaterialFieldValidation]
-    material_type: Optional[MaterialFieldValidation]
+class PendingMaterials(BaseModel):
+    collection_id: uuid.UUID
+    title: list[uuid.UUID]
+    edu_context: list[uuid.UUID]
+    url: list[uuid.UUID]
+    description: list[uuid.UUID]
+    license: list[uuid.UUID]
+    learning_resource_type: list[uuid.UUID]
+    taxon_id: list[uuid.UUID]
+    publisher: list[uuid.UUID]
+    intended_end_user_role: list[uuid.UUID]
+
+
+class PendingMaterialsResponse(BaseModel):
+    collection_id: uuid.UUID
+    missing_materials: list[PendingMaterials]
