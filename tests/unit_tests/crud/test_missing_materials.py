@@ -26,19 +26,6 @@ def test_missing_materials_search():
                             "must_not": [{"term": {"aspects": "ccm:io_childobject"}}]
                         }
                     },
-                    {
-                        "terms": {
-                            "content.mimetype.keyword": [
-                                "application/pdf",
-                                "application/msword",
-                                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                                "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                                "application/vnd.oasis.opendocument.text",
-                                "text/html",
-                                "application/vnd.ms-powerpoint",
-                            ]
-                        }
-                    },
                 ],
                 "should": [
                     {"match": {"collections.path.keyword": dummy_uuid}},
@@ -91,19 +78,6 @@ def test_missing_materials_search_license():
                     {
                         "bool": {
                             "must_not": [{"term": {"aspects": "ccm:io_childobject"}}]
-                        }
-                    },
-                    {
-                        "terms": {
-                            "content.mimetype.keyword": [
-                                "application/pdf",
-                                "application/msword",
-                                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                                "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                                "application/vnd.oasis.opendocument.text",
-                                "text/html",
-                                "application/vnd.ms-powerpoint",
-                            ]
                         }
                     },
                     {
