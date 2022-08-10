@@ -161,7 +161,8 @@ async def get_material_count_tree(node_id: uuid.UUID) -> list[CollectionMaterial
     counts = []
     for record in materials_counts.results:
         try:
-            title = children.pop(record.node_id)
+            # TODO: Check why this type wrapping is currently required!
+            title = children.pop(uuid.UUID(record.node_id))
         except KeyError:
             continue
 
