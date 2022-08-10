@@ -1,12 +1,16 @@
 import logging
 import os
 
+from dotenv import load_dotenv
 from starlette.datastructures import CommaSeparatedStrings
+
+
+load_dotenv()
 
 API_PORT = 8081
 
 ROOT_PATH = os.getenv("ROOT_PATH", "")
-API_DEBUG = False  # os.getenv("LOG_LEVEL", "").strip().lower() == "debug"
+API_DEBUG = os.getenv("API_DEBUG", "False").strip().lower() == "true"
 ALLOWED_HOSTS = CommaSeparatedStrings(os.getenv("ALLOWED_HOSTS", "*"))
 LOG_LEVEL = int(os.getenv("LOG_LEVEL", logging.INFO))
 
@@ -19,6 +23,8 @@ ELASTIC_INDEX = "workspace"
 ELASTIC_TOTAL_SIZE = 500_000  # Maximum number of entries elasticsearch queries, very large to query all entries
 ELASTICSEARCH_TIMEOUT = int(os.getenv("ELASTICSEARCH_TIMEOUT", 20))
 
-BACKGROUND_TASK_TIME_INTERVAL = 10 * 60  # Time between consecutive background calls
+# Time in seconds between consecutive background calls
+BACKGROUND_TASK_TIME_INTERVAL = int(os.getenv("BACKGROUND_TASK_TIME_INTERVAL", 10 * 60))
 
-ENABLE_DATABASE = True
+# Whether to enable the database functionality for storing and loading historic quality matrix snapshots
+ENABLE_DATABASE = os.getenv("ENABLE_DATABASE", "True").lower() == "true"

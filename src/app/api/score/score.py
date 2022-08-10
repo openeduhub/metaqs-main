@@ -81,19 +81,6 @@ def search_score(node_id: uuid.UUID, resource_type: ResourceType) -> dict:
         return map_response_to_output(response)
 
 
-def field_names_used_for_score_calculation(properties: dict) -> list[str]:
-    values = []
-    for value in properties.values():
-        value = list(list(value.to_dict().values())[0].values())[0]
-        if isinstance(value, dict):
-            value = list(value.keys())[0]
-
-        value.replace(".keyword", "")
-        if value != "should":
-            values += [value]
-    return values
-
-
 aggs_material_validation = {
     "missing_title": amissing(qfield=ElasticResourceAttribute.TITLE),
     "missing_material_type": amissing(

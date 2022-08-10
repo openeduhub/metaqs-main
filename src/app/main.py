@@ -1,4 +1,3 @@
-from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from starlette.exceptions import HTTPException
@@ -52,8 +51,6 @@ def api() -> FastAPI:
 
     return _api
 
-
-load_dotenv()
 
 app = CORSMiddleware(
     app=api(),
