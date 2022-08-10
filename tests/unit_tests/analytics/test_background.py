@@ -92,19 +92,6 @@ def test_pending_materials_search():
                         }
                     },
                     {
-                        "terms": {
-                            "content.mimetype.keyword": [
-                                "application/pdf",
-                                "application/msword",
-                                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                                "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                                "application/vnd.oasis.opendocument.text",
-                                "text/html",
-                                "application/vnd.ms-powerpoint",
-                            ]
-                        }
-                    },
-                    {
                         "bool": {
                             "minimum_should_match": 1,
                             "should": [

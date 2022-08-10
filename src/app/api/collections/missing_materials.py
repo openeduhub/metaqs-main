@@ -192,7 +192,6 @@ def base_missing_material_search(node_id: uuid.UUID) -> Search:
         )
         .type_filter(ResourceType.MATERIAL)
         .non_series_objects_filter()
-        .text_only_filter()
         .source(includes=[source.path for source in missing_attributes_source_fields])
         .extra(size=ELASTIC_TOTAL_SIZE, from_=0)
     )

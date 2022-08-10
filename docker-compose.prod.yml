@@ -1,16 +1,8 @@
 version: '3.9'
 
-volumes:
-  pg-data:
-
 networks:
   backend:
-  frontend:
-
-x-postgres-vars: &postgres-vars
-  POSTGRES_USER: postgres
-  POSTGRES_PASSWORD: postgres
-  POSTGRES_DB: analytics
+    driver: bridge
 
 x-restart-policy: &restart-policy
   restart: unless-stopped
@@ -23,19 +15,6 @@ x-logging-config: &logging-config
       max-size: '100M'
 
 services:
-  postgres:
-    container_name: metaqs-postgres
-    image: postgres:14
-    ports:
-      - "5432:5432"
-    <<: *restart-policy
-    <<: *logging-config
-    environment:
-      <<: *postgres-vars
-    networks: [ backend ]
-    volumes:
-      - pg-data:/var/lib/postgresql/data
-
   nginx:
     container_name: metaqs-nginx
     image: nginx:stable-alpine
@@ -43,6 +22,7 @@ services:
     <<: *logging-config
     depends_on:
       - fastapi
+      - yovisto
     environment:
       NGINX_HOST: "${NGINX_HOST}"
       ROOT_PATH: "/api"
@@ -54,7 +34,8 @@ services:
       - ./nginx/gzip_params:/etc/nginx/gzip_params:ro
       - ../mkdocs/site:/usr/share/nginx/html/docs:ro
       - ./nginx/proxy_params:/etc/nginx/proxy_params:ro
-    networks: [ frontend ]
+    networks:
+      - backend
     ports:
       - "80:80"
       - "443:443"
@@ -89,24 +70,39 @@ services:
     image: docker.edu-sharing.com/projects/oeh-redaktion/edusharing-projects-oeh-redaktion-metaqs-api:latest
     <<: *restart-policy
     <<: *logging-config
-    depends_on:
-      - postgres
+    volumes:
+      - ./:/tmp
+      - .env:/app/.env
     environment:
-      <<: *postgres-vars
-      POSTGRES_HOST: postgres
       ROOT_PATH: "/api"
-      API_VERSION: "${API_VERSION:-v1}"
-      API_KEY: "${API_KEY:-openeduhub}"
       ALLOWED_HOSTS: "${ALLOWED_HOSTS:-*}"
-      BACKGROUND_TASK_ANALYTICS_INTERVAL: "${BACKGROUND_TASK_ANALYTICS_INTERVAL:-0}"
-      BACKGROUND_TASK_SEARCH_STATS_INTERVAL: "${BACKGROUND_TASK_SEARCH_STATS_INTERVAL:-0}"
-      BACKGROUND_TASK_SEARCH_STATS_SLEEP_INTERVAL: "${BACKGROUND_TASK_SEARCH_STATS_SLEEP_INTERVAL:-0}"
-      BACKGROUND_TASK_SPELLCHECK_INTERVAL: "${BACKGROUND_TASK_SPELLCHECK_INTERVAL:-0}"
-      LOG_LEVEL: "${LOG_LEVEL:-debug}"
+      LOG_LEVEL: "${LOG_LEVEL:-20}"
       LOGGER: uvicorn
       ELASTICSEARCH_URL: "${ELASTICSEARCH_URL:-http://10.254.1.31:9200}"
       ELASTICSEARCH_TIMEOUT: 20
-      WEB_CONCURRENCY: 1
     networks:
       - backend
-      - frontend
+
+
+  yovisto:
+    container_name: yovisto  # Container from https://github.com/openeduhub/meta-yovisto
+    image: docker.edu-sharing.com/projects/oeh-redaktion/edusharing-projects-oeh-redaktion-yovisto:dev
+    <<: *restart-policy
+    <<: *logging-config
+    environment:
+      ROOT_PATH: "/yovisto"
+      ALLOWED_HOSTS: "${ALLOWED_HOSTS:-*}"
+      LOG_LEVEL: "${LOG_LEVEL:-20}"
+      LOGGER: uvicorn
+      WANT_RETRAINING: "${WANT_RETRAINING:-true}"
+    command: bash -c "uvicorn --host 0.0.0.0 --port 80 --reload main:app"
+    expose:
+      - 443
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:80/_ping" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 250s
+    networks:
+      - backend
