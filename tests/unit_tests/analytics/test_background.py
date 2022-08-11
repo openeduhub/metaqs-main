@@ -1,10 +1,16 @@
+import json
 import uuid
+from unittest import mock
+from unittest.mock import MagicMock
 
 from app.api.analytics.background_task import (
+    build_pending_materials,
     pending_materials_search,
     search_query,
     update_values_with_pending_materials,
 )
+from app.api.analytics.stats import Row
+from app.api.analytics.storage import PendingMaterials
 from app.core.models import essential_frontend_properties
 from app.elastic.elastic import ResourceType
 
@@ -301,3 +307,45 @@ def test_update_values_with_pending_materials():
     end_user_role_attribute = "i18n.de_DE.ccm:educationalintendedenduserrole"
     data.update({"i18n": {"de_DE": {"ccm:educationalintendedenduserrole": []}}})
     assert update_values_with_pending_materials(end_user_role_attribute, data) is None
+
+
+def test_build_pending_materials():
+    collection_id = uuid.UUID("2fbc1287-b67e-43d0-a3e5-370b22dc3c8c")
+    collection = Row(title="dummy_row", id=collection_id)
+
+    directory = "tests/unit_tests/resources"
+    with open(f"{directory}/test_background.json") as file:
+        global_response = json.load(file)
+
+    data = []
+    for entry in global_response["hits"]:
+        mocked_data = MagicMock()
+        mocked_data.to_dict.return_value = entry
+        data.append(mocked_data)
+
+    with mock.patch(
+        "app.api.analytics.background_task.pending_materials_search"
+    ) as mocked_search:
+        mocked_search().execute().hits = data
+        response = build_pending_materials(collection)
+    assert response == PendingMaterials(
+        collection_id=collection_id,
+        description=[],
+        edu_context=[],
+        intended_end_user_role=[
+            uuid.UUID("2eafdfa7-e50b-4cf2-8ea3-22f0b8384b87"),
+            uuid.UUID("e7f72160-95b5-47b4-8a9e-34087119058d"),
+        ],
+        learning_resource_type=[],
+        license=[],
+        publisher=[
+            uuid.UUID("2eafdfa7-e50b-4cf2-8ea3-22f0b8384b87"),
+            uuid.UUID("e7f72160-95b5-47b4-8a9e-34087119058d"),
+        ],
+        taxon_id=[],
+        title=[],
+        url=[
+            uuid.UUID("2eafdfa7-e50b-4cf2-8ea3-22f0b8384b87"),
+            uuid.UUID("e7f72160-95b5-47b4-8a9e-34087119058d"),
+        ],
+    )

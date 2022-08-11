@@ -1,0 +1,51 @@
+{
+  "hits": [
+    {
+      "nodeRef": {
+        "id": "2eafdfa7-e50b-4cf2-8ea3-22f0b8384b87"
+      },
+      "properties": {
+        "cclom:title": "Mischen mit Stopfen 1",
+        "ccm:oeh_lrt": [
+          "http://w3id.org/openeduhub/vocabs/new_lrt/a6d1ac52-c557-4151-bc6f-0d99b0b96fb9"
+        ],
+        "ccm:educationalcontext": [
+          "http://w3id.org/openeduhub/vocabs/educationalContext/sekundarstufe_1"
+        ],
+        "ccm:commonlicense_key": [
+          "CC_BY"
+        ],
+        "cclom:general_description": [
+          "Wie hält man ein Reagenzglas mit Füllung und Stopfen, wenn man es schütteln will."
+        ],
+        "ccm:taxonid": [
+          "http://w3id.org/openeduhub/vocabs/discipline/100",
+          "http://w3id.org/openeduhub/vocabs/discipline/080"
+        ]
+      }
+    },
+    {
+      "nodeRef": {
+        "id": "e7f72160-95b5-47b4-8a9e-34087119058d"
+      },
+      "properties": {
+        "cclom:title": "Befestigung am Stativ",
+        "ccm:oeh_lrt": [
+          "http://w3id.org/openeduhub/vocabs/new_lrt/a6d1ac52-c557-4151-bc6f-0d99b0b96fb9"
+        ],
+        "ccm:educationalcontext": [
+          "http://w3id.org/openeduhub/vocabs/educationalContext/sekundarstufe_1"
+        ],
+        "ccm:commonlicense_key": [
+          "CC_BY"
+        ],
+        "cclom:general_description": [
+          "Bei diesem Bild geht es darum, dass die Schüler drauifhingewiesen werden sollen, auf den  Schwerpunkt zu achten. Wie im Bild zu sehen, wäre die Befestigung ungünstig."
+        ],
+        "ccm:taxonid": [
+          "http://w3id.org/openeduhub/vocabs/discipline/100"
+        ]
+      }
+    }
+  ]
+}

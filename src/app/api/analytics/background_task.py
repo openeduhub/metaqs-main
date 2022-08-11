@@ -142,8 +142,7 @@ def run():
         )
 
         materials = [
-            PendingMaterials(**build_pending_materials(collection))
-            for collection in sub_collections
+            build_pending_materials(collection) for collection in sub_collections
         ]
 
         pending_materials_store.append(
@@ -163,7 +162,7 @@ def run():
 
 def build_pending_materials(
     collection: Row,
-) -> dict[str, Union[uuid.UUID, list[uuid.UUID]]]:
+) -> PendingMaterials:
     logger.info(f"Working on {collection.title}")
 
     pending_materials: dict[str, Union[uuid.UUID, list[uuid.UUID]]] = {
@@ -181,7 +180,7 @@ def build_pending_materials(
                 pending_materials[required_collection_properties[attribute]].append(
                     value
                 )
-    return pending_materials
+    return PendingMaterials(**pending_materials)
 
 
 def update_values_with_pending_materials(
