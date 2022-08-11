@@ -202,6 +202,7 @@ async def search_materials_with_missing_attributes(
     missing_attr_filter: Optional[MissingAttributeFilter] = None,
 ) -> list[LearningMaterial]:
     search = missing_attributes_search(node_id, missing_attr_filter.attr.value)
+    print("missing materials: ", search.to_dict())
     response = search.execute()
     if response.success():
         return map_elastic_response_to_model(

@@ -58,3 +58,6 @@ async def test_integration_materials_with_missing_attributes():
             found_background_uuids = materials.license
 
         assert len(found_uuids) == len(found_background_uuids)
+
+        # TODO: If this runs, Revert TODO Revert in background_task
+        assert False

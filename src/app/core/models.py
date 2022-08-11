@@ -557,3 +557,5 @@ essential_frontend_properties = [
 ]
 
 oer_license = ["CC_0", "PDM", "CC_BY", "CC_BY_SA"]
+
+forbidden_licenses = ["UNTERRICHTS_UND_LEHRMEDIEN", "NONE", ""]

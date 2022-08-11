@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import Optional, Union
 
-from elasticsearch_dsl.query import Bool, Query, Wildcard
+from elasticsearch_dsl.query import Query, Wildcard
 from fastapi import APIRouter
 from fastapi_utils.tasks import repeat_every
 from starlette.background import BackgroundTasks
@@ -34,6 +34,7 @@ from app.core.logging import logger
 from app.core.models import (
     ElasticResourceAttribute,
     essential_frontend_properties,
+    forbidden_licenses,
     required_collection_properties,
 )
 from app.elastic.elastic import ResourceType, query_missing_material_license
@@ -173,9 +174,15 @@ def build_pending_materials(
         },
     }
 
+    print(pending_materials_search(collection.id).to_dict())
     for hit in pending_materials_search(collection.id).execute().hits:
         data = hit.to_dict()
+        print(data)
         for attribute in essential_frontend_properties:
+            # TODO Revert
+            if not attribute == ElasticResourceAttribute.LICENSES.path:
+                continue
+            print(attribute)
             if value := update_values_with_pending_materials(attribute, data):
                 pending_materials[required_collection_properties[attribute]].append(
                     value
@@ -186,20 +193,34 @@ def build_pending_materials(
 def update_values_with_pending_materials(
     attribute: str, data: dict
 ) -> Optional[uuid.UUID]:
+    split_attribute = attribute.split(".")[-1]
     if attribute == ElasticResourceAttribute.EDU_ENDUSERROLE_DE.path:
         if (
             "i18n" not in data.keys()
             or "de_DE" not in data["i18n"].keys()
-            or attribute.split(".")[-1] not in data["i18n"]["de_DE"].keys()
+            or split_attribute not in data["i18n"]["de_DE"].keys()
         ):
             return uuid.UUID(data["nodeRef"]["id"])
 
     elif (
         "properties" not in data.keys()
-        or attribute.split(".")[-1] not in data["properties"].keys()
+        or split_attribute not in data["properties"].keys()
     ):
         return uuid.UUID(data["nodeRef"]["id"])
 
+    elif (
+        attribute == ElasticResourceAttribute.LICENSES.path
+        and "properties" in data.keys()
+        and split_attribute in data["properties"].keys()
+        and any(
+            [
+                license
+                for license in data["properties"][split_attribute]
+                if license in forbidden_licenses
+            ]
+        )
+    ):
+        return uuid.UUID(data["nodeRef"]["id"])
     return None
 
 
@@ -211,14 +232,17 @@ def pending_materials_search(node_id: uuid.UUID) -> Search:
             return query_missing_material_license().to_dict()
         return ~Wildcard(**{attribute: {"value": "*"}})
 
+    # TODO: Revert
     return base_search.filter(
-        Bool(
+        attribute_specific_query(ElasticResourceAttribute.LICENSES.path)
+    )
+    # TODO: Revert
+    """    Bool(
             **{
                 "minimum_should_match": 1,
                 "should": [
-                    attribute_specific_query(attribute)
-                    for attribute in essential_frontend_properties
+                    attribute_specific_query(ElasticResourceAttribute.LICENSES.path)
                 ],
             }
         )
-    )
+    )"""

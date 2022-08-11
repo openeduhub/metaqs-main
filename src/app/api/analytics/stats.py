@@ -30,6 +30,7 @@ from app.api.collections.tree import collection_tree
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.models import (
     ElasticResourceAttribute,
+    forbidden_licenses,
     oer_license,
     required_collection_properties,
 )
@@ -283,7 +284,7 @@ def collections_with_missing_properties(
 
 
 def has_license_wrong_entries(entry: str, properties: dict) -> bool:
-    if properties[entry.split(".")[-1]] in ["UNTERRICHTS_UND_LEHRMEDIEN", "NONE", ""]:
+    if properties[entry.split(".")[-1]] in forbidden_licenses:
         return True
     return False
 
