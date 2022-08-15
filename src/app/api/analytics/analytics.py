@@ -115,6 +115,15 @@ class MaterialValidationResponse(BaseModel):
 
 
 class PendingMaterials(BaseModel):
+    # title: 'Materialien ohne Titel',
+    # learning_resource_type: 'Materialien ohne Kategorie',
+    # taxon_id: 'Materialien ohne Fachgebiet',
+    # license: 'Materialien ohne Lizenz',
+    # publisher: 'Materialien ohne Herkunft',
+    # description: 'Materialien ohne Beschreibungstext',
+    # intended_end_user_role: 'Materialien ohne Zielgruppe',
+    # edu_context: 'Materialien ohne Bildungsstufe',       
+
     collection_id: uuid.UUID
     title: list[uuid.UUID]
     edu_context: list[uuid.UUID]
