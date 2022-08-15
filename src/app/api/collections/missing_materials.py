@@ -1,8 +1,9 @@
+import pprint
 import uuid
 from typing import Optional
 
 from elasticsearch_dsl import Q
-from elasticsearch_dsl.query import Wildcard
+from elasticsearch_dsl.query import Wildcard, Term
 from fastapi.params import Path, Query
 from glom import Coalesce, Iter
 from pydantic import BaseModel, Extra
@@ -155,44 +156,59 @@ def missing_attributes_search(node_id: uuid.UUID, missing_attribute: str) -> Sea
     query anorganic-chemie: potenziell mehr als 35 -> why?
     """
     search = base_missing_material_search(node_id)
+    search = search.source(includes=[source.path for source in missing_attributes_source_fields])
 
     if missing_attribute == ElasticResourceAttribute.LICENSES.path:
-        return search.filter(query_missing_material_license().to_dict())
+        search = search.filter(query_missing_material_license().to_dict())
+        # pprint.pprint(search.to_dict(), indent=2, width=140)
+        return search
     # ~ corresponds to inversion here, i.e., Wildcard must not be true
-    return search.query(~Wildcard(**{missing_attribute: {"value": "*"}}))
+    search = search.filter(~Wildcard(**{missing_attribute: {"value": "*"}}))
+    # pprint.pprint(search.to_dict(),indent=2, width=140)
+    return search
 
 
-def base_missing_material_search(node_id: uuid.UUID) -> Search:
-    # this query is supposed to filter to all materials that
-    # are part of the collection node_id or any of its parent nodes.
+def base_missing_material_search(node_id: uuid.UUID, transitive: bool = True) -> Search:
+    """
+    Build a search for materials that are in given collection and have missing attributes.
+
+    :param node_id: The toplevel collection that identifies a collection subtree.
+    :param transitive:
+        True: The material is allowed to be in the collection or any of its children.
+        False: The material must be directly in the specified collection.
+    :return: A search for materials.
+    """
+    # make the dict returned from search.to_dict() json serializable...
+    node_id = str(node_id)
+    if transitive:
+        query = Q(
+            "bool",
+            **{
+                "minimum_should_match": 1,
+                "should": [
+                    Q(
+                        "match",
+                        **{
+                            ElasticResourceAttribute.COLLECTION_PATH.keyword: node_id
+                        }
+                    ),
+                    Q(
+                        "match",
+                        **{
+                            ElasticResourceAttribute.COLLECTION_NODEREF_ID.keyword: node_id
+                        }
+                    ),
+                ],
+            }
+        )
+    else:
+        query = Term(**{ElasticResourceAttribute.COLLECTION_NODEREF_ID.keyword: node_id})
     return (
         Search()
         .base_filters()
-        .query(
-            Q(
-                "bool",
-                **{
-                    "minimum_should_match": 1,
-                    "should": [
-                        Q(
-                            "match",
-                            **{
-                                ElasticResourceAttribute.COLLECTION_PATH.keyword: node_id
-                            }
-                        ),
-                        Q(
-                            "match",
-                            **{
-                                ElasticResourceAttribute.COLLECTION_NODEREF_ID.keyword: node_id
-                            }
-                        ),
-                    ],
-                }
-            )
-        )
+        .query(query)
         .type_filter(ResourceType.MATERIAL)
         .non_series_objects_filter()
-        .source(includes=[source.path for source in missing_attributes_source_fields])
         .extra(size=ELASTIC_TOTAL_SIZE, from_=0)
     )
 
@@ -202,6 +218,7 @@ async def search_materials_with_missing_attributes(
     missing_attr_filter: Optional[MissingAttributeFilter] = None,
 ) -> list[LearningMaterial]:
     search = missing_attributes_search(node_id, missing_attr_filter.attr.value)
+    # print("missing materials: ", search.to_dict())
     response = search.execute()
     if response.success():
         return map_elastic_response_to_model(

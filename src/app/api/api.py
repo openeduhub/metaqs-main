@@ -22,7 +22,6 @@ from app.api.analytics.analytics import (
 )
 from app.api.analytics.stats import (
     collections_with_missing_properties,
-    material_validation,
     overall_stats,
 )
 from app.api.analytics.storage import global_storage, global_store
@@ -46,7 +45,7 @@ from app.api.collections.pending_collections import (
     missing_attribute_filter,
     pending_collections,
 )
-from app.api.collections.tree import collection_tree
+from app.api.collections.tree import tree_from_elastic
 from app.api.quality_matrix.collections import collection_quality
 from app.api.quality_matrix.models import Mode, QualityOutputResponse, Timeline
 from app.api.quality_matrix.replication_source import source_quality
@@ -327,7 +326,7 @@ async def get_collection_tree(
     **FIXME: See [Issue-86](https://github.com/openeduhub/metaqs-main/issues/86)**
     """
     validate_node_id(node_id)
-    return await collection_tree(node_id)
+    return tree_from_elastic(node_id).children
 
 
 @router.get(
@@ -549,9 +548,14 @@ async def read_material_validationn(
     Its frequency can be configured via the BACKGROUND_TASK_TIME_INTERVAL environment variable.
     """
     validate_node_id(node_id)
-    return material_validation(
-        collection_id=node_id, pending_materials=global_store.pending_materials
-    )
+    try:
+        print(type(node_id), node_id)
+        return global_store.pending_materials[node_id]
+    except KeyError:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Background calculation for collection {node_id} incomplete. Please try again in a while."
+        )
 
 
 if API_DEBUG:
