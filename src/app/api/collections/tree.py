@@ -20,6 +20,8 @@ def tree_search(node_id: uuid.UUID) -> Search:
     Note: The result will _not_ include the actual root node of the queried subtree.
     :param node_id: The root node of the subtree for which to build the search.
     """
+    # make search.to_dict() result JSON serializable
+    node_id = str(node_id)
     return (
         Search()
         .base_filters()
@@ -42,14 +44,15 @@ def tree_search(node_id: uuid.UUID) -> Search:
     )
 
 
-def tree_from_elastic(node_id: uuid.UUID) -> CollectionNode:
+def build_collection_tree(node_id: uuid.UUID) -> CollectionNode:
     """
     Build the collection tree from an elastic search query result.
 
     All direct and indirect child nodes of given node_id will be queried,
     and the received list will be transformed in the subtree defined by the input node_id.
+
     :param node_id: The toplevel collection that defines the subtree
-    :return: The generated tree.
+    :return: The generated tree starting with the root node defined by the node_id argument.
     """
     response: Response = tree_search(node_id).execute()
 

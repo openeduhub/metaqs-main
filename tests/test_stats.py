@@ -1,20 +1,19 @@
 import json
 import uuid
+from pathlib import Path
 from unittest import mock
 
 import pytest
 
 from app.api.analytics.analytics import CollectionValidationStats
 from app.api.analytics.stats import (
-    Row,
     build_material_search,
     collections_with_missing_properties,
     has_license_wrong_entries,
-    material_validation,
     overall_stats,
     query_material_types,
 )
-from app.api.analytics.storage import PendingMaterialsStore, SearchStore, StorageModel
+from app.api.analytics.storage import SearchStore, StorageModel
 from app.api.collections.counts import CollectionTreeCount
 
 
@@ -22,8 +21,8 @@ from app.api.collections.counts import CollectionTreeCount
 async def test_overall_stats():
     test_node = "11bdb8a0-a9f5-4028-becc-cbf8e328dd4b"  # Spanish
 
-    directory = "tests/unit_tests/resources"
-    with open(f"{directory}/test_global.json") as file:
+    directory = Path(__file__).parent/"unit_tests"/"resources"
+    with open(directory/"test_global.json") as file:
         global_response = json.load(file)
 
     # TODO: Refactor with wrapper/fixture/decorator
@@ -66,25 +65,10 @@ async def test_overall_stats():
         with mock.patch("app.api.analytics.stats.global_store") as mocked_store:
             mocked_store.search = _get_item(None, "search")
 
-            with mock.patch(
-                "app.api.analytics.stats.search_hits_by_material_type"
-            ) as mocked_search:
-                with mock.patch(
-                    "app.api.analytics.stats.get_ids_to_iterate"
-                ) as mocked_ids:
-                    mocked_search.return_value = {"total": 30}
-                    mocked_ids.return_value = [
-                        Row(
-                            id=uuid.UUID("f3dc9ea1-d608-4b4e-a78c-98063a3e8461"),
-                            title="test_title",
-                        )
-                    ]
-
-                    with mock.patch(
-                        "app.api.analytics.stats.oer_ratio"
-                    ) as mocked_oer_ratio:
-                        mocked_oer_ratio.return_value = 0
-                        stats = await overall_stats(uuid.UUID(test_node))
+            with mock.patch("app.api.analytics.stats.search_hits_by_material_type"):
+                with mock.patch("app.api.analytics.stats.oer_ratio") as mocked_oer_ratio:
+                    mocked_oer_ratio.return_value = 0
+                    stats = await overall_stats(uuid.UUID(test_node))
 
     assert len(stats.total_stats) == 1
     first_key_values = stats.total_stats[list(stats.total_stats.keys())[0]]
@@ -140,9 +124,9 @@ def test_build_material_search():
 
 
 def test_query_material_types():
-    directory = "tests/unit_tests/resources"
+    directory = Path(__file__).parent /"unit_tests"/"resources"
 
-    with open(f"{directory}/test_global.json") as file:
+    with open(directory / "test_global.json") as file:
         global_response = json.load(file)
 
     dummy_node = uuid.UUID("11bdb8a0-a9f5-4028-becc-cbf8e328dd4b")
@@ -179,9 +163,9 @@ def test_query_material_types():
 
 
 def test_collections_with_missing_properties():
-    directory = "tests/unit_tests/resources"
+    directory = Path(__file__).parent /"unit_tests"/ "resources"
 
-    with open(f"{directory}/test_global.json") as file:
+    with open(directory / "test_global.json") as file:
         global_response = json.load(file)
 
     dummy_node = uuid.UUID("11bdb8a0-a9f5-4028-becc-cbf8e328dd4b")
@@ -226,20 +210,3 @@ def test_has_license_wrong_entries():
     assert has_license_wrong_entries(
         "test_key", {"test_key": "UNTERRICHTS_UND_LEHRMEDIEN"}
     )
-
-
-def test_material_validation():
-    dummy_uuid = uuid.uuid4()
-    response = material_validation(dummy_uuid, [])
-    assert response is None
-
-    desired_store = PendingMaterialsStore(
-        collection_id=dummy_uuid, missing_materials=[]
-    )
-    undesired_store = PendingMaterialsStore(
-        collection_id=uuid.uuid4(), missing_materials=[]
-    )
-    pending_materials = [desired_store, undesired_store]
-
-    response = material_validation(dummy_uuid, pending_materials)
-    assert response is not None and response == desired_store

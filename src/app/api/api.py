@@ -45,7 +45,7 @@ from app.api.collections.pending_collections import (
     missing_attribute_filter,
     pending_collections,
 )
-from app.api.collections.tree import tree_from_elastic
+from app.api.collections.tree import build_collection_tree
 from app.api.quality_matrix.collections import collection_quality
 from app.api.quality_matrix.models import Mode, QualityOutputResponse, Timeline
 from app.api.quality_matrix.replication_source import source_quality
@@ -326,7 +326,7 @@ async def get_collection_tree(
     **FIXME: See [Issue-86](https://github.com/openeduhub/metaqs-main/issues/86)**
     """
     validate_node_id(node_id)
-    return tree_from_elastic(node_id).children
+    return build_collection_tree(node_id).children
 
 
 @router.get(
@@ -549,7 +549,6 @@ async def read_material_validationn(
     """
     validate_node_id(node_id)
     try:
-        print(type(node_id), node_id)
         return global_store.pending_materials[node_id]
     except KeyError:
         raise HTTPException(

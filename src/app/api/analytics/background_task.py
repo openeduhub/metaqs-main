@@ -22,7 +22,7 @@ from app.api.analytics.storage import (
 )
 from app.api.collections.counts import AggregationMappings, collection_counts
 from app.api.collections.missing_materials import base_missing_material_search
-from app.api.collections.tree import tree_from_elastic
+from app.api.collections.tree import build_collection_tree
 from app.core.config import BACKGROUND_TASK_TIME_INTERVAL
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.core.logging import logger
@@ -100,7 +100,7 @@ def background_task():
         nodes = {
             node.node_id: node
             # flatten without including the root!
-            for node in tree_from_elastic(node_id=collection).flatten(root=False)
+            for node in build_collection_tree(node_id=collection).flatten(root=False)
         }
 
         logger.info(
@@ -232,7 +232,7 @@ def build_pending_materials_response(
     :param title: The title of the collection (only used for logging)
     """
     logger.info(f"Working on {title} ({collection_id})")
-    children = tree_from_elastic(node_id=collection_id).flatten(root=False)
+    children = build_collection_tree(node_id=collection_id).flatten(root=False)
 
     return PendingMaterialsResponse(
         collection_id=collection_id,

@@ -78,7 +78,6 @@ def test_score_with_hits():
 
 def test_score_search_material():
     noderef_id = uuid.uuid4()
-    assert ResourceType.MATERIAL == "MATERIAL"
     resource_type = ResourceType.MATERIAL
     search = get_score_search(noderef_id, resource_type)
 
@@ -98,6 +97,7 @@ def test_score_search_material():
             "missing_license": {
                 "filter": {
                     "bool": {
+                        '_name': 'missing_license',
                         "minimum_should_match": 1,
                         "should": [
                             {

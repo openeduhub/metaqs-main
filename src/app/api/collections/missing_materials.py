@@ -119,51 +119,14 @@ def materials_filter_params(
 
 
 def missing_attributes_search(node_id: uuid.UUID, missing_attribute: str) -> Search:
-    """
-    Chemie:
-     = Material X
-     - Organisch
-       = Material Y
-     - Anorganisch
-
-                    1.           2.
-    Chemie:         3            1
-     - Organisch    0            1
-     - Anorganisch  0            0
-    Gesamt :        3            2
-                    35            24
-    1. Pending-Materials
-    2. Collection Details Table
-
-
-    node_id = 123
-    welche collection hat diese id?
-    bzw. welche collection beinhaltet in ihrem Pfad diese Id, ist also eine child node
-
-
-    My assumption: A material has some path attribute that is [category-root, chemie, anorganic-chemie, alkene]
-            path
-    Mat 1: [root, chemie]
-    ...
-    Mat 35: [root, chemie]
-
-    Mat 36: [root, chemie, anorganic]
-    ...
-    Mat 100: [root, chemie, anorganic]
-
-    query chemie: 35
-    query anorganic-chemie: potenziell mehr als 35 -> why?
-    """
     search = base_missing_material_search(node_id)
     search = search.source(includes=[source.path for source in missing_attributes_source_fields])
 
     if missing_attribute == ElasticResourceAttribute.LICENSES.path:
         search = search.filter(query_missing_material_license().to_dict())
-        # pprint.pprint(search.to_dict(), indent=2, width=140)
         return search
     # ~ corresponds to inversion here, i.e., Wildcard must not be true
     search = search.filter(~Wildcard(**{missing_attribute: {"value": "*"}}))
-    # pprint.pprint(search.to_dict(),indent=2, width=140)
     return search
 
 
