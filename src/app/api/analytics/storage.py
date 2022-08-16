@@ -4,7 +4,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from app.api.analytics.analytics import CountStatistics
+from app.api.analytics.analytics import CountStatistics, PendingMaterialsResponse
 
 _COLLECTIONS = "collections"
 _COLLECTION_COUNT = "counts"
@@ -27,48 +27,15 @@ class SearchStore:
     missing_materials: dict[uuid.UUID, CountStatistics]
 
 
-@dataclass(frozen=True)
-class PendingMaterials:
-    __slots__ = (
-        "collection_id",
-        "title",
-        "edu_context",
-        "url",
-        "description",
-        "license",
-        "learning_resource_type",
-        "taxon_id",
-        "publisher",
-        "intended_end_user_role",
-    )
-    collection_id: uuid.UUID
-    title: list[uuid.UUID]
-    edu_context: list[uuid.UUID]
-    url: list[uuid.UUID]
-    description: list[uuid.UUID]
-    license: list[uuid.UUID]
-    learning_resource_type: list[uuid.UUID]
-    taxon_id: list[uuid.UUID]
-    publisher: list[uuid.UUID]
-    intended_end_user_role: list[uuid.UUID]
-
-
-@dataclass(frozen=True)
-class PendingMaterialsStore:
-    __slots__ = "collection_id", "missing_materials"
-    collection_id: uuid.UUID
-    missing_materials: list[PendingMaterials]
-
-
 @dataclass
 class Store:
     __slots__ = "search", "oer_search", "pending_materials"
     search: list[SearchStore]
     oer_search: list[SearchStore]
-    pending_materials: list[PendingMaterialsStore]
+    pending_materials: dict[uuid.UUID, PendingMaterialsResponse]
 
 
-global_store = Store(search=[], oer_search=[], pending_materials=[])
+global_store = Store(search=[], oer_search=[], pending_materials={})
 
 
 # TODO: Rename, as used for materials in background_task, as well

@@ -1,0 +1,77 @@
+{
+  "took": 39,
+  "timed_out": false,
+  "_shards": {
+    "total": 1,
+    "successful": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": {
+      "value": 3,
+      "relation": "eq"
+    },
+    "max_score": 8.66968,
+    "hits": [
+      {
+        "_index": "workspace",
+        "_type": "_doc",
+        "_id": "3325992",
+        "_score": 8.66968,
+        "_ignored": [
+          "properties.ccm:replicationsourceid.number",
+          "properties.ccm:replicationsourcehash.number"
+        ],
+        "_source": {
+          "nodeRef": {
+            "id": "4ac9e3a1-04b7-44fc-ac6f-94c116eb4b6b"
+          }
+        },
+        "matched_queries": [
+          "missing_edu_context",
+          "missing_publisher"
+        ]
+      },
+      {
+        "_index": "workspace",
+        "_type": "_doc",
+        "_id": "1288895",
+        "_score": 8.66968,
+        "_ignored": [
+          "properties.ccm:replicationsourceid.number",
+          "properties.ccm:replicationsourcehash.number"
+        ],
+        "_source": {
+          "nodeRef": {
+            "id": "6cc8e664-1bd6-4b75-838c-b4091f96676e"
+          }
+        },
+        "matched_queries": [
+          "missing_intended_end_user_role",
+          "missing_description"
+        ]
+      },
+      {
+        "_index": "workspace",
+        "_type": "_doc",
+        "_id": "1077179",
+        "_score": 8.66968,
+        "_ignored": [
+          "properties.ccm:replicationsourceid.number",
+          "properties.ccm:replicationsourcehash.number"
+        ],
+        "_source": {
+          "nodeRef": {
+            "id": "dd0b4df4-dff2-4519-a018-401c062d2192"
+          }
+        },
+        "matched_queries": [
+          "missing_intended_end_user_role",
+          "missing_license",
+          "missing_learning_resource_type"
+        ]
+      }
+    ]
+  }
+}

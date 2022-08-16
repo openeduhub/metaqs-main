@@ -26,13 +26,19 @@ def test_missing_materials_search():
                             "must_not": [{"term": {"aspects": "ccm:io_childobject"}}]
                         }
                     },
+                    {
+                        "bool": {
+                            "must_not": [
+                                {"wildcard": {dummy_attribute: {"value": "*"}}}
+                            ]
+                        }
+                    },
                 ],
                 "should": [
-                    {"match": {"collections.path.keyword": dummy_uuid}},
-                    {"match": {"collections.nodeRef.id.keyword": dummy_uuid}},
+                    {"match": {"collections.path.keyword": str(dummy_uuid)}},
+                    {"match": {"collections.nodeRef.id.keyword": str(dummy_uuid)}},
                 ],
                 "minimum_should_match": 1,
-                "must_not": [{"wildcard": {dummy_attribute: {"value": "*"}}}],
             }
         },
         "from": 0,
@@ -101,13 +107,14 @@ def test_missing_materials_search_license():
                                     }
                                 },
                             ],
+                            '_name': 'missing_license',
                             "minimum_should_match": 1,
                         }
                     },
                 ],
                 "should": [
-                    {"match": {"collections.path.keyword": dummy_uuid}},
-                    {"match": {"collections.nodeRef.id.keyword": dummy_uuid}},
+                    {"match": {"collections.path.keyword": str(dummy_uuid)}},
+                    {"match": {"collections.nodeRef.id.keyword": str(dummy_uuid)}},
                 ],
                 "minimum_should_match": 1,
             }

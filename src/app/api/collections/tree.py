@@ -1,99 +1,117 @@
 import uuid
+from typing import Optional
 
-from aiohttp import ClientSession
 from elasticsearch_dsl.response import Response
-from glom import Coalesce, Iter
+from fastapi import HTTPException
 
 from app.api.collections.models import CollectionNode
-from app.api.collections.utils import map_elastic_response_to_model
-from app.api.collections.vocabs import tree_from_vocabs
 from app.core.config import ELASTIC_TOTAL_SIZE
+from app.core.constants import COLLECTION_NAME_TO_ID
+from app.core.logging import logger
 from app.core.models import ElasticResourceAttribute
 from app.elastic.dsl import qbool, qterm
+from app.elastic.elastic import ResourceType
 from app.elastic.search import Search
 
 
-def build_portal_tree(collections: list, root_id: uuid.UUID) -> list[CollectionNode]:
-    tree_hierarchy = {str(root_id): []}
-
-    for collection in collections:
-        if collection.title:
-            tree_hierarchy.update(build_hierarchy(collection, tree_hierarchy))
-
-    return tree_hierarchy[str(root_id)]
-
-
-def build_hierarchy(
-    collection, tree_hierarchy: dict[str, list[CollectionNode]]
-) -> dict[str, list[CollectionNode]]:
-    portal_node = CollectionNode(
-        node_id=collection.node_id,
-        title=collection.title,
-        children=[],
-    )
-
-    if str(collection.parent_id) not in tree_hierarchy.keys():
-        tree_hierarchy.update({str(collection.parent_id): []})
-
-    tree_hierarchy[str(collection.parent_id)].append(portal_node)
-    tree_hierarchy[str(collection.node_id)] = portal_node.children
-    return tree_hierarchy
-
-
 def tree_search(node_id: uuid.UUID) -> Search:
-    s = (
+    """
+    Build an elastic search query that will return all nodes of the collection subtree defined by given collection id.
+    Note: The result will _not_ include the actual root node of the queried subtree.
+    :param node_id: The root node of the subtree for which to build the search.
+    """
+    # make search.to_dict() result JSON serializable
+    node_id = str(node_id)
+    return (
         Search()
         .base_filters()
+        .type_filter(ResourceType.COLLECTION)
         .query(
             qbool(
                 filter=qterm(qfield=ElasticResourceAttribute.PATH.path, value=node_id)
             )
         )
+        .source(
+            [
+                ElasticResourceAttribute.NODE_ID.path,
+                ElasticResourceAttribute.COLLECTION_TITLE.path,
+                ElasticResourceAttribute.COLLECTION_PATH.path,
+                ElasticResourceAttribute.PARENT_ID.path,
+            ]
+        )
+        .sort(ElasticResourceAttribute.FULLPATH.path)
+        .extra(size=ELASTIC_TOTAL_SIZE, from_=0)
     )
-    s = s.source(
-        [
-            ElasticResourceAttribute.NODE_ID.path,
-            ElasticResourceAttribute.COLLECTION_TITLE.path,
-            ElasticResourceAttribute.COLLECTION_PATH.path,
-            ElasticResourceAttribute.PARENT_ID.path,
-        ]
-    ).sort(ElasticResourceAttribute.FULLPATH.path)[:ELASTIC_TOTAL_SIZE]
-    return s
 
 
-collection_spec = {
-    "title": Coalesce(ElasticResourceAttribute.COLLECTION_TITLE.path, default=None),
-    "keywords": (
-        Coalesce(ElasticResourceAttribute.KEYWORDS.path, default=[]),
-        Iter().all(),
-    ),
-    "description": Coalesce(
-        ElasticResourceAttribute.COLLECTION_DESCRIPTION.path, default=None
-    ),
-    "path": (
-        Coalesce(ElasticResourceAttribute.PATH.path, default=[]),
-        Iter().all(),
-    ),
-    "parent_id": Coalesce(ElasticResourceAttribute.PARENT_ID.path, default=None),
-    "node_id": Coalesce(ElasticResourceAttribute.NODE_ID.path, default=None),
-    "children": Coalesce("", default=[]),
-}
+def build_collection_tree(node_id: uuid.UUID) -> CollectionNode:
+    """
+    Build the collection tree from an elastic search query result.
 
+    All direct and indirect child nodes of given node_id will be queried,
+    and the received list will be transformed in the subtree defined by the input node_id.
 
-def tree_from_elastic(node_id: uuid.UUID) -> list[CollectionNode]:
+    :param node_id: The toplevel collection that defines the subtree
+    :return: The generated tree starting with the root node defined by the node_id argument.
+    """
     response: Response = tree_search(node_id).execute()
 
-    if response.success():
-        collection = map_elastic_response_to_model(
-            response, collection_spec, CollectionNode
+    if not response.success():
+        raise HTTPException(
+            status_code=502,
+            detail="Could not query elastic search to fetch collection tree.",
         )
-        return build_portal_tree(collection, node_id)
 
+    id_to_name = {id: name for name, id in COLLECTION_NAME_TO_ID.items()}
 
-async def collection_tree(
-    node_id: uuid.UUID, use_vocabs: bool = False
-) -> list[CollectionNode]:
-    if use_vocabs:
-        async with ClientSession() as session:
-            return await tree_from_vocabs(session, node_id)
-    return tree_from_elastic(node_id)
+    # note the "root" here is actually a toplevel collection (e.g. Chemie, Deutsch,...)
+    # i.e. it is the root of the returned subtree.
+    root = CollectionNode(
+        node_id=node_id,
+        title=id_to_name[str(node_id)],
+        children=[],  # will be filled in below
+        parent_id=None,
+    )
+
+    def try_node(hit) -> Optional[CollectionNode]:
+        """
+        Some hits from elasticsearch may be incomplete (e.g. missing title).
+        For those hits this function can return None to skip them, or fill in the UUID as title if desired.
+        """
+        try:
+            return CollectionNode(
+                node_id=uuid.UUID(hit["nodeRef"]["id"]),
+                title=hit["properties"]["cm:title"],
+                children=[],
+                parent_id=uuid.UUID(hit["parentRef"]["id"]),
+            )
+        except KeyError as e:
+            node_id = hit["nodeRef"]["id"]
+            logger.warning(
+                f"Collection node {node_id} will be skipped. Missing attribute: {e} "
+            )
+            return None
+
+    # gather all (valid) nodes in a dictionary by their id.
+    nodes = {
+        node.node_id: node
+        for hit in response.hits
+        if (node := try_node(hit)) is not None
+    }
+
+    # build up tree
+    def recurse(node: CollectionNode):
+        node.children = [
+            child for child in nodes.values() if child.parent_id == node.node_id
+        ]
+        for child in node.children:
+            nodes.pop(child.node_id)
+            recurse(child)
+
+    recurse(root)  # actually initiate the recursion :)
+
+    if len(nodes) != 0:
+        logger.warning(f"Not all nodes could be arranged in the tree. Left over: {nodes}")
+
+    return root
+

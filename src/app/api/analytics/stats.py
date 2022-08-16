@@ -1,6 +1,5 @@
 import datetime
 import uuid
-from dataclasses import dataclass
 from typing import Union
 
 from elasticsearch_dsl.aggs import Agg
@@ -19,17 +18,15 @@ from app.api.analytics.storage import (
     _COLLECTION_COUNT,
     _COLLECTION_COUNT_OER,
     _COLLECTIONS,
-    PendingMaterialsStore,
     StorageModel,
     global_storage,
     global_store,
 )
 from app.api.collections.counts import oer_ratio
-from app.api.collections.models import CollectionNode
-from app.api.collections.tree import collection_tree
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.models import (
     ElasticResourceAttribute,
+    forbidden_licenses,
     oer_license,
     required_collection_properties,
 )
@@ -114,42 +111,6 @@ def build_material_search(query_string: str, oer_only: bool = False):
         # search = search.filter(Terms({f"{ElasticResourceAttribute.LICENSES.path}.keyword": oer_license})
     search.aggs.bucket("material_types", agg_material_types())
     return search
-
-
-@dataclass
-class Row:
-    id: uuid.UUID
-    title: str
-
-
-async def get_ids_to_iterate(node_id: uuid.UUID) -> list[Row]:
-    """
-    Contains the collection id's to iterate over.
-
-    Hardcoded for now including multiple inefficient data transformations, e.g., from list to tree back to list
-    :return:
-    """
-
-    def flatten_list(list_of_lists):
-        flat_list = []
-        for item in list_of_lists:
-            if type(item) == list:
-                flat_list += flatten_list(item)
-            else:
-                flat_list.append(item)
-
-        return flat_list
-
-    def nodes(data: list[CollectionNode]) -> list:
-        return [
-            nodes(collection.children)
-            if collection.children
-            else (collection.node_id, collection.title)
-            for collection in data
-        ]
-
-    tree = await collection_tree(node_id)
-    return [Row(id=row[0], title=row[1]) for row in flatten_list(nodes(tree))]
 
 
 def query_material_types(
@@ -283,17 +244,6 @@ def collections_with_missing_properties(
 
 
 def has_license_wrong_entries(entry: str, properties: dict) -> bool:
-    if properties[entry.split(".")[-1]] in ["UNTERRICHTS_UND_LEHRMEDIEN", "NONE", ""]:
+    if properties[entry.split(".")[-1]] in forbidden_licenses:
         return True
     return False
-
-
-def material_validation(
-    collection_id: uuid.UUID, pending_materials: list[PendingMaterialsStore]
-) -> PendingMaterialsStore:
-    return next(
-        filter(
-            lambda material: material.collection_id == collection_id, pending_materials
-        ),
-        None,
-    )
