@@ -3,7 +3,7 @@ import uuid
 from elasticsearch_dsl import AttrDict, Q
 from elasticsearch_dsl.response import Response
 
-from app.api.quality_matrix.models import QualityOutput
+from app.api.quality_matrix.models import QualityMatrix, QualityMatrixRow
 from app.api.quality_matrix.utils import default_properties
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import COLLECTION_ROOT_ID
@@ -12,6 +12,7 @@ from app.core.models import (
     ElasticResourceAttribute,
     metadata_hierarchy,
     required_collection_properties,
+    SortNode,
 )
 from app.elastic.dsl import qbool, qmatch
 from app.elastic.elastic import ResourceType
@@ -37,22 +38,15 @@ def create_sources_search(aggregation_name: str, node_id: uuid.UUID) -> Search:
     return search
 
 
-def extract_sources_from_response(
-    response: Response, aggregation_name: str
-) -> dict[str, int]:
-    return {
-        entry["key"]: entry["doc_count"]
-        for entry in response.aggregations.to_dict()[aggregation_name]["buckets"]
-    }
+def extract_sources_from_response(response: Response, aggregation_name: str) -> dict[str, int]:
+    return {entry["key"]: entry["doc_count"] for entry in response.aggregations.to_dict()[aggregation_name]["buckets"]}
 
 
 def all_sources(node_id: uuid.UUID) -> dict[str, int]:
     aggregation_name = "unique_sources"
     s = create_sources_search(aggregation_name, node_id)
     response: Response = s.execute()
-    return extract_sources_from_response(
-        response=response, aggregation_name=aggregation_name
-    )
+    return extract_sources_from_response(response=response, aggregation_name=aggregation_name)
 
 
 def extract_properties(hits: list[AttrDict]) -> PROPERTY_TYPE:
@@ -112,9 +106,7 @@ def missing_fields_ratio(value: dict, total_count: int) -> float:
     return round((1 - value["doc_count"] / total_count) * 100, 2)
 
 
-def missing_fields(
-    value: dict, total_count: int, search_keyword: str
-) -> dict[str, float]:
+def missing_fields(value: dict, total_count: int, search_keyword: str) -> dict[str, float]:
     return {search_keyword: missing_fields_ratio(value, total_count)}
 
 
@@ -122,28 +114,26 @@ async def items_in_response(response: Response) -> dict:
     return response.aggregations.to_dict().items()
 
 
-async def source_quality(
+async def source_quality_matrix(
     node_id: uuid.UUID = COLLECTION_ROOT_ID,
     match_keyword: str = ElasticResourceAttribute.REPLICATION_SOURCE.path,
-) -> tuple[list[QualityOutput], dict[str, int]]:
+) -> QualityMatrix:
     properties = get_properties()
     columns = all_sources(node_id)
     mapping = {key: key for key in columns.keys()}  # identity mapping
-    quality = await _quality_matrix(
-        columns, mapping, match_keyword, node_id, properties
-    )
-    return quality, columns
+    quality = await _source_quality_matrix(columns, mapping, match_keyword, node_id, properties)
+    return QualityMatrix(data=quality, total=columns)
 
 
-def sort_output_to_hierarchy(data: list[QualityOutput]) -> list[QualityOutput]:
+def sort_rows_according_hierarchy(rows: list[QualityMatrixRow], hierarchy: list[SortNode]) -> list[QualityMatrixRow]:
     output = []
-    for order in metadata_hierarchy:
-        output.append(QualityOutput(row_header=order.title, level=1, columns={}))
+    for order in hierarchy:
+        output.append(QualityMatrixRow(row_header=order.title, level=1, columns={}))
         for node in order.children:
             row = list(
                 filter(
                     lambda entry: entry.row_header == node.path.path.split(".")[-1],
-                    data,
+                    rows,
                 )
             )
             if len(row) == 1:
@@ -151,23 +141,14 @@ def sort_output_to_hierarchy(data: list[QualityOutput]) -> list[QualityOutput]:
     return output
 
 
-async def _quality_matrix(
-    columns, id_to_name_mapping, match_keyword, node_id, properties
-) -> list[QualityOutput]:
+async def _source_quality_matrix(columns, id_to_name_mapping, match_keyword, node_id, properties) -> list[QualityMatrixRow]:
     output = {k: {} for k in properties}
     for column_id, total_count in columns.items():
         if column_id in id_to_name_mapping.keys():
-            response = queried_missing_properties(
-                properties, column_id, node_id=node_id, match_keyword=match_keyword
-            )
+            response = queried_missing_properties(properties, column_id, node_id=node_id, match_keyword=match_keyword)
             for key, value in await items_in_response(response):
-                output[key] |= missing_fields(
-                    value, total_count, id_to_name_mapping[column_id]
-                )
+                output[key] |= missing_fields(value, total_count, id_to_name_mapping[column_id])
     logger.debug(f"Quality matrix output:\n{output}")
-    output = [
-        QualityOutput(row_header=key, columns=data, level=2)
-        for key, data in output.items()
-    ]
+    output = [QualityMatrixRow(row_header=key, columns=data, level=2) for key, data in output.items()]
 
-    return sort_output_to_hierarchy(output)
+    return sort_rows_according_hierarchy(output, hierarchy=metadata_hierarchy)

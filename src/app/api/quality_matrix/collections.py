@@ -3,9 +3,9 @@ import uuid
 from elasticsearch_dsl import Q
 from elasticsearch_dsl.response import Response
 
-from app.api.quality_matrix.models import QualityOutput
+from app.api.quality_matrix.models import QualityMatrix, QualityMatrixRow
 from app.api.quality_matrix.replication_source import (
-    _quality_matrix,
+    _source_quality_matrix,
     extract_sources_from_response,
     get_properties,
 )
@@ -64,20 +64,16 @@ async def id_to_title_mapping(node_id: uuid.UUID) -> dict[str, str]:
     return mapping
 
 
-async def collection_quality(
-    node_id: uuid.UUID, match_keyword: str = "path"
-) -> tuple[list[QualityOutput], dict[str, int]]:
+async def collection_quality_matrix(node_id: uuid.UUID, match_keyword: str = "path") -> QualityMatrix:
     mapping = await id_to_title_mapping(node_id)
     columns = queried_collections(node_id)
     properties = get_properties()
-    quality_data = await _quality_matrix(
-        columns, mapping, match_keyword, node_id, properties
-    )
+    quality_data = await _source_quality_matrix(columns, mapping, match_keyword, node_id, properties)
     quality_data = transpose(quality_data, [name for name in mapping.values()])
-    return quality_data, {prop: 0 for prop in properties}
+    return QualityMatrix(data=quality_data, total={prop: 0 for prop in properties})
 
 
-def transpose(entries: list[QualityOutput], columns: list[str]) -> list[QualityOutput]:
+def transpose(entries: list[QualityMatrixRow], columns: list[str]) -> list[QualityMatrixRow]:
     rows = [entry.row_header for entry in entries]
     output = []
     for column in columns:
@@ -87,8 +83,6 @@ def transpose(entries: list[QualityOutput], columns: list[str]) -> list[QualityO
             if len(entry) == 1 and column in entry[0].columns:
                 new_columns.update({row_header: entry[0].columns[column]})
 
-        new_row = QualityOutput(
-            row_header=column, columns=new_columns, level=2
-        )  # Must be level 2 for frontend
+        new_row = QualityMatrixRow(row_header=column, columns=new_columns, level=2)  # Must be level 2 for frontend
         output.append(new_row)
     return output

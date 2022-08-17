@@ -6,7 +6,7 @@ import pytest
 from elasticsearch_dsl.response import Hit, Response
 
 from app.api.quality_matrix.collections import transpose
-from app.api.quality_matrix.models import QualityOutput
+from app.api.quality_matrix.models import QualityMatrixRow
 from app.api.quality_matrix.replication_source import (
     all_sources,
     create_empty_entries_search,
@@ -16,7 +16,7 @@ from app.api.quality_matrix.replication_source import (
     missing_fields,
     missing_fields_ratio,
     queried_missing_properties,
-    source_quality,
+    source_quality_matrix,
 )
 from app.core.config import ELASTICSEARCH_URL
 from app.elastic.search import Search
@@ -40,7 +40,7 @@ async def test_get_properties():
 
 
 @pytest.mark.asyncio
-async def test_get_quality_matrix_no_sources_no_properties():
+async def test_source_quality_matrix_no_sources_no_properties():
     with mock.patch(
         "app.api.quality_matrix.replication_source.all_sources"
     ) as mocked_get_sourced:
@@ -49,13 +49,13 @@ async def test_get_quality_matrix_no_sources_no_properties():
         ) as mocked_get_properties:
             mocked_get_properties.return_value = []
             mocked_get_sourced.return_value = {}
-            quality, _ = await source_quality()
-            assert len(quality) == 11
-            assert quality[0].columns == {}
+            quality = await source_quality_matrix()
+            assert len(quality.data) == 11
+            assert quality.data[0].columns == {}
 
 
 @pytest.mark.asyncio
-async def test_get_quality_matrix_no_sources():
+async def test_source_quality_matrix_no_sources():
     with mock.patch(
         "app.api.quality_matrix.replication_source.all_sources"
     ) as mocked_get_sourced:
@@ -64,13 +64,13 @@ async def test_get_quality_matrix_no_sources():
         ) as mocked_get_properties:
             mocked_get_properties.return_value = ["dummy_properties"]
             mocked_get_sourced.return_value = {}
-            quality, _ = await source_quality()
-            assert len(quality) == 11
-            assert quality[0].columns == {}
+            quality = await source_quality_matrix()
+            assert len(quality.data) == 11
+            assert quality.data[0].columns == {}
 
 
 @pytest.mark.asyncio
-async def test_get_quality_matrix():
+async def test_source_quality_matrix():
     with mock.patch(
         "app.api.quality_matrix.replication_source.all_sources"
     ) as mocked_get_sourced:
@@ -87,17 +87,17 @@ async def test_get_quality_matrix():
                 mocked_response.aggregations.to_dict.return_value = {}
                 mocked_all_missing_properties.return_value = mocked_response
 
-                quality, _ = await source_quality()
-                assert len(quality) == 12
+                quality = await source_quality_matrix()
+                assert len(quality.data) == 12
 
-                assert quality[0].columns == {}
+                assert quality.data[0].columns == {}
 
                 mocked_response.aggregations.to_dict.return_value = {
                     dummy_property: {"doc_count": 5}
                 }
                 mocked_all_missing_properties.return_value = mocked_response
-                quality, _ = await source_quality()
-                assert quality[1].columns == {"dummy_source": 50.0}
+                quality = await source_quality_matrix()
+                assert quality.data[1].columns == {"dummy_source": 50.0}
 
 
 def test_get_empty_entries_dummy_entries():
@@ -253,7 +253,7 @@ def compare_lists_of_dict(expected, actually) -> bool:
 
 def test_transpose():
     data = [
-        QualityOutput(
+        QualityMatrixRow(
             row_header="virtual",
             columns={
                 "00abdb05-6c96-4604-831c-b9846eae7d2d": 13.0,
@@ -270,21 +270,21 @@ def test_transpose():
     ]
 
     assert transpose(data, columns) == [
-        QualityOutput(
+        QualityMatrixRow(
             row_header="00abdb05-6c96-4604-831c-b9846eae7d2d",
             columns={
                 "virtual": 13.0,
             },
             level=2,
         ),
-        QualityOutput(
+        QualityMatrixRow(
             row_header="3305f552-c931-4bcc-842b-939c99752bd5",
             columns={
                 "virtual": 20.0,
             },
             level=2,
         ),
-        QualityOutput(
+        QualityMatrixRow(
             row_header="35054614-72c8-49b2-9924-7b04c7f3bf71",
             columns={
                 "virtual": -10.0,
@@ -294,7 +294,7 @@ def test_transpose():
     ]
 
     data = [
-        QualityOutput(
+        QualityMatrixRow(
             row_header="virtual",
             columns={
                 "00abdb05-6c96-4604-831c-b9846eae7d2d": 13.0,
@@ -303,7 +303,7 @@ def test_transpose():
             },
             level=2,
         ),
-        QualityOutput(
+        QualityMatrixRow(
             row_header="actually",
             columns={
                 "00abdb05-6c96-4604-831c-b9846eae7d2d": 20,
@@ -315,17 +315,17 @@ def test_transpose():
     ]
 
     assert transpose(data, columns) == [
-        QualityOutput(
+        QualityMatrixRow(
             row_header="00abdb05-6c96-4604-831c-b9846eae7d2d",
             columns={"virtual": 13.0, "actually": 20},
             level=2,
         ),
-        QualityOutput(
+        QualityMatrixRow(
             row_header="3305f552-c931-4bcc-842b-939c99752bd5",
             columns={"virtual": 20.0, "actually": 21},
             level=2,
         ),
-        QualityOutput(
+        QualityMatrixRow(
             row_header="35054614-72c8-49b2-9924-7b04c7f3bf71",
             columns={"virtual": -10.0, "actually": -1},
             level=2,

@@ -5,7 +5,7 @@ import sqlalchemy
 from databases import Database
 from fastapi import FastAPI
 
-from app.api.quality_matrix.models import Mode, QualityOutput, Timeline
+from app.api.quality_matrix.models import Mode, Timeline, QualityMatrixRow
 from app.core.logging import logger
 from app.db.core import database_url
 
@@ -28,7 +28,7 @@ async def close_db_connection(app: FastAPI) -> None:
 
 
 async def store_in_timeline(
-    data: list[QualityOutput],
+    data: list[QualityMatrixRow],
     database: Database,
     mode: Mode,
     node_id: uuid.UUID,

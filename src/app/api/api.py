@@ -46,9 +46,9 @@ from app.api.collections.pending_collections import (
     pending_collections,
 )
 from app.api.collections.tree import build_collection_tree
-from app.api.quality_matrix.collections import collection_quality
+from app.api.quality_matrix.collections import collection_quality_matrix
 from app.api.quality_matrix.models import Mode, QualityMatrix, Timeline
-from app.api.quality_matrix.replication_source import source_quality
+from app.api.quality_matrix.replication_source import source_quality_matrix
 from app.api.quality_matrix.timeline import quality_backup, timestamps
 from app.api.score.models import ScoreOutput
 from app.api.score.score import get_score
@@ -132,11 +132,12 @@ async def get_quality(
             replication source ("replication_source"). Defaults to "replication_source".
     """
     validate_node_id(uuid.UUID(node_id))
-    if mode == Mode.REPLICATION_SOURCE:
-        quality_data, total = await source_quality(uuid.UUID(node_id))
-    else:  # Mode.COLLECTIONS:
-        quality_data, total = await collection_quality(uuid.UUID(node_id))
-    return {"data": quality_data, "total": total}
+    if mode is Mode.REPLICATION_SOURCE:
+        return await source_quality_matrix(uuid.UUID(node_id))
+    elif mode is Mode.COLLECTIONS:
+        return await collection_quality_matrix(uuid.UUID(node_id))
+    else:
+        raise HTTPException(status_code=400, detail=f"Invalid mode: {mode}")
 
 
 @router.get(
