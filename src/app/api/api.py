@@ -47,7 +47,7 @@ from app.api.collections.pending_collections import (
 )
 from app.api.collections.tree import build_collection_tree
 from app.api.quality_matrix.collections import collection_quality
-from app.api.quality_matrix.models import Mode, QualityOutputResponse, Timeline
+from app.api.quality_matrix.models import Mode, QualityMatrix, Timeline
 from app.api.quality_matrix.replication_source import source_quality
 from app.api.quality_matrix.timeline import quality_backup, timestamps
 from app.api.score.models import ScoreOutput
@@ -91,7 +91,7 @@ def node_ids_for_major_collections(
 @router.get(
     "/quality",
     status_code=HTTP_200_OK,
-    response_model=QualityOutputResponse,
+    response_model=QualityMatrix,
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[_TAG_STATISTICS],
     summary="Calculate the replication source or collection quality matrix"
@@ -155,7 +155,7 @@ async def get_quality_backup(
 @router.get(
     "/quality/{timestamp}",
     status_code=HTTP_200_OK,
-    response_model=QualityOutputResponse,
+    response_model=QualityMatrix,
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[_TAG_STATISTICS],
     summary="Get a historic quality matrix for a given timestamp"
@@ -199,7 +199,7 @@ async def get_past_quality_matrix(
 
     quality = json.loads(result[0].quality)
     total = json.loads(result[0].total)
-    return QualityOutputResponse(data=quality, total=total)
+    return QualityMatrix(data=quality, total=total)
 
 
 @router.get(

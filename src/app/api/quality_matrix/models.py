@@ -17,7 +17,7 @@ class QualityOutput:
     columns: dict[str, float]
 
 
-class QualityOutputModel(BaseModel):
+class QualityMatrixRow(BaseModel):
     row_header: str = Field(
         default="",
         description="Name of the evaluated attribute, e.g., metadatum or collection id.",
@@ -31,8 +31,8 @@ class QualityOutputModel(BaseModel):
     )
 
 
-class QualityOutputResponse(BaseModel):
-    data: list[QualityOutputModel] = Field(
+class QualityMatrix(BaseModel):
+    data: list[QualityMatrixRow] = Field(
         default=[], description="Quality data per column"
     )
     total: dict[str, int] = Field(
