@@ -5,48 +5,23 @@ from fastapi import HTTPException
 from glom import Coalesce, Iter, glom
 from pydantic import BaseModel
 
-from app.api.collections.tree import CollectionNode
+from app.api.api import CollectionAttribute
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.logging import logger
 from app.elastic.attributes import ElasticResourceAttribute
 from app.elastic.search import CollectionSearch
 
 
-class MissingMaterials(BaseModel):
-    # fixme: remove this class and replace with CollectionNode.
-    #        See also comment on search_collections_with_missing_attributes.
-    node_id: uuid.UUID
+class Collection(BaseModel):
+    collection_id: uuid.UUID
     title: str
-    children: list[CollectionNode]
-    parent_id: Optional[uuid.UUID]
     keywords: list[str]
     description: Optional[str]
-    path: list[str]
-    type: str
-    name: str
 
 
-async def get_pending_collections(
-    collection_id: uuid.UUID, missing: ElasticResourceAttribute
-) -> list[MissingMaterials]:
+def get_pending_collections(collection_id: uuid.UUID, missing: CollectionAttribute) -> list[Collection]:
     """
-    Note: the returned list will be a flat list of nodes which are not organized in a tree structure and have no
-    relations between each other.
-    # fixme: this is still terribly messy, we actually want a list of collections returned here...
-    #        Eventually, we should separate into something like this:
-
-    class Collection:
-        title: str
-        description: Optional[str]
-        id: UUID
-        keywords: list[str]
-
-    class CollectionTreeNode:
-        collection: Collection
-        children: list[CollectionTreeNode]
-        # optionally parent: Optional[CollectionTreeNode]
-
-    this way, we do not mix the hierarchical data structure with the actual collection entity.
+    See API doc.
     """
 
     source: list = [

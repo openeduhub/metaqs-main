@@ -1,6 +1,6 @@
 import json
 import uuid
-from typing import Mapping
+from typing import Mapping, Literal
 
 from databases import Database
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
@@ -36,6 +36,7 @@ from app.api.collections.tree import CollectionNode
 from app.api.collections.pending_collections import (
     get_pending_collections,
     MissingMaterials,
+    Collection,
 )
 from app.api.collections.tree import get_tree
 from app.api.quality_matrix.collections import collection_quality_matrix
@@ -72,6 +73,29 @@ def node_ids_for_major_collections(
     ),
 ) -> uuid.UUID:
     return node_id
+
+
+# fmt: off
+MaterialAttribute = Literal[
+    "title",
+    "learning_resource_type",
+    "subjects",
+    "url",
+    "license",
+    "description",
+    "curriculum",
+    "publisher",
+    "edu_end_user_role",
+    "edu_context",
+    "keywords"
+]
+
+CollectionAttribute = Literal[
+    "title",
+    "description",
+    "keywords"
+]
+# fmt: on
 
 
 @router.get(
@@ -341,9 +365,8 @@ async def collection_counts(
 
 
 @router.get(
-    "/collections/{node_id}/pending-collections/{missing_attribute}",
-    response_model=list[MissingMaterials],
-    response_model_exclude_unset=True,
+    "/collections/{node_id}/pending-collections",
+    response_model=list[Collection],
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=["Collections"],
@@ -351,50 +374,18 @@ async def collection_counts(
 async def collection_pending_collections(
     *,
     node_id: uuid.UUID = Depends(node_ids_for_major_collections),
-    missing_attribute: str = Path(
-        ...,
-        examples={
-            form.name: {"value": form.value}
-            for form in [
-                ElasticResourceAttribute.KEYWORDS,
-                ElasticResourceAttribute.COLLECTION_DESCRIPTION,
-            ]
-        },
-    ),
+    attribute: CollectionAttribute = Query(...),
 ):
     """
-    Provides a list of missing entries for different types of materials by sub-collection.
-
-    Searches for entries with one of the following properties being empty or missing:
-
-      - title (cm:title)
-      - name (cm:name)
-      - keywords (cclom:general_keyword)
-      - description (cclom:general_description)
-      - license (ccm:commonlicense_key)
-
-    <b>
-    TODO:
-      - how can a collection have a license? why is it part of the missing_attribute_filter?
-      - why do we use cclom:general_description? Isn't this an attribute of a material?
-      - why do we use cm:name? According to T.S. cm:name does not have any user relevance.
-      - why do we use cclom:general_keyword? I think this is an attribute of a material.
-      - while cclom:general_keyword seems not to be a collection attribute, cclom:general_description is one?
-    </b>
+    Provides a list of collections (transitively within given parent collection) where the respective meta data
+    attribute is not set.
     """
     validate_node_id(node_id)
-
-    if missing_attribute == ElasticResourceAttribute.KEYWORDS.path:
-        missing_attribute = ElasticResourceAttribute.KEYWORDS
-    elif missing_attribute == ElasticResourceAttribute.COLLECTION_DESCRIPTION.path:
-        missing_attribute = ElasticResourceAttribute.COLLECTION_DESCRIPTION
-    else:
-        raise HTTPException(status_code=400, detail=f"Invalid collection attribute: {missing_attribute}")
-    return await get_pending_collections(node_id, missing=missing_attribute)
+    return get_pending_collections(node_id, missing=attribute)
 
 
 @router.get(
-    "/collections/{node_id}/pending-materials/{missing_attr}",
+    "/collections/{node_id}/pending-materials",
     response_model=list[LearningMaterial],
     response_model_exclude_unset=True,
     status_code=HTTP_200_OK,
@@ -404,48 +395,14 @@ async def collection_pending_collections(
 async def collection_pending_materials(
     *,
     node_id: uuid.UUID = Depends(node_ids_for_major_collections),
-    missing_attr_filter: MissingAttributeFilter = Depends(materials_filter_params),
+    attribute: MaterialAttribute = Query(...),
 ):
     """
-    A list of missing entries for different types of materials belonging to the collection and its sub-collections
-    specified by 'node_id'.
-
-    Searches for materials with one of the following properties being empty or missing:
-    - title (properties.cclom:title)
-    - learning resource type or category (properties.ccm:oeh_lrt)
-    - subjects (properties.ccm:taxonid)
-    - URL (properties.ccm:wwwurl)
-    - license (properties.ccm:commonlicense_key)
-    - publisher (properties.ccm:oeh_publisher_combined)
-    - description (properties.cclom:general_description)
-    - educational end user role (i18n.de_DE.ccm:educationalintendedenduserrole)
-    - educational context (properties.ccm:educationalcontext)
-    - cover (preview)
-    - node id (nodeRef.id)
-    - name (properties.cm:name)
-    - type (type)
-    - keywords (properties.cclom:general_keyword)
-
-    <b>
-    TODO:
-      - align implementation of pending-materials and pending-collection endpoints
-        - path parameter name
-        - path parameter handling (pending-materials works via an enum hence allows only the possible choices.
-          however, it leaks the elasticsearch internals)
-      - Use properties.ccm:educationalintendedenduserrole instead of i18n.de_DE.ccm:educationalintendedenduserrole?
-      - remove nodeRef.id search functionality? Can this even be missing/empty? How would that be relevant for the user?
-      - remove name (cm:name) search functionality? According to T.S. this is purely technical and is unrelated to
-        content or metadata quality.
-      - remove type search functionality! We search for materials, i.e. all found documents will have type=ccm:io...
-      -
-    </b>
+    Provides a list of learning materials (transitively within given arent collection) where the respective meta data
+    attribute is not set.
     """
     validate_node_id(node_id)
-    return await get_pending_materials(
-        collection_id=node_id,
-        # fixme: resolve the whole attribute identification mess
-        missing=getattr(ElasticResourceAttribute, str(missing_attr_filter.attr.name)),
-    )
+    return await get_pending_materials(collection_id=node_id, missing=attribute)
 
 
 @router.get(

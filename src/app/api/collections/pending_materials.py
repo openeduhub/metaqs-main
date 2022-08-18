@@ -2,25 +2,19 @@ import uuid
 from typing import Optional
 
 from fastapi import HTTPException
-from fastapi.params import Path, Query
 from glom import Coalesce, Iter, glom
 from pydantic import BaseModel
 
+from app.api.api import MaterialAttribute
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.logging import logger
 from app.elastic.attributes import ElasticResourceAttribute
-from app.elastic.dsl import ElasticField
 from app.elastic.search import MaterialSearch
 
 
 class LearningMaterial(BaseModel):
-    # fixme: remove type attribute because pointless. Will always be ccm:io.
-    # fixme: remove name attribute because pointless. It is only a technical name
-    #        (e.g. filename inside ES) and has no relevance for end users or metadata quality.
     # fixme: licenses should be a list[str], as it seems materials can have multiple licenses.
     node_id: uuid.UUID
-    type: Optional[str]
-    name: Optional[str]
     title: Optional[str]
     keywords: Optional[list[str]]
     edu_context: Optional[list[str]]
@@ -30,48 +24,7 @@ class LearningMaterial(BaseModel):
     licenses: Optional[str]
 
 
-def material_response_fields(
-    *, response_fields: set[ElasticResourceAttribute] = Query(None)
-) -> set[ElasticResourceAttribute]:
-    return response_fields
-
-
-missing_attributes_source_fields = {
-    ElasticResourceAttribute.TITLE,
-    ElasticResourceAttribute.LEARNINGRESOURCE_TYPE,
-    ElasticResourceAttribute.SUBJECTS,
-    ElasticResourceAttribute.WWW_URL,
-    ElasticResourceAttribute.LICENSES,
-    ElasticResourceAttribute.PUBLISHER,
-    ElasticResourceAttribute.DESCRIPTION,
-    ElasticResourceAttribute.EDU_ENDUSERROLE_DE,
-    ElasticResourceAttribute.EDU_CONTEXT,
-    ElasticResourceAttribute.COVER,
-    ElasticResourceAttribute.NODE_ID,
-    ElasticResourceAttribute.NAME,
-    ElasticResourceAttribute.TYPE,
-    ElasticResourceAttribute.KEYWORDS,
-}
-
-MissingMaterialField = ElasticField(
-    "MissingMaterialField",
-    [(f.name, (f.value, f.field_type)) for f in missing_attributes_source_fields],
-)
-
-
-class MissingAttributeFilter(BaseModel):
-    attr: MissingMaterialField
-
-
-def materials_filter_params(*, missing_attr: MissingMaterialField = Path(...)) -> MissingAttributeFilter:
-    return MissingAttributeFilter(attr=missing_attr)
-
-
-async def get_pending_materials(
-    collection_id: uuid.UUID,
-    missing: ElasticResourceAttribute,
-) -> list[LearningMaterial]:
-
+async def get_pending_materials(collection_id: uuid.UUID, missing: MaterialAttribute) -> list[LearningMaterial]:
     source = [
         ElasticResourceAttribute.NODE_ID,
         ElasticResourceAttribute.TITLE,
@@ -92,7 +45,7 @@ async def get_pending_materials(
         MaterialSearch()
         .collection_filter(collection_id=collection_id, transitive=True)
         .non_series_objects_filter()
-        .missing_attribute_filter(missing=missing)
+        .single_missing_attribute_filter(attribute=missing)
         .source(includes=[attr.path for attr in source])
         .extra(size=ELASTIC_TOTAL_SIZE, from_=0)
     )

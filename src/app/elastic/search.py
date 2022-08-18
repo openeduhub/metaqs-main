@@ -9,6 +9,7 @@ import elasticsearch_dsl
 from elasticsearch_dsl.query import Q, Term, Bool, Terms, Match, Query, Wildcard
 from elasticsearch_dsl.response import Response
 
+from app.api.api import MaterialAttribute
 from app.core.config import ELASTIC_INDEX
 from app.core.constants import OER_LICENSES
 from app.core.logging import logger
@@ -91,6 +92,9 @@ _base_filters = [
 class _Search(elasticsearch_dsl.Search):
     def missing_attribute_filter(self, **attributes: ElasticResourceAttribute) -> MaterialSearch:
         """
+        fixme: remove entirely. See also
+               https://github.com/openeduhub/metaqs-main/issues/109
+               https://github.com/openeduhub/metaqs-main/issues/110
         Only return documents where at least one of the provided attributes is missing, empty or "invalid".
 
         The definition of valid depends on the respective attributes and usually is
@@ -224,3 +228,40 @@ class MaterialSearch(_Search):
     def non_series_objects_filter(self) -> MaterialSearch:
         """Only return materials that are not series objects."""
         return self.filter(Bool(**{"must_not": [{"term": {"aspects": "ccm:io_childobject"}}]}))
+
+    def single_missing_attribute_filter(self, attribute: MaterialAttribute) -> MaterialSearch:
+        """
+        Add a filter to return materials where given attribute is missing.
+        """
+        # TODO: Use properties.ccm:educationalintendedenduserrole instead of i18n.de_DE.ccm:educationalintendedenduserrole?
+
+        attribute_map = {}
+
+        if attribute == "license":
+            # fixme: eventually change this to a whitelist?
+            return self.filter(
+                Bool(
+                    should=[
+                        Terms(
+                            **{ElasticResourceAttribute.LICENSES.keyword: ["UNTERRICHTS_UND_LEHRMEDIEN", "NONE", ""]}
+                        ),
+                        Bool(must_not=Q("exists", field=ElasticResourceAttribute.LICENSES.path)),
+                    ],
+                    minimum_should_match=1,
+                )
+            )
+        else:
+            PATH_MAP: dict[MaterialAttribute, str] = {
+                "title": ElasticResourceAttribute.TITLE.path,
+                "learning_resource_type": ElasticResourceAttribute.LEARNINGRESOURCE_TYPE.path,
+                "subjects",
+                "url",
+                "license",
+                "description",
+                "curriculum",
+                "publisher",
+                "edu_end_user_role",
+                "edu_context",
+                "keywords"
+            }
+            return self.filter(Bool(must_not=Wildcard(**{PATH_MAP[attribute]: {"value": "*"}})))
