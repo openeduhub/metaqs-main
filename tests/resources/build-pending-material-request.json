@@ -23,6 +23,11 @@
           }
         },
         {
+          "term": {
+            "collections.nodeRef.id.keyword": "4940d5da-9b21-4ec0-8824-d16e0409e629"
+          }
+        },
+        {
           "bool": {
             "must_not": [
               {
@@ -48,7 +53,7 @@
                       }
                     }
                   ],
-                  "_name": "missing_title"
+                  "_name": "title"
                 }
               },
               {
@@ -62,7 +67,7 @@
                       }
                     }
                   ],
-                  "_name": "missing_edu_context"
+                  "_name": "edu_context"
                 }
               },
               {
@@ -76,7 +81,7 @@
                       }
                     }
                   ],
-                  "_name": "missing_description"
+                  "_name": "description"
                 }
               },
               {
@@ -104,7 +109,7 @@
                     }
                   ],
                   "minimum_should_match": 1,
-                  "_name": "missing_license"
+                  "_name": "license"
                 }
               },
               {
@@ -118,7 +123,7 @@
                       }
                     }
                   ],
-                  "_name": "missing_learning_resource_type"
+                  "_name": "learning_resource_type"
                 }
               },
               {
@@ -132,7 +137,7 @@
                       }
                     }
                   ],
-                  "_name": "missing_taxon_id"
+                  "_name": "taxon_id"
                 }
               },
               {
@@ -146,7 +151,7 @@
                       }
                     }
                   ],
-                  "_name": "missing_publisher"
+                  "_name": "publisher"
                 }
               },
               {
@@ -160,17 +165,10 @@
                       }
                     }
                   ],
-                  "_name": "missing_intended_end_user_role"
+                  "_name": "intended_end_user_role"
                 }
               }
             ]
-          }
-        }
-      ],
-      "must": [
-        {
-          "term": {
-            "collections.nodeRef.id.keyword": "4940d5da-9b21-4ec0-8824-d16e0409e629"
           }
         }
       ]

@@ -1,79 +1,101 @@
-from __future__ import annotations
-
 import uuid
 from typing import Optional
 
-from elasticsearch_dsl.query import Q
-from glom import Coalesce, Iter
+from fastapi import HTTPException
+from glom import Coalesce, Iter, glom
+from pydantic import BaseModel
 
-from app.api.collections.models import MissingMaterials
-from app.api.collections.utils import all_source_fields, map_elastic_response_to_model
+from app.api.collections.models import CollectionNode
 from app.core.config import ELASTIC_TOTAL_SIZE
+from app.core.logging import logger
 from app.core.models import ElasticResourceAttribute
-from app.elastic.dsl import qbool, qmatch
-from app.elastic.elastic import ResourceType
-from app.elastic.search import Search
-
-missing_attribute_filter = [
-    ElasticResourceAttribute.COLLECTION_TITLE,
-    ElasticResourceAttribute.NAME,
-    ElasticResourceAttribute.KEYWORDS,
-    ElasticResourceAttribute.DESCRIPTION,
-    ElasticResourceAttribute.LICENSES,
-]
+from app.elastic.search import CollectionSearch
 
 
-missing_attributes_spec = {
-    "title": Coalesce(ElasticResourceAttribute.TITLE.path, default=""),
-    "keywords": (
-        Coalesce(ElasticResourceAttribute.KEYWORDS.path, default=[]),
-        Iter().all(),
-    ),
-    "description": Coalesce(
-        ElasticResourceAttribute.COLLECTION_DESCRIPTION.path, default=""
-    ),
-    "path": (
-        Coalesce(ElasticResourceAttribute.PATH.path, default=[]),
-        Iter().all(),
-    ),
-    "parent_id": Coalesce(ElasticResourceAttribute.PARENT_ID.path, default=""),
-    "node_id": Coalesce(ElasticResourceAttribute.NODE_ID.path, default=""),
-    "name": Coalesce(ElasticResourceAttribute.NAME.path, default=""),
-    "type": Coalesce(ElasticResourceAttribute.TYPE.path, default=""),
-    "children": Coalesce("", default=[]),  # workaround to map easier to pydantic model
-}
+class MissingMaterials(BaseModel):
+    # fixme: remove this class and replace with CollectionNode.
+    #        See also comment on search_collections_with_missing_attributes.
+    node_id: uuid.UUID
+    title: str
+    children: list[CollectionNode]
+    parent_id: Optional[uuid.UUID]
+    keywords: list[str]
+    description: Optional[str]
+    path: list[str]
+    type: str
+    name: str
 
 
-def missing_attributes_search(
-    node_id: uuid.UUID, missing_attribute: str, max_hits: int
-) -> Search:
-    query = {
-        "minimum_should_match": 1,
-        "should": [
-            qmatch(**{"path": node_id}),
-            qmatch(**{"nodeRef.id": node_id}),
-        ],
-        "must_not": Q("wildcard", **{missing_attribute: {"value": "*"}}),
-    }
+async def search_collections_with_missing_attributes(
+    collection_id: uuid.UUID, missing: ElasticResourceAttribute
+) -> list[MissingMaterials]:
+    """
+    Note: the returned list will be a flat list of nodes which are not organized in a tree structure and have no
+    relations between each other.
+    # fixme: this is still terribly messy, we actually want a list of collections returned here...
+    #        Eventually, we should separate into something like this:
 
-    return (
-        Search()
-        .base_filters()
-        .query(qbool(**query))
-        .type_filter(ResourceType.COLLECTION)
-        .source(includes=[source.path for source in all_source_fields])[:max_hits]
+    class Collection:
+        title: str
+        description: Optional[str]
+        id: UUID
+        keywords: list[str]
+
+    class CollectionTreeNode:
+        collection: Collection
+        children: list[CollectionTreeNode]
+        # optionally parent: Optional[CollectionTreeNode]
+
+    this way, we do not mix the hierarchical data structure with the actual collection entity.
+    """
+
+    source: list = [
+        ElasticResourceAttribute.NODE_ID,
+        ElasticResourceAttribute.COLLECTION_TITLE,
+        ElasticResourceAttribute.KEYWORDS,
+        ElasticResourceAttribute.COLLECTION_DESCRIPTION,
+    ]
+
+    search = (
+        CollectionSearch()
+        .collection_filter(collection_id=collection_id)
+        .missing_attribute_filter(missing=missing)
+        .source(include=[attr.path for attr in source])
+        .extra(size=ELASTIC_TOTAL_SIZE, from_=0)
     )
 
-
-async def pending_collections(
-    node_id: uuid.UUID,
-    missing_attribute: str,
-    max_hits: Optional[int] = ELASTIC_TOTAL_SIZE,
-) -> list[MissingMaterials]:
-    search = missing_attributes_search(node_id, missing_attribute, max_hits)
-
     response = search.execute()
-    if response.success():
-        return map_elastic_response_to_model(
-            response, missing_attributes_spec, MissingMaterials
-        )
+    if not response.success():
+        raise HTTPException(status_code=502, detail="Failed to query elastic search")
+
+    missing_attributes_spec = {
+        "title": Coalesce(ElasticResourceAttribute.COLLECTION_TITLE.path, default=None),
+        "keywords": (
+            Coalesce(ElasticResourceAttribute.KEYWORDS.path, default=[]),
+            Iter().all(),
+        ),
+        "description": Coalesce(ElasticResourceAttribute.COLLECTION_DESCRIPTION.path, default=None),
+    }
+
+    def try_collection(hit) -> Optional[MissingMaterials]:
+        try:
+            kwargs = glom(hit.to_dict(), missing_attributes_spec)
+            description = kwargs.pop("description")
+            title = kwargs.pop("title")
+            return MissingMaterials(
+                node_id=uuid.UUID(hit["nodeRef"]["id"]),
+                type="ccm:map",
+                name="<irrelevant>",
+                children=[],
+                path=["<unused>"],
+                parent_id=None,
+                description=description if description is not None and description.strip() != "" else None,
+                title=title or "",
+                **kwargs,
+            )
+        except Exception as e:
+            logger.warning(
+                f"Failed to instantiate CollectionNode object from elastic search hit: {e}, hit:{hit.to_dict()}"
+            )
+
+    return [node for hit in response.hits if (node := try_collection(hit)) is not None]

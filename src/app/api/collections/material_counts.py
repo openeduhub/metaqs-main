@@ -1,6 +1,5 @@
 import uuid
 
-from elasticsearch_dsl import Q
 from elasticsearch_dsl.aggs import A
 from elasticsearch_dsl.response import Response
 from fastapi import HTTPException
@@ -8,8 +7,7 @@ from pydantic import BaseModel
 
 from app.api.collections.models import CollectionNode
 from app.core.models import ElasticResourceAttribute
-from app.elastic.elastic import ResourceType
-from app.elastic.search import Search
+from app.elastic.search import MaterialSearch
 
 
 class CollectionMaterialCount(BaseModel):
@@ -20,10 +18,7 @@ class CollectionMaterialCount(BaseModel):
 
 async def get_collection_material_counts(collection: CollectionNode) -> list[CollectionMaterialCount]:
     """
-    Compute the number of materials for every node of the collection subtree (including the root) defined
-    by given collection_id.
-
-    :param collection: The collection tree for which material counts should be computed.
+    Compute the number of materials for every node of the given collection tree.
     """
     # The approach here is:
     # - Step #1: run the equivalent of a
@@ -43,26 +38,7 @@ async def get_collection_material_counts(collection: CollectionNode) -> list[Col
     # specifies to count only materials within the given collection tree root (via the collection path). I.e. there will
     # not be counts for collections returned from elasticsearch that are not in the respective collection tree.
 
-    search = (
-        Search()
-        .base_filters()
-        .type_filter(ResourceType.MATERIAL)
-        # fixme: below is copy pasted from missing_materials.py and should be consolidated
-        #        into a MaterialSearch builder pattern
-        .query(
-            Q(
-                "bool",
-                **{
-                    "minimum_should_match": 1,
-                    "should": [
-                        Q("match", **{ElasticResourceAttribute.COLLECTION_PATH.keyword: str(collection.node_id)}),
-                        Q("match", **{ElasticResourceAttribute.COLLECTION_NODEREF_ID.keyword: str(collection.node_id)}),
-                    ],
-                },
-            )
-        )
-        .extra(size=0)
-    )
+    search = MaterialSearch().collection_filter(collection_id=collection.node_id, transitive=True).extra(size=0)
 
     search.aggs.bucket(
         "collections",  # the name used for the aggregation, referenced when iterating over the result

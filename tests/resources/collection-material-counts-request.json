@@ -21,21 +21,24 @@
           "term": {
             "type": "ccm:io"
           }
-        }
-      ],
-       "should": [
-        {
-          "match": {
-            "collections.path.keyword": "15fce411-54d9-467f-8f35-61ea374a298d"
-          }
         },
         {
-          "match": {
-            "collections.nodeRef.id.keyword": "15fce411-54d9-467f-8f35-61ea374a298d"
+          "bool": {
+            "should": [
+              {
+                "term": {
+                  "collections.nodeRef.id.keyword": "15fce411-54d9-467f-8f35-61ea374a298d"
+                }
+              },
+              {
+                "match": {
+                  "collections.path.keyword": "15fce411-54d9-467f-8f35-61ea374a298d"
+                }
+              }
+            ]
           }
         }
-      ],
-      "minimum_should_match": 1
+      ]
     }
   },
   "aggs": {
