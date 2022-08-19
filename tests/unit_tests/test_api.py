@@ -4,6 +4,7 @@ from unittest import mock
 import pytest
 from starlette.testclient import TestClient
 
+from app.api.quality_matrix.models import QualityMatrix
 from app.main import api
 
 client = TestClient(api())
@@ -16,9 +17,9 @@ def test_404():
 
 
 def test_get_quality():
-    with mock.patch("app.api.api.source_quality") as mocked_source:
-        with mock.patch("app.api.api.collection_quality"):
-            mocked_source.return_value = [], {}
+    with mock.patch("app.api.api.source_quality_matrix") as mocked_source:
+        with mock.patch("app.api.api.collection_quality_matrix"):
+            mocked_source.return_value = QualityMatrix(data=[], total={})
 
             response = client.get("/quality")
             assert response.status_code == 422
