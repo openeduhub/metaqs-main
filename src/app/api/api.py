@@ -31,8 +31,8 @@ from app.api.collections.counts import (
     oer_collection_counts,
 )
 from app.api.collections.material_counts import (
-    CollectionMaterialsCount,
-    get_material_count_tree,
+    CollectionMaterialCount,
+    get_collection_material_counts,
 )
 from app.api.collections.missing_materials import (
     LearningMaterial,
@@ -458,26 +458,21 @@ async def filter_materials_with_missing_attributes(
 
 @router.get(
     "/collections/{node_id}/material_counts",
-    response_model=list[CollectionMaterialsCount],
+    response_model=list[CollectionMaterialCount],
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=[_TAG_COLLECTIONS],
     summary="Provide the total number of materials per collection",
 )
-async def material_counts_tree(
+async def collection_material_counts(
     *, node_id: uuid.UUID = Depends(node_ids_for_major_collections)
 ):
     """
     Returns the number of materials connected to all collections below this 'node_id' as a flat list.
-
-    <b>
-    TODO: This endpoint seems to be unused in the frontend at the moment (it's only use is behind an if statement
-          that should always evaluate to false. Further, the current implementation of this endpoint seems to return
-          only zeros as counts.
-    </b>
     """
     validate_node_id(node_id)
-    return await get_material_count_tree(node_id)
+    collection = build_collection_tree(node_id=node_id)
+    return await get_collection_material_counts(collection=collection)
 
 
 @router.get(

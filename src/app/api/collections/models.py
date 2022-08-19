@@ -24,6 +24,15 @@ class CollectionNode(BaseModel):
         for child in self.children:
             yield from child.flatten(root=True)
 
+    def bft(self, root: bool = True) -> Iterable[CollectionNode]:
+        """Traverse the tree in breadth-first order."""
+        if root:
+            yield self
+        for child in self.children:
+            yield child
+        for child in self.children:
+            yield from child.bft(root=False)
+
 
 class MissingMaterials(CollectionNode):
     """

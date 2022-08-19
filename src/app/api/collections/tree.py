@@ -46,7 +46,7 @@ def tree_search(node_id: uuid.UUID) -> Search:
 
 def build_collection_tree(node_id: uuid.UUID) -> CollectionNode:
     """
-    Build the collection tree from an elastic search query result.
+    Build the collection tree for given top level collection_id.
 
     All direct and indirect child nodes of given node_id will be queried,
     and the received list will be transformed in the subtree defined by the input node_id.

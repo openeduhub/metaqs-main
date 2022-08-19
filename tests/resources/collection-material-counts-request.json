@@ -1,0 +1,50 @@
+{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "term": {
+            "permissions.Read.keyword": "GROUP_EVERYONE"
+          }
+        },
+        {
+          "term": {
+            "properties.cm:edu_metadataset.keyword": "mds_oeh"
+          }
+        },
+        {
+          "term": {
+            "nodeRef.storeRef.protocol": "workspace"
+          }
+        },
+        {
+          "term": {
+            "type": "ccm:io"
+          }
+        }
+      ],
+       "should": [
+        {
+          "match": {
+            "collections.path.keyword": "15fce411-54d9-467f-8f35-61ea374a298d"
+          }
+        },
+        {
+          "match": {
+            "collections.nodeRef.id.keyword": "15fce411-54d9-467f-8f35-61ea374a298d"
+          }
+        }
+      ],
+      "minimum_should_match": 1
+    }
+  },
+  "aggs": {
+    "collections": {
+      "terms": {
+        "field": "collections.nodeRef.id.keyword",
+        "size": 65536
+      }
+    }
+  },
+  "size": 0
+}

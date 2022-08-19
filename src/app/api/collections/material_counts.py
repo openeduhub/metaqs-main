@@ -1,187 +1,89 @@
-from __future__ import annotations
-
 import uuid
-from typing import Optional, Type, TypeVar
 
-from elasticsearch_dsl.aggs import A, Agg
+from elasticsearch_dsl import Q
+from elasticsearch_dsl.aggs import A
 from elasticsearch_dsl.response import Response
-from glom import Coalesce, Iter, glom
-from pydantic import BaseModel, Extra
+from fastapi import HTTPException
+from pydantic import BaseModel
 
-from app.api.collections.models import MissingMaterials
-from app.api.collections.utils import all_source_fields, map_elastic_response_to_model
-from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.models import ElasticResourceAttribute, ResponseModel
-from app.elastic.dsl import aterms, qbool, qmatch
+from app.api.collections.models import CollectionNode
+from app.core.models import ElasticResourceAttribute
 from app.elastic.elastic import ResourceType
 from app.elastic.search import Search
 
-_COLLECTION = TypeVar("_COLLECTION")
 
-
-class CollectionMaterialsCount(ResponseModel):
+class CollectionMaterialCount(BaseModel):
     node_id: uuid.UUID
     title: str
     materials_count: int
 
 
-T = TypeVar("T")
+async def get_collection_material_counts(collection: CollectionNode) -> list[CollectionMaterialCount]:
+    """
+    Compute the number of materials for every node of the collection subtree (including the root) defined
+    by given collection_id.
 
+    :param collection: The collection tree for which material counts should be computed.
+    """
+    # The approach here is:
+    # - Step #1: run the equivalent of a
+    #           select
+    #               collection_leaf, count(*)
+    #           from materials
+    #           where 'material somewhere in collection subtree'
+    #           group by collection_leaf
+    #   query on elastic. This will return the number of materials that are directly within each collection id. However,
+    #   it will only return collection_ids for which the count is larger than 0.
+    # - Hence Step #2: Loop through the tree for which we want the counts, and just fill in the zeros where appropriate
+    #   to get a result for all nodes of the collection tree.
+    #
+    # While doing this, we also have to combine the search result with the predefined collection tree to fill in the
+    # titles of the collections, as they won't be returned by the elasticsearch. Note that the set of nodes of the
+    # passed in collection tree is a superset of the results we get back from the issued elastic query, as the query
+    # specifies to count only materials within the given collection tree root (via the collection path). I.e. there will
+    # not be counts for collections returned from elasticsearch that are not in the respective collection tree.
 
-# TODO: Refactor
-class DescendantCollectionsMaterialsCounts(BaseModel):
-    results: list[CollectionMaterialsCount]
-
-    class Config:
-        arbitrary_types_allowed = True
-        allow_population_by_field_name = True
-        extra = Extra.forbid
-
-    @classmethod
-    def parse_elastic_response(
-        cls: Type[T],
-        response: Response,
-    ) -> T:
-        results = glom(
-            response,
-            (
-                "aggregations.grouped_by_collection.buckets",
-                [{"node_id": "key.noderef_id", "materials_count": "doc_count"}],
-            ),
+    search = (
+        Search()
+        .base_filters()
+        .type_filter(ResourceType.MATERIAL)
+        # fixme: below is copy pasted from missing_materials.py and should be consolidated
+        #        into a MaterialSearch builder pattern
+        .query(
+            Q(
+                "bool",
+                **{
+                    "minimum_should_match": 1,
+                    "should": [
+                        Q("match", **{ElasticResourceAttribute.COLLECTION_PATH.keyword: str(collection.node_id)}),
+                        Q("match", **{ElasticResourceAttribute.COLLECTION_NODEREF_ID.keyword: str(collection.node_id)}),
+                    ],
+                },
+            )
         )
-        return cls.construct(
-            results=[
-                CollectionMaterialsCount.construct(**record) for record in results
-            ],
-        )
-
-
-def agg_materials_by_collection(size: int = 65536) -> Agg:
-    return A(
-        "composite",
-        sources=[
-            {
-                "noderef_id": aterms(
-                    qfield=ElasticResourceAttribute.COLLECTION_NODEREF_ID
-                )
-            }
-        ],
-        size=size,
+        .extra(size=0)
     )
 
+    search.aggs.bucket(
+        "collections",  # the name used for the aggregation, referenced when iterating over the result
+        A("terms", field=ElasticResourceAttribute.COLLECTION_NODEREF_ID.keyword, size=65536),
+    )
 
-def material_counts_by_children(
-    node_id: uuid.UUID,
-) -> DescendantCollectionsMaterialsCounts:
-    search = material_counts_search(node_id)
     response: Response = search.execute()
 
-    if response.success():
-        return DescendantCollectionsMaterialsCounts.parse_elastic_response(response)
+    if not response.success():
+        raise HTTPException(status_code=502, detail="Failed to fetch data from elasticsearch")
 
-
-def material_counts_search(node_id: uuid.UUID):
-    s = (
-        Search()
-        .base_filters()
-        .node_filter(resource_type=ResourceType.MATERIAL, node_id=node_id)
-    )
-    s.aggs.bucket("grouped_by_collection", agg_materials_by_collection()).pipeline(
-        "sorted_by_count",
-        A("bucket_sort", sort=[{"_count": {"order": "asc"}}]),
-    )
-    return s
-
-
-material_counts_spec = {
-    "title": Coalesce(ElasticResourceAttribute.COLLECTION_TITLE.path, default=None),
-    "keywords": (
-        Coalesce(ElasticResourceAttribute.KEYWORDS.path, default=[]),
-        Iter().all(),
-    ),
-    "description": Coalesce(
-        ElasticResourceAttribute.COLLECTION_DESCRIPTION.path, default=None
-    ),
-    "path": (
-        Coalesce(ElasticResourceAttribute.PATH.path, default=[]),
-        Iter().all(),
-    ),
-    "parent_id": Coalesce(ElasticResourceAttribute.PARENT_ID.path, default=None),
-    "node_id": ElasticResourceAttribute.NODE_ID.path,
-    "type": Coalesce(ElasticResourceAttribute.TYPE.path, default=None),
-    "name": Coalesce(ElasticResourceAttribute.NAME.path, default=None),
-    "children": Coalesce("", default=[]),  # workaround to map easier to pydantic model
-}
-
-
-def descendants_search(node_id: uuid.UUID, max_hits: int):
-    query = {
-        "minimum_should_match": 1,
-        "should": [
-            qmatch(**{"path": node_id}),
-            qmatch(**{"nodeRef.id": node_id}),
-        ],
+    # the collections where the count is larger than zero
+    counts: dict[uuid.UUID, int] = {
+        uuid.UUID(bucket["key"]): bucket["doc_count"] for bucket in response.aggregations["collections"]["buckets"]
     }
-    return (
-        Search()
-        .base_filters()
-        .query(qbool(**query))
-        .type_filter(ResourceType.COLLECTION)
-        .source(includes=[source.path for source in all_source_fields])[:max_hits]
-    )
 
-
-def get_children(
-    node_id: Optional[uuid.UUID] = None,
-    max_hits: Optional[int] = ELASTIC_TOTAL_SIZE,
-) -> list[MissingMaterials]:
-    search = descendants_search(node_id, max_hits)
-
-    response = search.execute()
-
-    if response.success():
-        return map_elastic_response_to_model(
-            response, material_counts_spec, MissingMaterials
-        )
-
-
-async def get_material_count_tree(node_id: uuid.UUID) -> list[CollectionMaterialsCount]:
-    """
-
-    :param node_id:
-    :return:
-    """
-
-    # TODO: Refactor get_children, it creates a lot of false hits, i.e., too many collections without materials
-    children = get_children(node_id=node_id)
-    materials_counts = material_counts_by_children(
-        node_id=node_id,
-    )
-    children = {collection.node_id: collection.title for collection in children}
-    counts = []
-    for record in materials_counts.results:
-        try:
-            # TODO: Check why this type wrapping is currently required!
-            title = children.pop(uuid.UUID(record.node_id))
-        except KeyError:
-            continue
-
-        counts.append(
-            CollectionMaterialsCount(
-                node_id=record.node_id,
-                title=title,
-                materials_count=record.materials_count,
-            )
-        )
-    counts = [
-        *[
-            CollectionMaterialsCount(
-                node_id=node_id,
-                title=title,
-                materials_count=0,
-            )
-            for (node_id, title) in children.items()
+    # fixme: eventually sort in the frontend and document in the API that the order of elements is unspecified?
+    return sorted(
+        [
+            CollectionMaterialCount(node_id=node.node_id, title=node.title, materials_count=counts.get(node.node_id, 0))
+            for node in collection.flatten(root=True)
         ],
-        *counts,
-    ]
-    return counts
+        key=lambda c: c.materials_count,
+    )

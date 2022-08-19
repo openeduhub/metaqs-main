@@ -37,6 +37,8 @@ class Search(elasticsearch_dsl.Search):
         return self.filter(Term(**{ElasticResourceAttribute.TYPE.path: "ccm:io"}))
 
     def node_filter(self, resource_type: ResourceType, node_id: uuid.UUID) -> Search:
+        # make self.to_dict() json serializable
+        node_id = str(node_id)
         search = self.type_filter(resource_type=resource_type)
 
         if resource_type is ResourceType.COLLECTION:
