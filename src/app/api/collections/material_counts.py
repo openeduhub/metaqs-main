@@ -5,7 +5,7 @@ from elasticsearch_dsl.response import Response
 from fastapi import HTTPException
 from pydantic import BaseModel
 
-from app.api.collections.models import CollectionNode
+from app.api.collections.tree import CollectionNode
 from app.core.models import ElasticResourceAttribute
 from app.elastic.search import MaterialSearch
 

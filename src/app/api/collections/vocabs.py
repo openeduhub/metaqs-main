@@ -2,7 +2,7 @@ import uuid
 
 from aiohttp import ClientSession
 
-from app.api.collections.models import CollectionNode
+from app.api.collections.tree import CollectionNode
 from app.core.constants import COLLECTION_ROOT_ID
 
 

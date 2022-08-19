@@ -40,7 +40,7 @@ from app.api.collections.pending_materials import (
     materials_filter_params,
     search_materials_with_missing_attributes,
 )
-from app.api.collections.models import CollectionNode
+from app.api.collections.tree import CollectionNode
 from app.api.collections.pending_collections import (
     search_collections_with_missing_attributes,
     MissingMaterials,

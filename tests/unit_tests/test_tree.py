@@ -3,7 +3,7 @@ import uuid
 import pytest
 from aiohttp import ClientSession
 
-from app.api.collections.models import CollectionNode
+from app.api.collections.tree import CollectionNode
 from app.api.collections.tree import build_collection_tree
 from app.api.collections.vocabs import tree_from_vocabs
 from tests.conftest import elastic_search_mock

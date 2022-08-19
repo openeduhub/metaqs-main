@@ -1,10 +1,14 @@
+from __future__ import (  # Needed for recursive type annotation, can be dropped with Python>3.10
+    annotations,
+)
+
 import uuid
-from typing import Optional
+from typing import Optional, Iterable
 
 from elasticsearch_dsl.response import Response
 from fastapi import HTTPException
+from pydantic import BaseModel
 
-from app.api.collections.models import CollectionNode
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import COLLECTION_NAME_TO_ID
 from app.core.logging import logger
@@ -12,6 +16,32 @@ from app.core.models import ElasticResourceAttribute
 from app.elastic.dsl import qbool, qterm
 from app.elastic.elastic import ResourceType
 from app.elastic.search import Search
+
+
+class CollectionNode(BaseModel):
+    node_id: uuid.UUID
+    title: str
+    children: list[CollectionNode]
+    parent_id: Optional[uuid.UUID]
+
+    def flatten(self, root: bool = True) -> Iterable[CollectionNode]:
+        """
+        A generator that will iterate through all nodes of the tree in unspecified order.
+        :param root: If true, the root node (self) will be included, if false, it will be skipped.
+        """
+        if root:
+            yield self
+        for child in self.children:
+            yield from child.flatten(root=True)
+
+    def bft(self, root: bool = True) -> Iterable[CollectionNode]:
+        """Traverse the tree in breadth-first order."""
+        if root:
+            yield self
+        for child in self.children:
+            yield child
+        for child in self.children:
+            yield from child.bft(root=False)
 
 
 def tree_search(node_id: uuid.UUID) -> Search:
@@ -26,11 +56,7 @@ def tree_search(node_id: uuid.UUID) -> Search:
         Search()
         .base_filters()
         .type_filter(ResourceType.COLLECTION)
-        .query(
-            qbool(
-                filter=qterm(qfield=ElasticResourceAttribute.PATH.path, value=node_id)
-            )
-        )
+        .query(qbool(filter=qterm(qfield=ElasticResourceAttribute.PATH.path, value=node_id)))
         .source(
             [
                 ElasticResourceAttribute.NODE_ID.path,
@@ -87,23 +113,15 @@ def build_collection_tree(node_id: uuid.UUID) -> CollectionNode:
             )
         except KeyError as e:
             node_id = hit["nodeRef"]["id"]
-            logger.warning(
-                f"Collection node {node_id} will be skipped. Missing attribute: {e} "
-            )
+            logger.warning(f"Collection node {node_id} will be skipped. Missing attribute: {e} ")
             return None
 
     # gather all (valid) nodes in a dictionary by their id.
-    nodes = {
-        node.node_id: node
-        for hit in response.hits
-        if (node := try_node(hit)) is not None
-    }
+    nodes = {node.node_id: node for hit in response.hits if (node := try_node(hit)) is not None}
 
     # build up tree
     def recurse(node: CollectionNode):
-        node.children = [
-            child for child in nodes.values() if child.parent_id == node.node_id
-        ]
+        node.children = [child for child in nodes.values() if child.parent_id == node.node_id]
         for child in node.children:
             nodes.pop(child.node_id)
             recurse(child)
@@ -114,4 +132,3 @@ def build_collection_tree(node_id: uuid.UUID) -> CollectionNode:
         logger.warning(f"Not all nodes could be arranged in the tree. Left over: {nodes}")
 
     return root
-

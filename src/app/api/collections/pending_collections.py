@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from glom import Coalesce, Iter, glom
 from pydantic import BaseModel
 
-from app.api.collections.models import CollectionNode
+from app.api.collections.tree import CollectionNode
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.logging import logger
 from app.core.models import ElasticResourceAttribute
