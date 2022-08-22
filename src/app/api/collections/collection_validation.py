@@ -7,12 +7,11 @@ from elasticsearch_dsl.query import Q, Query
 from elasticsearch_dsl.response import AggResponse, Response
 from glom import merge
 
-from app.api.analytics.analytics import (
+from app.api.collections.models import (
     CollectionValidationStats,
     CountStatistics,
     StatsNotFoundException,
     StatsResponse,
-    ValidationStatsResponse,
 )
 from app.api.analytics.storage import (
     _COLLECTION_COUNT,
@@ -210,7 +209,7 @@ def transform_output(material_types_stats, search_stats):
 
 def collections_with_missing_properties(
     node_id: uuid.UUID,
-) -> list[ValidationStatsResponse[CollectionValidationStats]]:
+) -> list[CollectionValidationStats]:
     """
     Check whether any of the following are missing:
     title, description, keywords, license, taxon_id, edu_context, learning_resource_type, ads_qualifier, object_type
@@ -235,15 +234,11 @@ def collections_with_missing_properties(
         raise StatsNotFoundException
 
     return [
-        ValidationStatsResponse[CollectionValidationStats](
-            noderef_id=uuid.UUID(key),
-            validation_stats=CollectionValidationStats(**value),
+        CollectionValidationStats(
+            node_id=uuid.UUID(key),
+            **value,
         )
         for key, value in missing_properties.items()
     ]
 
 
-def has_license_wrong_entries(entry: str, properties: dict) -> bool:
-    if properties[entry.split(".")[-1]] in forbidden_licenses:
-        return True
-    return False

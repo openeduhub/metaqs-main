@@ -1,21 +1,13 @@
 import uuid
 from datetime import datetime
 from enum import Enum
-from typing import ClassVar, Generic, Optional, TypeVar
+from typing import Optional
 
-from pydantic import BaseModel, Extra, Field
-from pydantic.generics import GenericModel
+from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException
 from starlette.status import HTTP_404_NOT_FOUND
 
 from app.core.models import ResponseModel
-
-
-class StatType(str, Enum):
-    SEARCH = "search"
-    MATERIAL_TYPES = "material-types"
-    VALIDATION_COLLECTIONS = "validation-collections"
-    VALIDATION_MATERIALS = "validation-materials"  # Currently unused
 
 
 class StatsNotFoundException(HTTPException):
@@ -24,16 +16,6 @@ class StatsNotFoundException(HTTPException):
             status_code=HTTP_404_NOT_FOUND,
             detail="Stats not found",
         )
-
-
-class ElasticConfig:
-    allow_population_by_field_name = True
-    extra = Extra.allow
-
-
-class ElasticModel(BaseModel):
-    class Config(ElasticConfig):
-        pass
 
 
 CountStatistics = dict[str, int]
@@ -49,46 +31,24 @@ class StatsResponse(ResponseModel):
     """
 
     derived_at: datetime
-    total_stats: dict[
-        str, dict[str, CountStatistics]
-    ]  # node_id: search/material_types: UUID of the material
-    oer_stats: dict[
-        str, dict[str, CountStatistics]
-    ]  # node_id: search/material_types: UUID of the material
+    total_stats: dict[str, dict[str, CountStatistics]]  # node_id: search/material_types: UUID of the material
+    oer_stats: dict[str, dict[str, CountStatistics]]  # node_id: search/material_types: UUID of the material
     oer_ratio: int = Field(default=0)
-
-
-ValidationStatsT = TypeVar("ValidationStatsT")
-
-
-class ValidationStatsResponse(GenericModel, Generic[ValidationStatsT]):
-    noderef_id: uuid.UUID
-    derived_at: datetime = Field(default_factory=datetime.now)
-    validation_stats: ValidationStatsT
-
-
-ElasticFieldValidationT = TypeVar("ElasticFieldValidationT")
-
-
-class ElasticValidationStats(GenericModel, Generic[ElasticFieldValidationT]):
-    title: Optional[ElasticFieldValidationT]
-    keywords: Optional[ElasticFieldValidationT]
-    description: Optional[ElasticFieldValidationT]
-    edu_context: Optional[ElasticFieldValidationT]
 
 
 class OehValidationError(str, Enum):
     MISSING = "missing"
     TOO_SHORT = "too_short"
     TOO_FEW = "too_few"
-    LACKS_CLARITY = "lacks_clarity"
-    INVALID_SPELLING = "invalid_spelling"
-
-    _lut: ClassVar[dict]
 
 
-class CollectionValidationStats(ElasticValidationStats[list[OehValidationError]]):
-    pass
+class CollectionValidationStats(BaseModel):
+    node_id: uuid.UUID
+    derived_at: datetime = Field(default_factory=datetime.now)
+    title: Optional[list[OehValidationError]]
+    keywords: Optional[list[OehValidationError]]
+    description: Optional[list[OehValidationError]]
+    edu_context: Optional[list[OehValidationError]]
 
 
 class MaterialValidationStats(BaseModel):
@@ -122,7 +82,7 @@ class PendingMaterials(BaseModel):
     # publisher: 'Materialien ohne Herkunft',
     # description: 'Materialien ohne Beschreibungstext',
     # intended_end_user_role: 'Materialien ohne Zielgruppe',
-    # edu_context: 'Materialien ohne Bildungsstufe',       
+    # edu_context: 'Materialien ohne Bildungsstufe',
 
     collection_id: uuid.UUID
     title: list[uuid.UUID]

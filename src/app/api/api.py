@@ -1,6 +1,6 @@
 import json
 import uuid
-from typing import Mapping, Optional
+from typing import Mapping
 
 from databases import Database
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
@@ -14,13 +14,11 @@ from starlette.status import (
     HTTP_422_UNPROCESSABLE_ENTITY,
 )
 
-from app.api.analytics.analytics import (
-    CollectionValidationStats,
+from app.api.collections.models import (
     PendingMaterialsResponse,
-    StatsResponse,
-    ValidationStatsResponse,
+    StatsResponse, CollectionValidationStats,
 )
-from app.api.analytics.stats import (
+from app.api.collections.collection_validation import (
     collections_with_missing_properties,
     overall_stats,
 )
@@ -354,7 +352,7 @@ async def get_collection_counts(
 
 
 @router.get(
-    "/collections/{node_id}/pending-subcollections/{missing_attribute}",
+    "/collections/{node_id}/pending-collections/{missing_attribute}",
     response_model=list[MissingMaterials],
     response_model_exclude_unset=True,
     status_code=HTTP_200_OK,
@@ -462,7 +460,7 @@ async def filter_materials_with_missing_attributes(
 
 
 @router.get(
-    "/collections/{node_id}/material_counts",
+    "/collections/{node_id}/material-counts",
     response_model=list[CollectionMaterialCount],
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
@@ -479,7 +477,7 @@ async def collection_material_counts(*, node_id: uuid.UUID = Depends(node_ids_fo
 
 
 @router.get(
-    "/analytics/{node_id}",
+    "/collections/{node_id}/statistics",
     response_model=StatsResponse,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
@@ -502,8 +500,8 @@ async def read_stats(
 
 
 @router.get(
-    "/analytics/{node_id}/validation/collections",
-    response_model=list[ValidationStatsResponse[CollectionValidationStats]],
+    "/collections/{node_id}/collection-validation",
+    response_model=list[CollectionValidationStats],
     response_model_exclude_unset=True,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
@@ -525,14 +523,14 @@ async def read_stats_validation_collection(
 
 
 @router.get(
-    "/material-validation/{node_id}",
+    "/collections/{node_id}/material-validation",
     response_model=PendingMaterialsResponse,
     response_model_exclude_unset=True,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=[_TAG_STATISTICS],
 )
-async def read_material_validationn(
+async def read_material_validation(
     *,
     node_id: uuid.UUID = Depends(node_ids_for_major_collections),
 ):
