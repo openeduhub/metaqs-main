@@ -1,6 +1,6 @@
 import json
 import uuid
-from typing import Mapping
+from typing import Mapping, Optional
 
 from databases import Database
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
@@ -31,19 +31,19 @@ from app.api.collections.counts import (
     oer_collection_counts,
 )
 from app.api.collections.material_counts import (
-    CollectionMaterialsCount,
-    get_material_count_tree,
+    CollectionMaterialCount,
+    get_collection_material_counts,
 )
-from app.api.collections.missing_materials import (
+from app.api.collections.pending_materials import (
     LearningMaterial,
     MissingAttributeFilter,
     materials_filter_params,
     search_materials_with_missing_attributes,
 )
-from app.api.collections.models import CollectionNode, MissingMaterials
+from app.api.collections.tree import CollectionNode
 from app.api.collections.pending_collections import (
-    missing_attribute_filter,
-    pending_collections,
+    search_collections_with_missing_attributes,
+    MissingMaterials,
 )
 from app.api.collections.tree import build_collection_tree
 from app.api.quality_matrix.collections import collection_quality_matrix
@@ -54,6 +54,7 @@ from app.api.score.models import ScoreOutput
 from app.api.score.score import get_score
 from app.core.config import API_DEBUG
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
+from app.core.models import ElasticResourceAttribute
 
 
 def get_database(request: Request) -> Database:
@@ -73,9 +74,7 @@ valid_node_ids = {
 
 def validate_node_id(node_id: uuid.UUID):
     if str(node_id) not in {value["value"] for value in valid_node_ids.values()}:
-        raise HTTPException(
-            status_code=HTTP_422_UNPROCESSABLE_ENTITY, detail="Node id invalid"
-        )
+        raise HTTPException(status_code=HTTP_422_UNPROCESSABLE_ENTITY, detail="Node id invalid")
 
 
 def node_ids_for_major_collections(
@@ -94,7 +93,7 @@ def node_ids_for_major_collections(
     response_model=QualityMatrix,
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[_TAG_STATISTICS],
-    summary="Calculate the replication source or collection quality matrix"
+    summary="Calculate the replication source or collection quality matrix",
 )
 async def get_quality(
     *,
@@ -159,7 +158,7 @@ async def get_quality_backup(
     response_model=QualityMatrix,
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
     tags=[_TAG_STATISTICS],
-    summary="Get a historic quality matrix for a given timestamp"
+    summary="Get a historic quality matrix for a given timestamp",
 )
 async def get_past_quality_matrix(
     *,
@@ -207,13 +206,9 @@ async def get_past_quality_matrix(
     "/quality_timestamps",
     status_code=HTTP_200_OK,
     response_model=list[int],
-    responses={
-        HTTP_404_NOT_FOUND: {
-            "description": "Timestamps of old quality matrix results not determinable"
-        }
-    },
+    responses={HTTP_404_NOT_FOUND: {"description": "Timestamps of old quality matrix results not determinable"}},
     tags=[_TAG_STATISTICS],
-    summary="Get the timestamps for which history quality matrices are available"
+    summary="Get the timestamps for which history quality matrices are available",
 )
 async def get_timestamps(
     *,
@@ -315,9 +310,7 @@ async def ping_api():
     tags=[_TAG_COLLECTIONS],
     summary="Provide the sub-tree of the collection hierarchy starting at given node",
 )
-async def get_collection_tree(
-    *, node_id: uuid.UUID = Depends(node_ids_for_major_collections)
-):
+async def get_collection_tree(*, node_id: uuid.UUID = Depends(node_ids_for_major_collections)):
     """
     Returns a list of the immediate child nodes of the provided parent node (`node_id` path parameter).
 
@@ -374,7 +367,11 @@ async def filter_pending_collections(
     missing_attribute: str = Path(
         ...,
         examples={
-            form.name: {"value": form.value} for form in missing_attribute_filter
+            form.name: {"value": form.value}
+            for form in [
+                ElasticResourceAttribute.KEYWORDS,
+                ElasticResourceAttribute.COLLECTION_DESCRIPTION,
+            ]
         },
     ),
 ):
@@ -399,7 +396,14 @@ async def filter_pending_collections(
     </b>
     """
     validate_node_id(node_id)
-    return await pending_collections(node_id, missing_attribute)
+
+    if missing_attribute == ElasticResourceAttribute.KEYWORDS.path:
+        missing_attribute = ElasticResourceAttribute.KEYWORDS
+    elif missing_attribute == ElasticResourceAttribute.COLLECTION_DESCRIPTION.path:
+        missing_attribute = ElasticResourceAttribute.COLLECTION_DESCRIPTION
+    else:
+        raise HTTPException(status_code=400, detail=f"Invalid collection attribute: {missing_attribute}")
+    return await search_collections_with_missing_attributes(node_id, missing=missing_attribute)
 
 
 @router.get(
@@ -451,33 +455,27 @@ async def filter_materials_with_missing_attributes(
     """
     validate_node_id(node_id)
     return await search_materials_with_missing_attributes(
-        node_id=node_id,
-        missing_attr_filter=missing_attr_filter,
+        collection_id=node_id,
+        # fixme: resolve the whole attribute identification mess
+        missing=getattr(ElasticResourceAttribute, str(missing_attr_filter.attr.name)),
     )
 
 
 @router.get(
     "/collections/{node_id}/material_counts",
-    response_model=list[CollectionMaterialsCount],
+    response_model=list[CollectionMaterialCount],
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
     tags=[_TAG_COLLECTIONS],
     summary="Provide the total number of materials per collection",
 )
-async def material_counts_tree(
-    *, node_id: uuid.UUID = Depends(node_ids_for_major_collections)
-):
+async def collection_material_counts(*, node_id: uuid.UUID = Depends(node_ids_for_major_collections)):
     """
     Returns the number of materials connected to all collections below this 'node_id' as a flat list.
-
-    <b>
-    TODO: This endpoint seems to be unused in the frontend at the moment (it's only use is behind an if statement
-          that should always evaluate to false. Further, the current implementation of this endpoint seems to return
-          only zeros as counts.
-    </b>
     """
     validate_node_id(node_id)
-    return await get_material_count_tree(node_id)
+    collection = build_collection_tree(node_id=node_id)
+    return await get_collection_material_counts(collection=collection)
 
 
 @router.get(
@@ -554,7 +552,7 @@ async def read_material_validationn(
     except KeyError:
         raise HTTPException(
             status_code=503,
-            detail=f"Background calculation for collection {node_id} incomplete. Please try again in a while."
+            detail=f"Background calculation for collection {node_id} incomplete. Please try again in a while.",
         )
 
 

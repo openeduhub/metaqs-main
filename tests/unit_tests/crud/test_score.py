@@ -143,7 +143,7 @@ def test_score_search_material():
                     {"term": {"properties.cm:edu_metadataset.keyword": "mds_oeh"}},
                     {"term": {"nodeRef.storeRef.protocol": "workspace"}},
                     {"term": {"type": "ccm:io"}},
-                    {"term": {"collections.path.keyword": noderef_id}},
+                    {"term": {"collections.path.keyword": str(noderef_id)}},
                 ]
             }
         },
@@ -186,7 +186,7 @@ def test_score_search_collection():
                     {"term": {"properties.cm:edu_metadataset.keyword": "mds_oeh"}},
                     {"term": {"nodeRef.storeRef.protocol": "workspace"}},
                     {"term": {"type": "ccm:map"}},
-                    {"term": {"path": noderef_id}},
+                    {"term": {"path": str(noderef_id)}},
                 ]
             }
         },

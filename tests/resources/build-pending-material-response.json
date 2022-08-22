@@ -29,8 +29,8 @@
           }
         },
         "matched_queries": [
-          "missing_edu_context",
-          "missing_publisher"
+          "edu_context",
+          "publisher"
         ]
       },
       {
@@ -48,8 +48,8 @@
           }
         },
         "matched_queries": [
-          "missing_intended_end_user_role",
-          "missing_description"
+          "intended_end_user_role",
+          "description"
         ]
       },
       {
@@ -67,9 +67,9 @@
           }
         },
         "matched_queries": [
-          "missing_intended_end_user_role",
-          "missing_license",
-          "missing_learning_resource_type"
+          "intended_end_user_role",
+          "license",
+          "learning_resource_type"
         ]
       }
     ]
