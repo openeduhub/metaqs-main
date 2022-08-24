@@ -1,11 +1,11 @@
 import uuid
 
-from elasticsearch_dsl import Q
+from elasticsearch_dsl import Q, A
 from elasticsearch_dsl.response import Response
 from pydantic import BaseModel, Field
 
-from app.api.collections.counts import oer_ratio
-from app.core.models import ElasticResourceAttribute
+from app.api.collections.utils import oer_ratio
+from app.elastic.attributes import ElasticResourceAttribute
 from app.elastic.dsl import afilter, amissing
 from app.elastic.elastic import ResourceType, query_missing_material_license
 from app.elastic.search import Search

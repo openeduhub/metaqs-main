@@ -1,0 +1,115 @@
+{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "term": {
+            "permissions.Read.keyword": "GROUP_EVERYONE"
+          }
+        },
+        {
+          "term": {
+            "properties.cm:edu_metadataset.keyword": "mds_oeh"
+          }
+        },
+        {
+          "term": {
+            "nodeRef.storeRef.protocol": "workspace"
+          }
+        },
+        {
+          "term": {
+            "type": "ccm:map"
+          }
+        },
+        {
+          "bool": {
+            "should": [
+              {
+                "term": {
+                  "nodeRef.id.keyword": "15fce411-54d9-467f-8f35-61ea374a298d"
+                }
+              },
+              {
+                "term": {
+                  "path": "15fce411-54d9-467f-8f35-61ea374a298d"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "bool": {
+            "minimum_should_match": 1,
+            "should": [
+              {
+                "bool": {
+                  "must_not": [
+                    {
+                      "wildcard": {
+                        "properties.cm:title": {
+                          "value": "*"
+                        }
+                      }
+                    }
+                  ],
+                  "_name": "title"
+                }
+              },
+              {
+                "bool": {
+                  "must_not": [
+                    {
+                      "wildcard": {
+                        "properties.cm:description": {
+                          "value": "*"
+                        }
+                      }
+                    }
+                  ],
+                  "_name": "description"
+                }
+              },
+              {
+                "bool": {
+                  "must_not": [
+                    {
+                      "wildcard": {
+                        "properties.ccm:educationalcontext": {
+                          "value": "*"
+                        }
+                      }
+                    }
+                  ],
+                  "_name": "edu_context"
+                }
+              },
+              {
+                "bool": {
+                  "must_not": [
+                    {
+                      "wildcard": {
+                        "properties.cclom:general_keyword": {
+                          "value": "*"
+                        }
+                      }
+                    }
+                  ],
+                  "_name": "keywords"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "size": 500000,
+  "from": 0,
+  "_source": {
+    "includes": [
+      "nodeRef.id",
+      "properties.cm:title"
+    ]
+  }
+}

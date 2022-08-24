@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 from elasticsearch_dsl.response import Response
 
-from app.api.score.score import (
+from app.api.collections.score import (
     calc_scores,
     calc_weighted_score,
     get_score_search,

@@ -4,8 +4,8 @@ import pytest
 from aiohttp import ClientSession
 
 from app.api.collections.tree import CollectionNode
-from app.api.collections.tree import build_collection_tree
-from app.api.collections.vocabs import tree_from_vocabs
+from app.api.collections.tree import get_tree
+from app.core.vocabs import tree_from_vocabs
 from tests.conftest import elastic_search_mock
 
 
@@ -21,8 +21,8 @@ async def test_collection_tree_vocabs():
 
 def test_tree_from_elastic():
     node_id_biology = uuid.UUID("15fce411-54d9-467f-8f35-61ea374a298d")
-    with elastic_search_mock("build-collection-tree"):
-        tree = build_collection_tree(node_id_biology)
+    with elastic_search_mock("tree"):
+        tree = get_tree(node_id_biology)
 
     expected = CollectionNode(
         node_id=node_id_biology,

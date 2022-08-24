@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import COLLECTION_NAME_TO_ID
 from app.core.logging import logger
-from app.core.models import ElasticResourceAttribute
+from app.elastic.attributes import ElasticResourceAttribute
 from app.elastic.dsl import qbool, qterm
 from app.elastic.elastic import ResourceType
 from app.elastic.search import Search
@@ -70,7 +70,7 @@ def tree_search(node_id: uuid.UUID) -> Search:
     )
 
 
-def build_collection_tree(node_id: uuid.UUID) -> CollectionNode:
+def get_tree(node_id: uuid.UUID) -> CollectionNode:
     """
     Build the collection tree for given top level collection_id.
 

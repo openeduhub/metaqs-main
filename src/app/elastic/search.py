@@ -10,7 +10,7 @@ from elasticsearch_dsl.response import Response
 
 from app.core.config import ELASTIC_INDEX
 from app.core.logging import logger
-from app.core.models import ElasticResourceAttribute
+from app.elastic.attributes import ElasticResourceAttribute
 from app.elastic.dsl import qterm
 from app.elastic.elastic import ResourceType
 

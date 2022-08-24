@@ -1,0 +1,18 @@
+# fixme: currently, the tests are parallel to the src dir which contains the pyproject.toml
+#        hence black does not pick up the configuration for formatting test files.
+#        A resolution would be to move the pyproject.toml to the repository root, then this file can be removed.
+[tool.black]
+line-length = 120
+include = '\.pyi?$'
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+asyncio_mode = "auto"
+log_cli = "true"
+log_level = "DEBUG"
+log_format = "%(asctime)s %(levelname)s %(name)s %(message)s"
+log_date_format = "%Y-%m-%d %H:%M:%S"
+testpaths = [
+    "tests",
+]
+

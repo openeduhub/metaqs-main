@@ -3,19 +3,19 @@ import uuid
 import pytest
 
 from app.api.collections.pending_collections import (
-    search_collections_with_missing_attributes,
+    get_pending_collections,
 )
 from app.core.constants import COLLECTION_NAME_TO_ID
-from app.core.models import ElasticResourceAttribute
+from app.elastic.attributes import ElasticResourceAttribute
 from tests.conftest import elastic_search_mock
 
 
 @pytest.mark.asyncio
-async def test_search_collections_with_missing_attributes():
+async def test_pending_collections():
     collection_id = uuid.UUID(COLLECTION_NAME_TO_ID["Chemie"])
 
-    with elastic_search_mock("collections-with-missing-attributes"):
-        collections = await search_collections_with_missing_attributes(
+    with elastic_search_mock("pending-collections"):
+        collections = await get_pending_collections(
             collection_id=collection_id,
             missing=ElasticResourceAttribute.COLLECTION_DESCRIPTION,
         )

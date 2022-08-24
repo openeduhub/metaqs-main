@@ -8,18 +8,18 @@ from app.api.quality_matrix.utils import default_properties
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import COLLECTION_ROOT_ID
 from app.core.logging import logger
-from app.core.models import (
-    ElasticResourceAttribute,
-    metadata_hierarchy,
-    required_collection_properties,
-    SortNode,
-)
+from app.elastic.attributes import ElasticResourceAttribute
+from app.api.quality_matrix.meta_hierachy import metadata_hierarchy, SortNode
 from app.elastic.dsl import qbool, qmatch
 from app.elastic.elastic import ResourceType
 from app.elastic.search import Search
 
 PROPERTY_TYPE = list[str]
 PROPERTIES = "properties"
+
+required_collection_properties = {
+    child.path.path: child.title for node in metadata_hierarchy for child in node.children
+}
 
 
 def create_sources_search(aggregation_name: str, node_id: uuid.UUID) -> Search:
@@ -141,7 +141,9 @@ def sort_rows_according_hierarchy(rows: list[QualityMatrixRow], hierarchy: list[
     return output
 
 
-async def _source_quality_matrix(columns, id_to_name_mapping, match_keyword, node_id, properties) -> list[QualityMatrixRow]:
+async def _source_quality_matrix(
+    columns, id_to_name_mapping, match_keyword, node_id, properties
+) -> list[QualityMatrixRow]:
     output = {k: {} for k in properties}
     for column_id, total_count in columns.items():
         if column_id in id_to_name_mapping.keys():

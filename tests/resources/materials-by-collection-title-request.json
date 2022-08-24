@@ -1,0 +1,81 @@
+{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "term": {
+            "permissions.Read.keyword": "GROUP_EVERYONE"
+          }
+        },
+        {
+          "term": {
+            "properties.cm:edu_metadataset.keyword": "mds_oeh"
+          }
+        },
+        {
+          "term": {
+            "nodeRef.storeRef.protocol": "workspace"
+          }
+        },
+        {
+          "term": {
+            "type": "ccm:io"
+          }
+        },
+        {
+          "terms": {
+            "properties.ccm:commonlicense_key.keyword": [
+              "CC_0",
+              "PDM",
+              "CC_BY",
+              "CC_BY_SA"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "aggs": {
+    "material_types_and_collection": {
+      "filters": {
+        "filters": {
+          "4940d5da-9b21-4ec0-8824-d16e0409e629": {
+            "simple_query_string": {
+              "query": "Chemie",
+              "fields": [
+                "properties.cclom:title",
+                "properties.cclom:general_keyword",
+                "properties.cclom:general_description",
+                "content.fulltext"
+              ],
+              "default_operator": "and"
+            }
+          },
+          "15fce411-54d9-467f-8f35-61ea374a298d": {
+            "simple_query_string": {
+              "query": "Biologie",
+              "fields": [
+                "properties.cclom:title",
+                "properties.cclom:general_keyword",
+                "properties.cclom:general_description",
+                "content.fulltext"
+              ],
+              "default_operator": "and"
+            }
+          }
+        }
+      },
+      "aggs": {
+        "material_type": {
+          "terms": {
+            "field": "properties.ccm:oeh_lrt.keyword",
+            "missing": "N/A",
+            "size": 50000
+          }
+        }
+      }
+    }
+  },
+  "size": 0,
+  "from": 0
+}

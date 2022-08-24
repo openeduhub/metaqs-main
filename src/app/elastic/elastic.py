@@ -2,7 +2,8 @@ from enum import Enum
 
 from elasticsearch_dsl.query import Query, Bool
 
-from app.core.models import ElasticResourceAttribute, forbidden_licenses
+from app.elastic.attributes import ElasticResourceAttribute
+from app.core.constants import FORBIDDEN_LICENSES
 from app.elastic.dsl import qnotexists, qterms
 
 
@@ -21,7 +22,7 @@ def query_missing_material_license(name: str = "missing_license") -> Query:
         should=[
             qterms(
                 qfield=qfield,
-                values=forbidden_licenses,
+                values=FORBIDDEN_LICENSES,
             ),
             qnotexists(qfield=qfield),
         ],

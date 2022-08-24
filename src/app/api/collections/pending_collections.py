@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from app.api.collections.tree import CollectionNode
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.logging import logger
-from app.core.models import ElasticResourceAttribute
+from app.elastic.attributes import ElasticResourceAttribute
 from app.elastic.search import CollectionSearch
 
 
@@ -26,7 +26,7 @@ class MissingMaterials(BaseModel):
     name: str
 
 
-async def search_collections_with_missing_attributes(
+async def get_pending_collections(
     collection_id: uuid.UUID, missing: ElasticResourceAttribute
 ) -> list[MissingMaterials]:
     """
