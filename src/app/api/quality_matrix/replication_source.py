@@ -11,8 +11,7 @@ from app.core.logging import logger
 from app.elastic.attributes import ElasticResourceAttribute
 from app.api.quality_matrix.meta_hierachy import metadata_hierarchy, SortNode
 from app.elastic.dsl import qbool, qmatch
-from app.elastic.elastic import ResourceType
-from app.elastic.search import Search
+from app.elastic.search import Search, ResourceType
 
 PROPERTY_TYPE = list[str]
 PROPERTIES = "properties"

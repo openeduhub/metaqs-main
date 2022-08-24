@@ -1,0 +1,47 @@
+{
+  "took": 8,
+  "timed_out": false,
+  "_shards": {
+    "total": 1,
+    "successful": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": {
+      "value": 2331,
+      "relation": "eq"
+    },
+    "max_score": null,
+    "hits": []
+  },
+  "aggregations": {
+    "missing_intended_end_user_role": {
+      "doc_count": 871
+    },
+    "missing_edu_context": {
+      "doc_count": 7
+    },
+    "missing_publisher": {
+      "doc_count": 961
+    },
+    "missing_url": {
+      "doc_count": 55
+    },
+    "missing_description": {
+      "doc_count": 819
+    },
+    "missing_license": {
+      "doc_count": 5
+    },
+    "missing_title": {
+      "doc_count": 0
+    },
+    "missing_subjects": {
+      "doc_count": 1
+    },
+    "missing_material_type": {
+      "doc_count": 15
+    }
+  }
+}

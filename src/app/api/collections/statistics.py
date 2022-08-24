@@ -2,7 +2,6 @@ import datetime
 import uuid
 from uuid import UUID
 
-from elasticsearch_dsl.aggs import Bucket
 from elasticsearch_dsl.query import SimpleQueryString, Query
 from elasticsearch_dsl.response import Response
 from fastapi import HTTPException
@@ -176,6 +175,7 @@ def materials_by_collection_id(collection_id: UUID, oer_only: bool) -> dict[UUID
     # (material type, collection)
 
     # need to define a MultiTerms aggregation type, as it is otherwise not yet supported by elasticsearch-dsl :-(
+    from elasticsearch_dsl.aggs import Bucket
     class MultiTerms(Bucket):  # noqa
         name = "multi_terms"
 

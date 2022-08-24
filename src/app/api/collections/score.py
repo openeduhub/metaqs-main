@@ -1,14 +1,15 @@
 import uuid
 
 from elasticsearch_dsl import Q, A
+from elasticsearch_dsl.query import Query, Bool
 from elasticsearch_dsl.response import Response
 from pydantic import BaseModel, Field
 
 from app.api.collections.utils import oer_ratio
+from app.core.constants import FORBIDDEN_LICENSES
 from app.elastic.attributes import ElasticResourceAttribute
-from app.elastic.dsl import afilter, amissing
-from app.elastic.elastic import ResourceType, query_missing_material_license
-from app.elastic.search import Search
+from app.elastic.dsl import qterms, qnotexists
+from app.elastic.search import CollectionSearch, MaterialSearch
 
 material_terms_relevant_for_score = [
     "missing_title",
@@ -74,6 +75,25 @@ def calc_scores(stats: dict) -> dict:
     return {k: 1 - v / stats["total"] for k, v in stats.items() if k != "total"}
 
 
+def query_missing_material_license(name: str = "missing_license") -> Query:
+    """
+    :param name: An optional alias for the should query, that can be used to identify which query matched.
+                 See: https://www.elastic.co/guide/en/elasticsearch/reference/7.17/query-dsl-bool-query.html#named-queries
+    """
+    qfield = ElasticResourceAttribute.LICENSES
+    return Bool(
+        should=[
+            qterms(
+                qfield=qfield,
+                values=FORBIDDEN_LICENSES,
+            ),
+            qnotexists(qfield=qfield),
+        ],
+        minimum_should_match=1,
+        _name=name,
+    )
+
+
 def calc_weighted_score(collection_scores: dict, material_scores: dict) -> int:
     score_sum = sum(v for k, v in collection_scores.items() if k in collections_terms_relevant_for_score) + sum(
         v for k, v in material_scores.items() if k in material_terms_relevant_for_score
@@ -85,17 +105,6 @@ def calc_weighted_score(collection_scores: dict, material_scores: dict) -> int:
     return int((100 * score_sum) / number_of_relevant_terms)
 
 
-def get_score_search(node_id: uuid.UUID, resource_type: ResourceType) -> Search:
-    search = Search().base_filters().node_filter(resource_type=resource_type, node_id=node_id)
-    if resource_type is ResourceType.COLLECTION:
-        aggs = aggs_collection_validation
-    else:  # ResourceType.MATERIAL
-        aggs = aggs_material_validation
-    for name, _agg in aggs.items():
-        search.aggs.bucket(name, _agg)
-    return search
-
-
 def map_response_to_output(response: Response) -> dict:
     return {
         "total": response.hits.total.value,
@@ -103,42 +112,56 @@ def map_response_to_output(response: Response) -> dict:
     }
 
 
-def search_score(node_id: uuid.UUID, resource_type: ResourceType) -> dict:
-    s = get_score_search(node_id, resource_type)
+def collection_search_score(collection_id: uuid.UUID) -> dict:
+    search = CollectionSearch().collection_filter(collection_id).extra(size=0, from_=0)
+    aggregations = {
+        "missing_title": A("missing", field=ElasticResourceAttribute.COLLECTION_TITLE.keyword),
+        "short_title": A("filter", (Q("range", char_count_title={"gt": 0, "lt": 5}))),
+        "missing_keywords": A("missing", field=ElasticResourceAttribute.KEYWORDS.keyword),
+        "few_keywords": A("filter", (Q("range", token_count_keywords={"gt": 0, "lt": 3}))),
+        "missing_description": A("missing", field=ElasticResourceAttribute.COLLECTION_DESCRIPTION.keyword),
+        "short_description": A("filter", (Q("range", char_count_description={"gt": 0, "lt": 30}))),
+        "missing_edu_context": A("missing", field=ElasticResourceAttribute.EDU_CONTEXT.keyword),
+    }
 
-    response: Response = s.execute()
+    for name, agg in aggregations.items():
+        search.aggs.bucket(name, agg)
+
+    response: Response = search.execute()
 
     if response.success():
         return map_response_to_output(response)
 
 
-aggs_material_validation = {
-    "missing_title": amissing(qfield=ElasticResourceAttribute.TITLE),
-    "missing_material_type": amissing(qfield=ElasticResourceAttribute.LEARNINGRESOURCE_TYPE),
-    "missing_subjects": amissing(qfield=ElasticResourceAttribute.SUBJECTS),
-    "missing_url": amissing(qfield=ElasticResourceAttribute.WWW_URL),
-    "missing_license": afilter(query=query_missing_material_license()),
-    "missing_publisher": amissing(qfield=ElasticResourceAttribute.PUBLISHER),
-    "missing_description": amissing(qfield=ElasticResourceAttribute.DESCRIPTION),
-    "missing_intended_end_user_role": amissing(qfield=ElasticResourceAttribute.EDU_ENDUSERROLE_DE),
-    "missing_edu_context": amissing(qfield=ElasticResourceAttribute.EDU_CONTEXT),
-}
-aggs_collection_validation = {
-    "missing_title": amissing(qfield=ElasticResourceAttribute.COLLECTION_TITLE),
-    "short_title": afilter(Q("range", char_count_title={"gt": 0, "lt": 5})),
-    "missing_keywords": amissing(qfield=ElasticResourceAttribute.KEYWORDS),
-    "few_keywords": afilter(Q("range", token_count_keywords={"gt": 0, "lt": 3})),
-    "missing_description": amissing(qfield=ElasticResourceAttribute.COLLECTION_DESCRIPTION),
-    "short_description": afilter(Q("range", char_count_description={"gt": 0, "lt": 30})),
-    "missing_edu_context": amissing(qfield=ElasticResourceAttribute.EDU_CONTEXT),
-}
+def material_search_score(collection_id: uuid.UUID) -> dict:
+    search = MaterialSearch().collection_filter(collection_id, transitive=True).extra(size=0, from_=0)
+
+    aggregations = {
+        "missing_title": A("missing", field=ElasticResourceAttribute.TITLE.keyword),
+        "missing_material_type": A("missing", field=ElasticResourceAttribute.LEARNINGRESOURCE_TYPE.keyword),
+        "missing_subjects": A("missing", field=ElasticResourceAttribute.SUBJECTS.keyword),
+        "missing_url": A("missing", field=ElasticResourceAttribute.WWW_URL.keyword),
+        "missing_license": A("filter", query_missing_material_license()),
+        "missing_publisher": A("missing", field=ElasticResourceAttribute.PUBLISHER.keyword),
+        "missing_description": A("missing", field=ElasticResourceAttribute.DESCRIPTION.keyword),
+        "missing_intended_end_user_role": A("missing", field=ElasticResourceAttribute.EDU_ENDUSERROLE_DE.keyword),
+        "missing_edu_context": A("missing", field=ElasticResourceAttribute.EDU_CONTEXT.keyword),
+    }
+
+    for name, agg in aggregations.items():
+        search.aggs.bucket(name, agg)
+
+    response: Response = search.execute()
+
+    if response.success():
+        return map_response_to_output(response)
 
 
 async def get_score(node_id: uuid.UUID) -> ScoreOutput:
-    collection_stats = search_score(node_id=node_id, resource_type=ResourceType.COLLECTION)
+    collection_stats = collection_search_score(collection_id=node_id)
     collection_scores = calc_scores(stats=collection_stats)
 
-    material_stats = search_score(node_id=node_id, resource_type=ResourceType.MATERIAL)
+    material_stats = material_search_score(collection_id=node_id)
     material_scores = calc_scores(stats=material_stats)
 
     score_ = calc_weighted_score(collection_scores=collection_scores, material_scores=material_scores)

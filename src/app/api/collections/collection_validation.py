@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.elastic.attributes import ElasticResourceAttribute
-from app.elastic.search import Search, CollectionSearch
+from app.elastic.search import CollectionSearch
 
 
 class OehValidationError(str, Enum):
@@ -38,7 +38,7 @@ def get_collection_validation(collection_id: uuid.UUID) -> list[CollectionValida
     TODO: Eventually align the return data structure with PendingMaterialsResponse as we do the same thing for
           collections that is done for materials with PendingMaterialsResponse.
     """
-    search: Search = (
+    search = (
         CollectionSearch()
         .collection_filter(collection_id=collection_id)
         .missing_attribute_filter(

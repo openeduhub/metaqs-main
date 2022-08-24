@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+from enum import Enum
 from pprint import pformat
 from uuid import UUID
 
@@ -12,7 +13,11 @@ from app.core.config import ELASTIC_INDEX
 from app.core.logging import logger
 from app.elastic.attributes import ElasticResourceAttribute
 from app.elastic.dsl import qterm
-from app.elastic.elastic import ResourceType
+
+
+class ResourceType(str, Enum):
+    COLLECTION = "COLLECTION"
+    MATERIAL = "MATERIAL"
 
 
 class Search(elasticsearch_dsl.Search):  # todo remove entirely in favour of below Material and CollectionSearch
