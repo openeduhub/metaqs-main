@@ -48,8 +48,7 @@ from app.api.quality_matrix.collections import collection_quality_matrix
 from app.api.quality_matrix.models import Mode, QualityMatrix, Timeline
 from app.api.quality_matrix.replication_source import source_quality_matrix
 from app.api.quality_matrix.timeline import quality_backup, timestamps
-from app.api.score.models import ScoreOutput
-from app.api.score.score import get_score
+from app.api.collections.score import ScoreOutput, get_score
 from app.core.config import API_DEBUG
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.core.models import ElasticResourceAttribute
