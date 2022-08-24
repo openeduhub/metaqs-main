@@ -10,6 +10,7 @@ from elasticsearch_dsl.query import Q, Term, Bool, Terms, Match, Query, Wildcard
 from elasticsearch_dsl.response import Response
 
 from app.core.config import ELASTIC_INDEX
+from app.core.constants import OER_LICENSES
 from app.core.logging import logger
 from app.elastic.attributes import ElasticResourceAttribute
 from app.elastic.dsl import qterm
@@ -190,7 +191,7 @@ class MaterialSearch(_Search):
 
     def oer_filter(self) -> MaterialSearch:
         """Return a new search with an added filter to only return OER materials."""
-        return self.filter(Terms(**{ElasticResourceAttribute.LICENSES.keyword: ["CC_0", "PDM", "CC_BY", "CC_BY_SA"]}))
+        return self.filter(Terms(**{ElasticResourceAttribute.LICENSES.keyword: OER_LICENSES}))
 
     def collection_filter(self, collection_id: UUID, transitive: bool) -> MaterialSearch:
         """
