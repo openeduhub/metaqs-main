@@ -1,6 +1,6 @@
 import json
 import uuid
-from typing import Mapping, Optional
+from typing import Mapping
 
 from databases import Database
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
@@ -14,13 +14,11 @@ from starlette.status import (
     HTTP_422_UNPROCESSABLE_ENTITY,
 )
 
-from app.api.analytics.analytics import (
-    CollectionValidationStats,
+from app.api.collections.models import (
     PendingMaterialsResponse,
-    StatsResponse,
-    ValidationStatsResponse,
+    StatsResponse, CollectionValidationStats,
 )
-from app.api.analytics.stats import (
+from app.api.collections.collection_validation import (
     collections_with_missing_properties,
     overall_stats,
 )
@@ -63,9 +61,6 @@ def get_database(request: Request) -> Database:
 
 router = APIRouter()
 
-_TAG_STATISTICS = "Statistics"
-_TAG_COLLECTIONS = "Collections"
-
 valid_node_ids = {
     "Alle Fachportale": {"value": COLLECTION_ROOT_ID},
     **{key: {"value": value} for key, value in COLLECTION_NAME_TO_ID.items()},
@@ -92,7 +87,7 @@ def node_ids_for_major_collections(
     status_code=HTTP_200_OK,
     response_model=QualityMatrix,
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
-    tags=[_TAG_STATISTICS],
+    tags=["Quality"],
     summary="Calculate the replication source or collection quality matrix",
 )
 async def get_quality(
@@ -143,7 +138,7 @@ async def get_quality(
     "/quality/backup",
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
-    tags=[_TAG_STATISTICS],
+    tags=["Quality"],
 )
 async def get_quality_backup(
     *,
@@ -157,7 +152,7 @@ async def get_quality_backup(
     status_code=HTTP_200_OK,
     response_model=QualityMatrix,
     responses={HTTP_404_NOT_FOUND: {"description": "Quality matrix not determinable"}},
-    tags=[_TAG_STATISTICS],
+    tags=["Quality"],
     summary="Get a historic quality matrix for a given timestamp",
 )
 async def get_past_quality_matrix(
@@ -207,7 +202,7 @@ async def get_past_quality_matrix(
     status_code=HTTP_200_OK,
     response_model=list[int],
     responses={HTTP_404_NOT_FOUND: {"description": "Timestamps of old quality matrix results not determinable"}},
-    tags=[_TAG_STATISTICS],
+    tags=["Quality"],
     summary="Get the timestamps for which history quality matrices are available",
 )
 async def get_timestamps(
@@ -238,7 +233,7 @@ async def get_timestamps(
     response_model=ScoreOutput,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=[_TAG_COLLECTIONS],
+    tags=["Collections"],
     summary="The average ratio of non-empty properties for the chosen collection",
 )
 async def score(*, node_id: uuid.UUID = Depends(node_ids_for_major_collections)):
@@ -307,7 +302,7 @@ async def ping_api():
     response_model=list[CollectionNode],
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=[_TAG_COLLECTIONS],
+    tags=["Collections"],
     summary="Provide the sub-tree of the collection hierarchy starting at given node",
 )
 async def get_collection_tree(*, node_id: uuid.UUID = Depends(node_ids_for_major_collections)):
@@ -329,7 +324,7 @@ async def get_collection_tree(*, node_id: uuid.UUID = Depends(node_ids_for_major
     response_model=list[CollectionTreeCount],
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=[_TAG_COLLECTIONS],
+    tags=["Collections"],
 )
 async def get_collection_counts(
     *,
@@ -354,12 +349,12 @@ async def get_collection_counts(
 
 
 @router.get(
-    "/collections/{node_id}/pending-subcollections/{missing_attribute}",
+    "/collections/{node_id}/pending-collections/{missing_attribute}",
     response_model=list[MissingMaterials],
     response_model_exclude_unset=True,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=[_TAG_COLLECTIONS],
+    tags=["Collections"],
 )
 async def filter_pending_collections(
     *,
@@ -412,7 +407,7 @@ async def filter_pending_collections(
     response_model_exclude_unset=True,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=[_TAG_COLLECTIONS],
+    tags=["Collections"],
 )
 async def filter_materials_with_missing_attributes(
     *,
@@ -462,11 +457,11 @@ async def filter_materials_with_missing_attributes(
 
 
 @router.get(
-    "/collections/{node_id}/material_counts",
+    "/collections/{node_id}/material-counts",
     response_model=list[CollectionMaterialCount],
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=[_TAG_COLLECTIONS],
+    tags=["Collections"],
     summary="Provide the total number of materials per collection",
 )
 async def collection_material_counts(*, node_id: uuid.UUID = Depends(node_ids_for_major_collections)):
@@ -479,11 +474,11 @@ async def collection_material_counts(*, node_id: uuid.UUID = Depends(node_ids_fo
 
 
 @router.get(
-    "/analytics/{node_id}",
+    "/collections/{node_id}/statistics",
     response_model=StatsResponse,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=[_TAG_STATISTICS],
+    tags=["Collections"],
 )
 async def read_stats(
     *,
@@ -502,12 +497,12 @@ async def read_stats(
 
 
 @router.get(
-    "/analytics/{node_id}/validation/collections",
-    response_model=list[ValidationStatsResponse[CollectionValidationStats]],
+    "/collections/{node_id}/collection-validation",
+    response_model=list[CollectionValidationStats],
     response_model_exclude_unset=True,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=[_TAG_STATISTICS],
+    tags=["Collections"],
 )
 async def read_stats_validation_collection(
     *,
@@ -525,14 +520,14 @@ async def read_stats_validation_collection(
 
 
 @router.get(
-    "/material-validation/{node_id}",
+    "/collections/{node_id}/material-validation",
     response_model=PendingMaterialsResponse,
     response_model_exclude_unset=True,
     status_code=HTTP_200_OK,
     responses={HTTP_404_NOT_FOUND: {"description": "Collection not found"}},
-    tags=[_TAG_STATISTICS],
+    tags=["Collections"],
 )
-async def read_material_validationn(
+async def read_material_validation(
     *,
     node_id: uuid.UUID = Depends(node_ids_for_major_collections),
 ):

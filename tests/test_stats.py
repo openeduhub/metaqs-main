@@ -5,11 +5,9 @@ from unittest import mock
 
 import pytest
 
-from app.api.analytics.analytics import CollectionValidationStats
-from app.api.analytics.stats import (
+from app.api.collections.collection_validation import (
     build_material_search,
     collections_with_missing_properties,
-    has_license_wrong_entries,
     overall_stats,
     query_material_types,
 )
@@ -21,12 +19,14 @@ from app.api.collections.counts import CollectionTreeCount
 async def test_overall_stats():
     test_node = "11bdb8a0-a9f5-4028-becc-cbf8e328dd4b"  # Spanish
 
-    directory = Path(__file__).parent/"unit_tests"/"resources"
-    with open(directory/"test_global.json") as file:
+    directory = Path(__file__).parent / "unit_tests" / "resources"
+    with open(directory / "test_global.json") as file:
         global_response = json.load(file)
 
     # TODO: Refactor with wrapper/fixture/decorator
-    with mock.patch("app.api.analytics.stats.global_storage") as mocked_global:
+    with mock.patch(
+        "app.api.collections.collection_validation.global_storage"
+    ) as mocked_global:
 
         def _get_item(_, key):
             if key == "collections":
@@ -62,11 +62,17 @@ async def test_overall_stats():
 
         mocked_global.__getitem__ = _get_item
 
-        with mock.patch("app.api.analytics.stats.global_store") as mocked_store:
+        with mock.patch(
+            "app.api.collections.collection_validation.global_store"
+        ) as mocked_store:
             mocked_store.search = _get_item(None, "search")
 
-            with mock.patch("app.api.analytics.stats.search_hits_by_material_type"):
-                with mock.patch("app.api.analytics.stats.oer_ratio") as mocked_oer_ratio:
+            with mock.patch(
+                "app.api.collections.collection_validation.search_hits_by_material_type"
+            ):
+                with mock.patch(
+                    "app.api.collections.collection_validation.oer_ratio"
+                ) as mocked_oer_ratio:
                     mocked_oer_ratio.return_value = 0
                     stats = await overall_stats(uuid.UUID(test_node))
 
@@ -124,13 +130,15 @@ def test_build_material_search():
 
 
 def test_query_material_types():
-    directory = Path(__file__).parent /"unit_tests"/"resources"
+    directory = Path(__file__).parent / "unit_tests" / "resources"
 
     with open(directory / "test_global.json") as file:
         global_response = json.load(file)
 
     dummy_node = uuid.UUID("11bdb8a0-a9f5-4028-becc-cbf8e328dd4b")
-    with mock.patch("app.api.analytics.stats.global_storage") as mocked_global:
+    with mock.patch(
+        "app.api.collections.collection_validation.global_storage"
+    ) as mocked_global:
 
         def _get_item(_, key):
             if key == "collections":
@@ -163,13 +171,15 @@ def test_query_material_types():
 
 
 def test_collections_with_missing_properties():
-    directory = Path(__file__).parent /"unit_tests"/ "resources"
+    directory = Path(__file__).parent / "unit_tests" / "resources"
 
     with open(directory / "test_global.json") as file:
         global_response = json.load(file)
 
     dummy_node = uuid.UUID("11bdb8a0-a9f5-4028-becc-cbf8e328dd4b")
-    with mock.patch("app.api.analytics.stats.global_storage") as mocked_global:
+    with mock.patch(
+        "app.api.collections.collection_validation.global_storage"
+    ) as mocked_global:
 
         def _get_item(_, key):
             if key == "collections":
@@ -197,16 +207,7 @@ def test_collections_with_missing_properties():
         result = collections_with_missing_properties(dummy_node)
 
     assert len(result) == 1
-    assert result[0].noderef_id == uuid.UUID("f3dc9ea1-d608-4b4e-a78c-98063a3e8461")
-    assert result[0].validation_stats == CollectionValidationStats(
-        title=None, description=["missing"], edu_context=["missing"]
-    )
-
-
-def test_has_license_wrong_entries():
-    assert not has_license_wrong_entries("test_key", {"test_key": 0})
-
-    assert has_license_wrong_entries("test_key", {"test_key": ""})
-    assert has_license_wrong_entries(
-        "test_key", {"test_key": "UNTERRICHTS_UND_LEHRMEDIEN"}
-    )
+    assert result[0].node_id == uuid.UUID("f3dc9ea1-d608-4b4e-a78c-98063a3e8461")
+    assert result[0].description == ["missing"]
+    assert result[0].title is None
+    assert result[0].edu_context == ["missing"]

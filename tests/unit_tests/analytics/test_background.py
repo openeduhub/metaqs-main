@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from app.api.analytics.analytics import PendingMaterials
+from app.api.collections.models import PendingMaterials
 from app.api.analytics.background_task import (
     build_pending_materials,
     search_query,

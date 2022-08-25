@@ -7,8 +7,8 @@ from uuid import UUID
 from fastapi_utils.tasks import repeat_every
 
 import app.api.analytics.storage
-from app.api.analytics.analytics import PendingMaterialsResponse, PendingMaterials
-from app.api.analytics.stats import (
+from app.api.collections.models import PendingMaterialsResponse, PendingMaterials
+from app.api.collections.collection_validation import (
     search_hits_by_material_type,
 )
 from app.api.analytics.storage import (

@@ -4,7 +4,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from app.api.analytics.analytics import CountStatistics, PendingMaterialsResponse
+from app.api.collections.models import CountStatistics, PendingMaterialsResponse
 
 _COLLECTIONS = "collections"
 _COLLECTION_COUNT = "counts"
