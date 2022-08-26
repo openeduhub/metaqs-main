@@ -1,14 +1,13 @@
 import uuid
 
 from elasticsearch_dsl import Q, A
-from elasticsearch_dsl.query import Query, Bool
+from elasticsearch_dsl.query import Query, Bool, Terms, Exists
 from elasticsearch_dsl.response import Response
 from pydantic import BaseModel, Field
 
 from app.api.collections.utils import oer_ratio
 from app.core.constants import FORBIDDEN_LICENSES
 from app.elastic.attributes import ElasticResourceAttribute
-from app.elastic.dsl import qterms, qnotexists
 from app.elastic.search import CollectionSearch, MaterialSearch
 
 material_terms_relevant_for_score = [
@@ -61,7 +60,7 @@ class MissingMaterialProperties(BaseModel):
     missing_edu_context: float = Field(ge=0.0, le=1.0, description="Ratio of entries without edu context")
 
 
-class ScoreOutput(BaseModel):
+class Score(BaseModel):
     score: int = Field(ge=0, le=100, description="Overall score")
     oer_ratio: int = Field(ge=0, le=100, description="Overall ratio of OER content")
     collections: MissingCollectionProperties = Field(description="Score for specific collection properties")
@@ -80,14 +79,10 @@ def query_missing_material_license(name: str = "missing_license") -> Query:
     :param name: An optional alias for the should query, that can be used to identify which query matched.
                  See: https://www.elastic.co/guide/en/elasticsearch/reference/7.17/query-dsl-bool-query.html#named-queries
     """
-    qfield = ElasticResourceAttribute.LICENSES
     return Bool(
         should=[
-            qterms(
-                qfield=qfield,
-                values=FORBIDDEN_LICENSES,
-            ),
-            qnotexists(qfield=qfield),
+            Terms(**{ElasticResourceAttribute.LICENSES.keyword: FORBIDDEN_LICENSES}),
+            Bool(must_not=Exists(field=ElasticResourceAttribute.LICENSES.path)),
         ],
         minimum_should_match=1,
         _name=name,
@@ -157,7 +152,7 @@ def material_search_score(collection_id: uuid.UUID) -> dict:
         return map_response_to_output(response)
 
 
-async def get_score(node_id: uuid.UUID) -> ScoreOutput:
+async def score(node_id: uuid.UUID) -> Score:
     collection_stats = collection_search_score(collection_id=node_id)
     collection_scores = calc_scores(stats=collection_stats)
 
@@ -170,4 +165,4 @@ async def get_score(node_id: uuid.UUID) -> ScoreOutput:
 
     collections = MissingCollectionProperties(total=collection_stats["total"], **collection_scores)
     materials = MissingMaterialProperties(total=material_stats["total"], **material_scores)
-    return ScoreOutput(score=score_, collections=collections, materials=materials, oer_ratio=oer)
+    return Score(score=score_, collections=collections, materials=materials, oer_ratio=oer)

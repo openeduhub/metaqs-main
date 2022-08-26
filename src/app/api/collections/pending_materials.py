@@ -8,12 +8,11 @@ from pydantic import BaseModel
 
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.logging import logger
-from app.elastic.attributes import ElasticResourceAttribute
-from app.elastic.dsl import ElasticField
+from app.elastic.attributes import ElasticResourceAttribute, ElasticField
 from app.elastic.search import MaterialSearch
 
 
-class LearningMaterial(BaseModel):
+class PendingMaterial(BaseModel):
     # fixme: remove type attribute because pointless. Will always be ccm:io.
     # fixme: remove name attribute because pointless. It is only a technical name
     #        (e.g. filename inside ES) and has no relevance for end users or metadata quality.
@@ -67,10 +66,10 @@ def materials_filter_params(*, missing_attr: MissingMaterialField = Path(...)) -
     return MissingAttributeFilter(attr=missing_attr)
 
 
-async def get_pending_materials(
+async def pending_materials(
     collection_id: uuid.UUID,
     missing: ElasticResourceAttribute,
-) -> list[LearningMaterial]:
+) -> list[PendingMaterial]:
 
     source = [
         ElasticResourceAttribute.NODE_ID,
@@ -129,12 +128,12 @@ async def get_pending_materials(
         ),
     }
 
-    def try_material(hit) -> Optional[LearningMaterial]:
+    def try_material(hit) -> Optional[PendingMaterial]:
         try:
             kwargs = glom(hit.to_dict(), missing_materials_spec)
             licenses: str = kwargs.pop("licenses")
             description: str = kwargs.pop("description")
-            return LearningMaterial(
+            return PendingMaterial(
                 # make sure node id is a UUID
                 node_id=uuid.UUID(hit["nodeRef"]["id"]),
                 type="ccm:io",

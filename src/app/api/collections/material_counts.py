@@ -5,18 +5,18 @@ from elasticsearch_dsl.response import Response
 from fastapi import HTTPException
 from pydantic import BaseModel
 
-from app.api.collections.tree import CollectionNode
+from app.api.collections.tree import Tree
 from app.elastic.attributes import ElasticResourceAttribute
 from app.elastic.search import MaterialSearch
 
 
-class CollectionMaterialCount(BaseModel):
+class MaterialCounts(BaseModel):
     node_id: uuid.UUID
     title: str
     materials_count: int
 
 
-async def get_material_counts(collection: CollectionNode) -> list[CollectionMaterialCount]:
+async def material_counts(collection: Tree) -> list[MaterialCounts]:
     """
     Compute the number of materials for every node of the given collection tree.
     """
@@ -58,7 +58,7 @@ async def get_material_counts(collection: CollectionNode) -> list[CollectionMate
     # fixme: eventually sort in the frontend and document in the API that the order of elements is unspecified?
     return sorted(
         [
-            CollectionMaterialCount(node_id=node.node_id, title=node.title, materials_count=counts.get(node.node_id, 0))
+            MaterialCounts(node_id=node.node_id, title=node.title, materials_count=counts.get(node.node_id, 0))
             for node in collection.flatten(root=True)
         ],
         key=lambda c: c.materials_count,

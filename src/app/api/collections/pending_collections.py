@@ -5,19 +5,19 @@ from fastapi import HTTPException
 from glom import Coalesce, Iter, glom
 from pydantic import BaseModel
 
-from app.api.collections.tree import CollectionNode
+from app.api.collections.tree import Tree
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.logging import logger
 from app.elastic.attributes import ElasticResourceAttribute
 from app.elastic.search import CollectionSearch
 
 
-class MissingMaterials(BaseModel):
+class PendingCollection(BaseModel):
     # fixme: remove this class and replace with CollectionNode.
     #        See also comment on search_collections_with_missing_attributes.
     node_id: uuid.UUID
     title: str
-    children: list[CollectionNode]
+    children: list[Tree]
     parent_id: Optional[uuid.UUID]
     keywords: list[str]
     description: Optional[str]
@@ -26,9 +26,9 @@ class MissingMaterials(BaseModel):
     name: str
 
 
-async def get_pending_collections(
+async def pending_collections(
     collection_id: uuid.UUID, missing: ElasticResourceAttribute
-) -> list[MissingMaterials]:
+) -> list[PendingCollection]:
     """
     Note: the returned list will be a flat list of nodes which are not organized in a tree structure and have no
     relations between each other.
@@ -77,12 +77,12 @@ async def get_pending_collections(
         "description": Coalesce(ElasticResourceAttribute.COLLECTION_DESCRIPTION.path, default=None),
     }
 
-    def try_collection(hit) -> Optional[MissingMaterials]:
+    def try_collection(hit) -> Optional[PendingCollection]:
         try:
             kwargs = glom(hit.to_dict(), missing_attributes_spec)
             description = kwargs.pop("description")
             title = kwargs.pop("title")
-            return MissingMaterials(
+            return PendingCollection(
                 node_id=uuid.UUID(hit["nodeRef"]["id"]),
                 type="ccm:map",
                 name="<irrelevant>",

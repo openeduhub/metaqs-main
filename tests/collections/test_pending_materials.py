@@ -3,7 +3,7 @@ import uuid
 import pytest
 
 from app.api.collections.pending_materials import (
-    get_pending_materials,
+    pending_materials,
 )
 from app.core.constants import COLLECTION_NAME_TO_ID
 from app.elastic.attributes import ElasticResourceAttribute
@@ -15,7 +15,7 @@ async def test_pending_materials_description():
     biologie = uuid.UUID(COLLECTION_NAME_TO_ID["Biologie"])
 
     with elastic_search_mock("pending-materials-description"):
-        materials = await get_pending_materials(
+        materials = await pending_materials(
             collection_id=biologie,
             missing=ElasticResourceAttribute.DESCRIPTION,
         )
@@ -31,7 +31,7 @@ async def test_pending_materials_license():
     biologie = uuid.UUID(COLLECTION_NAME_TO_ID["Biologie"])
 
     with elastic_search_mock("pending-materials-license"):
-        materials = await get_pending_materials(
+        materials = await pending_materials(
             collection_id=biologie,
             missing=ElasticResourceAttribute.LICENSES,
         )

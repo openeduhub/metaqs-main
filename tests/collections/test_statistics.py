@@ -3,7 +3,7 @@ from uuid import UUID
 import pytest
 
 from app.api.collections.statistics import materials_by_collection_title, materials_by_collection_id
-from app.api.collections.tree import CollectionNode
+from app.api.collections.tree import Tree
 from app.core.constants import COLLECTION_NAME_TO_ID
 from tests.conftest import elastic_search_mock
 
@@ -14,11 +14,11 @@ async def test_materials_by_collection_title():
         # fmt: off
         result: dict[UUID, dict[str, int]] = materials_by_collection_title(
             nodes=[
-                CollectionNode(
-                    node_id=UUID(COLLECTION_NAME_TO_ID["Chemie"]), title="Chemie", children=[], parent_id=None
+                Tree(
+                    node_id=UUID(COLLECTION_NAME_TO_ID["Chemie"]), title="Chemie", children=[], parent_id=None, level=0
                 ),
-                CollectionNode(
-                    node_id=UUID(COLLECTION_NAME_TO_ID["Biologie"]), title="Biologie", children=[], parent_id=None
+                Tree(
+                    node_id=UUID(COLLECTION_NAME_TO_ID["Biologie"]), title="Biologie", children=[], parent_id=None, level=0
                 ),
             ],
             oer_only=True,

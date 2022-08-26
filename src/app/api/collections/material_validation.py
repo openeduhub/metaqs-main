@@ -3,7 +3,7 @@ import uuid
 from fastapi_utils.tasks import repeat_every
 from pydantic import BaseModel
 
-from app.api.collections.tree import get_tree
+from app.api.collections.tree import tree
 from app.core.config import ELASTIC_TOTAL_SIZE, BACKGROUND_TASK_TIME_INTERVAL
 from app.core.constants import COLLECTION_NAME_TO_ID
 from app.core.logging import logger
@@ -11,7 +11,7 @@ from app.elastic.attributes import ElasticResourceAttribute
 from app.elastic.search import MaterialSearch
 
 
-class IncompleteMaterials(BaseModel):
+class MaterialValidation(BaseModel):
     # title: 'Materialien ohne Titel',
     # learning_resource_type: 'Materialien ohne Kategorie',
     # taxon_id: 'Materialien ohne Fachgebiet',
@@ -33,12 +33,7 @@ class IncompleteMaterials(BaseModel):
     intended_end_user_role: list[uuid.UUID]
 
 
-class MaterialValidationResponse(BaseModel):
-    collection_id: uuid.UUID
-    missing_materials: list[IncompleteMaterials]
-
-
-def _get_material_validation_single_collection(collection_id: uuid.UUID, title: str) -> IncompleteMaterials:
+def _get_material_validation_single_collection(collection_id: uuid.UUID, title: str) -> MaterialValidation:
     """
     Build the stats object holding material count statistics for a singular collection.
 
@@ -61,7 +56,7 @@ def _get_material_validation_single_collection(collection_id: uuid.UUID, title: 
     }
 
     # to avoid looping through the results multiple times, we here initialize with empty lists
-    materials = IncompleteMaterials(
+    materials = MaterialValidation(
         collection_id=collection_id,
         title=[],
         edu_context=[],
@@ -102,42 +97,37 @@ def _get_material_validation_single_collection(collection_id: uuid.UUID, title: 
     return materials
 
 
-def get_material_validation(collection_id: uuid.UUID) -> MaterialValidationResponse:
+def material_validation(collection_id: uuid.UUID) -> list[MaterialValidation]:
     """
     Build the response for the /material-validation endpoint.
 
     :param collection_id: The id of top level collection
     """
+    node = tree(node_id=collection_id)
+    logger.info(f"Working on {node.title} ({collection_id})")
+    children = node.flatten(root=False)
 
-    tree = get_tree(node_id=collection_id)
-    logger.info(f"Working on {tree.title} ({collection_id})")
-    children = tree.flatten(root=False)
-
-    return MaterialValidationResponse(
-        collection_id=collection_id,
-        missing_materials=[
-            # fixme: we need to include the top level node here because we use a really inadequate data model...
-            #        and it needs to be included, because there could be materials that are only in the top level
-            #        collection and those materials would otherwise not be included anywhere.
-            _get_material_validation_single_collection(collection_id, title=tree.title),
-            *(_get_material_validation_single_collection(node.node_id, title=node.title) for node in children),
-        ],
-    )
+    return [
+        # fixme: we need to include the top level node here because we use a really inadequate data model...
+        #        and it needs to be included, because there could be materials that are only in the top level
+        #        collection and those materials would otherwise not be included anywhere.
+        _get_material_validation_single_collection(collection_id, title=node.title),
+        *(_get_material_validation_single_collection(child.node_id, title=child.title) for child in children),
+    ]
 
 
 # FIXME: Try to eliminate the last non-realtime calculation
-material_validation_cache: dict[uuid.UUID, MaterialValidationResponse] = {}
+material_validation_cache: dict[uuid.UUID, list[MaterialValidation]] = {}
 
 
 @repeat_every(seconds=BACKGROUND_TASK_TIME_INTERVAL, logger=logger)
 def background_task():
-
     logger.info(f"Updating material validation cache. Length: {len(COLLECTION_NAME_TO_ID)}")
 
     for counter, (title, collection) in enumerate(COLLECTION_NAME_TO_ID.items()):
         collection = uuid.UUID(collection)
         logger.info(f"Working on: {title}")
-        material_validation_cache[collection] = get_material_validation(collection_id=collection)
+        material_validation_cache[collection] = material_validation(collection_id=collection)
 
     logger.info("Storing in cache.")
     logger.info("Background task done")
