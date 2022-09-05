@@ -1,0 +1,208 @@
+{
+  "took": 18,
+  "timed_out": false,
+  "_shards": {
+    "total": 1,
+    "successful": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": {
+      "value": 8,
+      "relation": "eq"
+    },
+    "max_score": 0.0,
+    "hits": [
+      {
+        "_index": "workspace",
+        "_type": "_doc",
+        "_id": "2407787",
+        "_score": 0.0,
+        "_source": {
+          "nodeRef": {
+            "id": "38c9e5a2-b9a3-4d12-88a2-59aef5c94bc1"
+          },
+          "properties": {
+            "cm:title": "WP_Chemie_Unterrichtsreihen",
+            "cclom:general_keyword": [
+              "Unterrichtsreihe",
+              "Unterrichtseinheit",
+              "Unterrichtssequenz",
+              "Referendariat"
+            ],
+            "cm:description": ""
+          }
+        },
+        "matched_queries": [
+          "missing"
+        ]
+      },
+      {
+        "_index": "workspace",
+        "_type": "_doc",
+        "_id": "2407784",
+        "_score": 0.0,
+        "_source": {
+          "nodeRef": {
+            "id": "0030b7a7-2fc2-4c72-a582-cbba94eade58"
+          },
+          "properties": {
+            "cm:title": "WP_Chemie_Wettbewerbe, Tagungen",
+            "cclom:general_keyword": [
+              "Wettbewerb",
+              "Stiftung",
+              "Jugend ",
+              "forscht",
+              "Olympiade"
+            ],
+            "cm:description": ""
+          }
+        },
+        "matched_queries": [
+          "missing"
+        ]
+      },
+      {
+        "_index": "workspace",
+        "_type": "_doc",
+        "_id": "2407782",
+        "_score": 0.0,
+        "_source": {
+          "nodeRef": {
+            "id": "b2226bcd-ad41-4273-9a5b-8ba9adcf0e94"
+          },
+          "properties": {
+            "cm:title": "WP_Chemie_Au\u00dferschulische Lernorte",
+            "cclom:general_keyword": [
+              "Institution",
+              "Lernort",
+              "au\u00dferschulisch",
+              "Sch\u00fclerlabor",
+              "Exkurs"
+            ],
+            "cm:description": ""
+          }
+        },
+        "matched_queries": [
+          "missing"
+        ]
+      },
+      {
+        "_index": "workspace",
+        "_type": "_doc",
+        "_id": "2407788",
+        "_score": 0.0,
+        "_source": {
+          "nodeRef": {
+            "id": "d32038b0-d79c-44b6-b92c-c4ecd9caee40"
+          },
+          "properties": {
+            "cm:title": "WP_Chemie_Fachdidaktisches",
+            "cclom:general_keyword": [
+              "Didaktik",
+              "Digitalisierung",
+              "Konzept",
+              "Padlet",
+              "Zeitschrift",
+              "Methode"
+            ],
+            "cm:description": ""
+          }
+        },
+        "matched_queries": [
+          "missing"
+        ]
+      },
+      {
+        "_index": "workspace",
+        "_type": "_doc",
+        "_id": "2431347",
+        "_score": 0.0,
+        "_source": {
+          "nodeRef": {
+            "id": "b6954bd5-b1b3-4aa6-9b4e-c54969e2a8d0"
+          },
+          "properties": {
+            "cm:title": "WP_Chemie_Audio / Podcasts",
+            "cclom:general_keyword": [
+              "Podcast",
+              "Audio",
+              "Diskussion",
+              "Fachwissenschaft"
+            ],
+            "cm:description": ""
+          }
+        },
+        "matched_queries": [
+          "missing"
+        ]
+      },
+      {
+        "_index": "workspace",
+        "_type": "_doc",
+        "_id": "2407786",
+        "_score": 0.0,
+        "_source": {
+          "nodeRef": {
+            "id": "730b0208-6351-4966-b1c0-64261db23dfd"
+          },
+          "properties": {
+            "cm:title": "WP_Chemie_Arbeitsbl\u00e4tter",
+            "cclom:general_keyword": [
+              "Material",
+              "Arbeitsblatt"
+            ],
+            "cm:description": ""
+          }
+        },
+        "matched_queries": [
+          "missing"
+        ]
+      },
+      {
+        "_index": "workspace",
+        "_type": "_doc",
+        "_id": "2407783",
+        "_score": 0.0,
+        "_source": {
+          "nodeRef": {
+            "id": "5f5b31ab-3088-45d3-8e25-9f0ae7bbef27"
+          },
+          "properties": {
+            "cm:title": "WP_Chemie_Chemie-Portale",
+            "cclom:general_keyword": [
+              "Chemieportal",
+              "Internetseiten",
+              "Quellen",
+              "Recherche",
+              "Material"
+            ],
+            "cm:description": ""
+          }
+        },
+        "matched_queries": [
+          "missing"
+        ]
+      },
+      {
+        "_index": "workspace",
+        "_type": "_doc",
+        "_id": "3142037",
+        "_score": 0.0,
+        "_source": {
+          "nodeRef": {
+            "id": "58a29620-3e4e-42e8-9c63-8e3ca20f4caa"
+          },
+          "properties": {
+            "cm:title": "Material des Monats - unsichtbar",
+            "cm:description": ""
+          }
+        },
+        "matched_queries": [
+          "missing"
+        ]
+      }
+    ]
+  }
+}

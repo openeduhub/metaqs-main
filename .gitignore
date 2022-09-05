@@ -1,7 +1,10 @@
-.env
+*.env
 .idea/
-assets/
 docker-compose.override.yml
 __pycache__/
 .ipynb_checkpoints/
 local_tools/
+/docs/build/
+backup/
+nginx/
+build

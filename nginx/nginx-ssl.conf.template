@@ -2,9 +2,10 @@ upstream fastapi-80 {
     server fastapi:80 fail_timeout=0;
 }
 
-upstream superset-8088 {
-    server superset:8088 fail_timeout=0;
+upstream yovisto-80 {
+    server yovisto:80 fail_timeout=0;
 }
+
 
 server {
     listen [::]:80;
@@ -13,10 +14,6 @@ server {
 
     access_log  /var/log/nginx/access.log;
     error_log   /var/log/nginx/error.log;
-
-    location / {
-        return 301 https://$host$request_uri;
-    }
 
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
@@ -44,20 +41,6 @@ server {
     gzip on;
     include gzip_params;
 
-    location /docs {
-        auth_basic "OpenEduHub";
-        auth_basic_user_file /etc/nginx/.htpasswd;
-        try_files $uri $uri/ =404;
-        index index.html;
-    }
-
-    location /dbt-docs {
-        auth_basic "OpenEduHub";
-        auth_basic_user_file /etc/nginx/.htpasswd;
-        try_files $uri $uri/ =404;
-        index index.html;
-    }
-
     location ${ROOT_PATH} {
         rewrite ${ROOT_PATH}/(.*) /$1 break;
 
@@ -65,8 +48,10 @@ server {
         include proxy_params;
     }
 
-    location / {
-        proxy_pass  http://superset-8088;
-        include proxy_params;
-    }
+     location /yovisto {
+         rewrite /yovisto/(.*) /$1 break;
+
+         proxy_pass http://yovisto-80;
+         include proxy_params;
+     }
 }

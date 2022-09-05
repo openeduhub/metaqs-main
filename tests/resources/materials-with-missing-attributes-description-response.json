@@ -1,0 +1,389 @@
+{
+  "took": 39,
+  "timed_out": false,
+  "_shards": {
+    "total": 1,
+    "successful": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": {
+      "value": 11,
+      "relation": "eq"
+    },
+    "max_score": 0.0,
+    "hits": [
+      {
+        "_index": "workspace",
+        "_type": "_doc",
+        "_id": "824988",
+        "_score": 0.0,
+        "_ignored": [
+          "properties.ccm:replicationsourceid.number",
+          "properties.ccm:replicationsourcehash.number"
+        ],
+        "_source": {
+          "nodeRef": {
+            "id": "886092e1-d60c-405d-afa1-2f696027ee35"
+          },
+          "properties": {
+            "cclom:title": "CO2-Emission in Deutschland",
+            "ccm:educationalcontext": [
+              "http://w3id.org/openeduhub/vocabs/educationalContext/sekundarstufe_1",
+              "http://w3id.org/openeduhub/vocabs/educationalContext/sekundarstufe_2"
+            ],
+            "ccm:wwwurl": "https://media.sodis.de/open/melt/CO2_Emission_Deutschland.pdf",
+            "cclom:general_keyword": [
+              "Steinkohle",
+              "Entstehung",
+              "Abbau",
+              "Nutzung",
+              "Grafik",
+              "Hard coal",
+              "Genesis",
+              "Extraction",
+              "Use",
+              "image"
+            ],
+            "ccm:commonlicense_key": [
+              "COPYRIGHT_FREE"
+            ],
+            "ccm:taxonid": [
+              "http://w3id.org/openeduhub/vocabs/discipline/100",
+              "http://w3id.org/openeduhub/vocabs/discipline/080"
+            ]
+          }
+        },
+        "matched_queries": [
+          "missing"
+        ]
+      },
+      {
+        "_index": "workspace",
+        "_type": "_doc",
+        "_id": "1286300",
+        "_score": 0.0,
+        "_ignored": [
+          "properties.ccm:replicationsourcehash.number"
+        ],
+        "_source": {
+          "nodeRef": {
+            "id": "f67bd334-aad9-462e-a626-c60aeb5995ff"
+          },
+          "properties": {
+            "cclom:title": "Chemische Reaktionen",
+            "ccm:educationalcontext": [
+              "http://w3id.org/openeduhub/vocabs/educationalContext/sekundarstufe_1"
+            ],
+            "ccm:wwwurl": "https://unterrichten.zum.de/wiki/Chemische Reaktionen",
+            "cclom:general_keyword": [
+              "Chemische Reaktionen/Energie bei chemischen Reaktionen",
+              "Chemische Reaktionen/Massenerhaltung",
+              "Chemische Reaktionen/Physikalische Vorg\u00e4nge und chemische Reaktionen",
+              "Chemische Reaktionen/Wortgleichungen"
+            ],
+            "ccm:commonlicense_key": [
+              "CC_BY_SA"
+            ],
+            "cclom:general_description": [
+              ""
+            ],
+            "ccm:taxonid": [
+              "http://w3id.org/openeduhub/vocabs/discipline/100",
+              "http://w3id.org/openeduhub/vocabs/discipline/080"
+            ]
+          }
+        },
+        "matched_queries": [
+          "missing"
+        ]
+      },
+      {
+        "_index": "workspace",
+        "_type": "_doc",
+        "_id": "824580",
+        "_score": 0.0,
+        "_ignored": [
+          "properties.ccm:replicationsourcehash.number"
+        ],
+        "_source": {
+          "nodeRef": {
+            "id": "c95ea455-8eb5-426b-b137-32d1a9925f6b"
+          },
+          "properties": {
+            "cclom:title": "Monosaccharide",
+            "ccm:educationalcontext": [
+              "http://w3id.org/openeduhub/vocabs/educationalContext/sekundarstufe_2"
+            ],
+            "ccm:wwwurl": "https://serlo.org/78089",
+            "ccm:commonlicense_key": [
+              "CC_BY_SA"
+            ],
+            "ccm:taxonid": [
+              "http://w3id.org/openeduhub/vocabs/discipline/100"
+            ]
+          }
+        },
+        "matched_queries": [
+          "missing"
+        ]
+      },
+      {
+        "_index": "workspace",
+        "_type": "_doc",
+        "_id": "824565",
+        "_score": 0.0,
+        "_ignored": [
+          "properties.ccm:replicationsourcehash.number"
+        ],
+        "_source": {
+          "nodeRef": {
+            "id": "fa093210-a6ff-4898-bd54-58ac24189f22"
+          },
+          "properties": {
+            "cclom:title": "Die Glucose",
+            "ccm:educationalcontext": [
+              "http://w3id.org/openeduhub/vocabs/educationalContext/sekundarstufe_2"
+            ],
+            "ccm:wwwurl": "https://serlo.org/78110",
+            "ccm:commonlicense_key": [
+              "CC_BY_SA"
+            ],
+            "ccm:taxonid": [
+              "http://w3id.org/openeduhub/vocabs/discipline/100"
+            ]
+          }
+        },
+        "matched_queries": [
+          "missing"
+        ]
+      },
+      {
+        "_index": "workspace",
+        "_type": "_doc",
+        "_id": "824218",
+        "_score": 0.0,
+        "_ignored": [
+          "properties.ccm:replicationsourcehash.number"
+        ],
+        "_source": {
+          "nodeRef": {
+            "id": "c50f930c-57a6-4677-9255-33bf18aab16c"
+          },
+          "properties": {
+            "cclom:title": "Arten der Zwischenmolekulare Kr\u00e4fte",
+            "ccm:educationalcontext": [
+              "http://w3id.org/openeduhub/vocabs/educationalContext/sekundarstufe_1",
+              "http://w3id.org/openeduhub/vocabs/educationalContext/sekundarstufe_2"
+            ],
+            "ccm:wwwurl": "https://serlo.org/80877",
+            "ccm:commonlicense_key": [
+              "CC_BY_SA"
+            ],
+            "ccm:taxonid": [
+              "http://w3id.org/openeduhub/vocabs/discipline/100"
+            ]
+          }
+        },
+        "matched_queries": [
+          "missing"
+        ]
+      },
+      {
+        "_index": "workspace",
+        "_type": "_doc",
+        "_id": "824760",
+        "_score": 0.0,
+        "_ignored": [
+          "properties.ccm:replicationsourcehash.number"
+        ],
+        "_source": {
+          "nodeRef": {
+            "id": "f6e7cad5-03a9-48f5-8c7a-9fe58aa96920"
+          },
+          "properties": {
+            "cclom:title": "Alkane",
+            "ccm:educationalcontext": [
+              "http://w3id.org/openeduhub/vocabs/educationalContext/sekundarstufe_2"
+            ],
+            "ccm:wwwurl": "https://serlo.org/77792",
+            "ccm:commonlicense_key": [
+              "CC_BY_SA"
+            ],
+            "ccm:taxonid": [
+              "http://w3id.org/openeduhub/vocabs/discipline/100"
+            ]
+          }
+        },
+        "matched_queries": [
+          "missing"
+        ]
+      },
+      {
+        "_index": "workspace",
+        "_type": "_doc",
+        "_id": "821046",
+        "_score": 0.0,
+        "_ignored": [
+          "properties.ccm:replicationsourcehash.number"
+        ],
+        "_source": {
+          "nodeRef": {
+            "id": "4bc67166-2e03-4a27-9125-be96d5f0045a"
+          },
+          "properties": {
+            "cclom:title": "Kohlenwasserstoffe",
+            "ccm:educationalcontext": [
+              "http://w3id.org/openeduhub/vocabs/educationalContext/sekundarstufe_2"
+            ],
+            "ccm:wwwurl": "https://serlo.org/127338",
+            "ccm:commonlicense_key": [
+              "CC_BY_SA"
+            ],
+            "ccm:taxonid": [
+              "http://w3id.org/openeduhub/vocabs/discipline/100"
+            ]
+          }
+        },
+        "matched_queries": [
+          "missing"
+        ]
+      },
+      {
+        "_index": "workspace",
+        "_type": "_doc",
+        "_id": "812139",
+        "_score": 0.0,
+        "_ignored": [
+          "properties.ccm:replicationsourcehash.number"
+        ],
+        "_source": {
+          "nodeRef": {
+            "id": "8c088c84-6679-4f4d-98af-abe7f9d8e953"
+          },
+          "properties": {
+            "cclom:title": "Alkine",
+            "ccm:educationalcontext": [
+              "http://w3id.org/openeduhub/vocabs/educationalContext/sekundarstufe_1",
+              "http://w3id.org/openeduhub/vocabs/educationalContext/sekundarstufe_2"
+            ],
+            "ccm:wwwurl": "https://serlo.org/159967",
+            "ccm:commonlicense_key": [
+              "CC_BY_SA"
+            ],
+            "ccm:taxonid": [
+              "http://w3id.org/openeduhub/vocabs/discipline/100"
+            ]
+          }
+        },
+        "matched_queries": [
+          "missing"
+        ]
+      },
+      {
+        "_index": "workspace",
+        "_type": "_doc",
+        "_id": "2322286",
+        "_score": 0.0,
+        "_source": {
+          "nodeRef": {
+            "id": "f19c94d6-7f5f-4a41-9f9b-6f828c951667"
+          },
+          "properties": {
+            "cclom:title": "Ozon-Sauerstoff-Zyklus",
+            "ccm:educationalcontext": [
+              "http://w3id.org/openeduhub/vocabs/educationalContext/sekundarstufe_2",
+              "http://w3id.org/openeduhub/vocabs/educationalContext/berufliche_bildung"
+            ],
+            "ccm:wwwurl": "https://de.wikipedia.org/wiki/Ozon-Sauerstoff-Zyklus",
+            "cclom:general_keyword": [
+              "Ozon",
+              "Sauerstoff",
+              "Reaktionsgeschwindigkeit",
+              "Strahlung",
+              "Zyklus",
+              "Ozon-Sauerstoff-Zyklus",
+              "Chapman",
+              "Chapman-Zyklus"
+            ],
+            "ccm:commonlicense_key": [
+              "CC_BY_SA"
+            ],
+            "ccm:taxonid": [
+              "http://w3id.org/openeduhub/vocabs/discipline/100",
+              "http://w3id.org/openeduhub/vocabs/discipline/080"
+            ]
+          }
+        },
+        "matched_queries": [
+          "missing"
+        ]
+      },
+      {
+        "_index": "workspace",
+        "_type": "_doc",
+        "_id": "1338905",
+        "_score": 0.0,
+        "_source": {
+          "nodeRef": {
+            "id": "39013e52-7603-4ac8-8c7d-69c5740b2f06"
+          },
+          "properties": {
+            "cclom:title": "Klammern",
+            "cclom:general_keyword": [
+              "Labor",
+              "Laborger\u00e4te"
+            ],
+            "ccm:commonlicense_key": [
+              "CC_BY"
+            ],
+            "ccm:taxonid": [
+              "http://w3id.org/openeduhub/vocabs/discipline/080"
+            ]
+          }
+        },
+        "matched_queries": [
+          "missing"
+        ]
+      },
+      {
+        "_index": "workspace",
+        "_type": "_doc",
+        "_id": "2322303",
+        "_score": 0.0,
+        "_source": {
+          "nodeRef": {
+            "id": "5b1cc4cd-502b-4832-912e-703ee0add645"
+          },
+          "properties": {
+            "cclom:title": "Sommersmog",
+            "ccm:educationalcontext": [
+              "http://w3id.org/openeduhub/vocabs/educationalContext/sekundarstufe_2"
+            ],
+            "ccm:wwwurl": "https://de.wikipedia.org/wiki/Sommersmog",
+            "cclom:general_keyword": [
+              "Ozon",
+              "Abgase",
+              "Luft",
+              "Sauerstoff",
+              "Stickoxide",
+              "Sommersmog",
+              "Bodennahes Ozon"
+            ],
+            "ccm:commonlicense_key": [
+              "CC_BY_SA"
+            ],
+            "ccm:taxonid": [
+              "http://w3id.org/openeduhub/vocabs/discipline/100",
+              "http://w3id.org/openeduhub/vocabs/discipline/080"
+            ]
+          }
+        },
+        "matched_queries": [
+          "missing"
+        ]
+      }
+    ]
+  }
+}

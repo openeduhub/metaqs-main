@@ -1,0 +1,75 @@
+{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "term": {
+            "permissions.Read.keyword": "GROUP_EVERYONE"
+          }
+        },
+        {
+          "term": {
+            "properties.cm:edu_metadataset.keyword": "mds_oeh"
+          }
+        },
+        {
+          "term": {
+            "nodeRef.storeRef.protocol": "workspace"
+          }
+        },
+        {
+          "term": {
+            "type": "ccm:map"
+          }
+        },
+        {
+          "bool": {
+            "should": [
+              {
+                "term": {
+                  "nodeRef.id.keyword": "4940d5da-9b21-4ec0-8824-d16e0409e629"
+                }
+              },
+              {
+                "term": {
+                  "path": "4940d5da-9b21-4ec0-8824-d16e0409e629"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "bool": {
+            "minimum_should_match": 1,
+            "should": [
+              {
+                "bool": {
+                  "must_not": [
+                    {
+                      "wildcard": {
+                        "properties.cm:description": {
+                          "value": "*"
+                        }
+                      }
+                    }
+                  ],
+                  "_name": "missing"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "size": 500000,
+  "from": 0,
+  "_source": {
+    "include": [
+      "nodeRef.id",
+      "properties.cm:title",
+      "properties.cclom:general_keyword",
+      "properties.cm:description"
+    ]
+  }
+}
