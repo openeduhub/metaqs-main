@@ -1,11 +1,10 @@
 import uuid
 
-from fastapi_utils.tasks import repeat_every
+from elasticsearch_dsl import A
+from fastapi import HTTPException
 from pydantic import BaseModel
 
-from app.api.collections.tree import get_tree
-from app.core.config import ELASTIC_TOTAL_SIZE, BACKGROUND_TASK_TIME_INTERVAL
-from app.core.constants import COLLECTION_NAME_TO_ID
+from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.logging import logger
 from app.elastic.attributes import ElasticResourceAttribute
 from app.elastic.search import MaterialSearch
@@ -38,14 +37,13 @@ class MaterialValidationResponse(BaseModel):
     missing_materials: list[IncompleteMaterials]
 
 
-def _get_material_validation_single_collection(collection_id: uuid.UUID, title: str) -> IncompleteMaterials:
+def get_material_validation(collection_id: uuid.UUID) -> MaterialValidationResponse:
     """
-    Build the stats object holding material count statistics for a singular collection.
+    Build the response for the /material-validation endpoint.
 
-    Note that this does not consider materials that are in any (nested-)child collection of the collection, the
-    material has to be _exactly_ in the specified collection.
+    :param collection_id: The id of top level collection
     """
-    logger.info(f" - Analyzing collection: {title} ({collection_id})")
+    logger.info(f"Analyzing collection for materials with missing attributes: {collection_id}")
 
     # the field names and attributes which to check, note that the keys have to exactly match the field
     # names of the PendingMaterials struct.
@@ -60,84 +58,50 @@ def _get_material_validation_single_collection(collection_id: uuid.UUID, title: 
         "intended_end_user_role": ElasticResourceAttribute.EDU_ENDUSERROLE_DE,
     }
 
-    # to avoid looping through the results multiple times, we here initialize with empty lists
-    materials = IncompleteMaterials(
-        collection_id=collection_id,
-        title=[],
-        edu_context=[],
-        url=[],
-        description=[],
-        license=[],
-        learning_resource_type=[],
-        taxon_id=[],
-        publisher=[],
-        intended_end_user_role=[],
-    )
-
-    # Don't do a transitive search: We only want the materials that are exactly in this collection
-    # also the constructed search will return materials for which any of the attributes is missing.
+    # Do a transitive search: We want the materials of any collection of the given subtree (including the root of the
+    # subtree)
     search = (
         MaterialSearch()
-        .collection_filter(collection_id=collection_id, transitive=False)
+        .collection_filter(collection_id=collection_id, transitive=True)
         .non_series_objects_filter()
-        .missing_attribute_filter(**relevant_attributes)
-        .extra(size=ELASTIC_TOTAL_SIZE, from_=0)
-        .source(includes=["nodeRef.id"])
+        .extra(size=0, from_=0)  # we only care about the aggregations
     )
 
-    hits = search.execute().hits
+    search.aggs.bucket(
+        "collections",
+        A(
+            "terms",
+            field="collections.nodeRef.id.keyword",
+            size=10000,
+            aggs={
+                name: {
+                    # sub-sub-aggregation yielding all material ids of the nested (collection,missing-attribute) bucket
+                    "aggs": {"material-ids": {"top_hits": {"size": ELASTIC_TOTAL_SIZE, "_source": ["nodeRef.id"]}}},
+                    # define the actual nested bucket within the collection buckets
+                    "missing": {"field": attr.keyword},
+                }
+                for name, attr in relevant_attributes.items()
+            },
+        ),
+    )
 
-    # now we loop over the results a single time and append to the respective list where appropriate
-    for hit in hits:
-        node_id = uuid.UUID(hit["nodeRef"]["id"])
+    response = search.execute()
 
-        assert (
-            len(hit.meta.matched_queries) > 0
-        ), f"Found 'matched_queries' of length 0 which should never happen. nodeRef.id: {node_id}"
-
-        for match in hit.meta.matched_queries:
-            # we need to strip the "missing_" prefix from the matched query name :-/
-            getattr(materials, match).append(node_id)
-
-    return materials
-
-
-def get_material_validation(collection_id: uuid.UUID) -> MaterialValidationResponse:
-    """
-    Build the response for the /material-validation endpoint.
-
-    :param collection_id: The id of top level collection
-    """
-
-    tree = get_tree(node_id=collection_id)
-    logger.info(f"Working on {tree.title} ({collection_id})")
-    children = tree.flatten(root=False)
+    if not response.success():
+        raise HTTPException(status_code=502, detail="Failed to issue elastic search query.")
 
     return MaterialValidationResponse(
         collection_id=collection_id,
         missing_materials=[
-            # fixme: we need to include the top level node here because we use a really inadequate data model...
-            #        and it needs to be included, because there could be materials that are only in the top level
-            #        collection and those materials would otherwise not be included anywhere.
-            _get_material_validation_single_collection(collection_id, title=tree.title),
-            *(_get_material_validation_single_collection(node.node_id, title=node.title) for node in children),
+            IncompleteMaterials(
+                collection_id=uuid.UUID(bucket["key"]),
+                **{
+                    name: [
+                        uuid.UUID(hit["_source"]["nodeRef"]["id"]) for hit in bucket[name]["docs"]["hits"]["hits"]
+                    ]  # yes, it is very nested...
+                    for name in relevant_attributes.keys()
+                },
+            )
+            for bucket in response.aggregations["buckets"]
         ],
     )
-
-
-# FIXME: Try to eliminate the last non-realtime calculation
-material_validation_cache: dict[uuid.UUID, MaterialValidationResponse] = {}
-
-
-@repeat_every(seconds=BACKGROUND_TASK_TIME_INTERVAL, logger=logger)
-def background_task():
-
-    logger.info(f"Updating material validation cache. Length: {len(COLLECTION_NAME_TO_ID)}")
-
-    for counter, (title, collection) in enumerate(COLLECTION_NAME_TO_ID.items()):
-        collection = uuid.UUID(collection)
-        logger.info(f"Working on: {title}")
-        material_validation_cache[collection] = get_material_validation(collection_id=collection)
-
-    logger.info("Storing in cache.")
-    logger.info("Background task done")
