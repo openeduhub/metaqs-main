@@ -1,0 +1,362 @@
+{
+  "took": 12,
+  "timed_out": false,
+  "_shards": {
+    "total": 1,
+    "successful": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": {
+      "value": 10000,
+      "relation": "gte"
+    },
+    "max_score": null,
+    "hits": []
+  },
+  "aggregations": {
+    "material_types_and_collection": {
+      "buckets": {
+        "15fce411-54d9-467f-8f35-61ea374a298d": {
+          "doc_count": 2434,
+          "material_type": {
+            "doc_count_error_upper_bound": 0,
+            "sum_other_doc_count": 0,
+            "buckets": [
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/1846d876-d8fd-476a-b540-b8ffd713fedb",
+                "doc_count": 1111
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/7381f17f-50a6-4ce1-b3a0-9d85a482eec0",
+                "doc_count": 1106
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/d8c3ef03-b3ab-4a5e-bcc9-5a546fefa2e9",
+                "doc_count": 945
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/7d591b84-9171-47cb-809a-74ef07f07261",
+                "doc_count": 579
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/36e68792-6159-481d-a97b-2c00901f4f78",
+                "doc_count": 453
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/b98c0c8c-5696-4537-82fa-dded7236081e",
+                "doc_count": 232
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/ef58097d-c1de-4e6a-b4da-6f10e3716d3d",
+                "doc_count": 197
+              },
+              {
+                "key": "N/A",
+                "doc_count": 91
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/a6d1ac52-c557-4151-bc6f-0d99b0b96fb9",
+                "doc_count": 79
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/6b9748e4-fb3b-4082-ae08-c7a11c717256",
+                "doc_count": 72
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/477115fd-5042-4174-ac39-7c05f8a24766",
+                "doc_count": 69
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/0f519bd5-069c-4d32-b6d3-a373ac96724c",
+                "doc_count": 59
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/7a6e9608-2554-4981-95dc-47ab9ba924de",
+                "doc_count": 53
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/4e16015a-7862-49ed-9b5e-6c1c6e0ffcd1",
+                "doc_count": 31
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/3869b453-d3c1-4b34-8f25-9127e9d68766",
+                "doc_count": 23
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/1cac68e6-dafe-4ce4-a52f-f33cde26da59",
+                "doc_count": 20
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/22823ca9-7175-4b24-892e-19ebbf5fe0e7",
+                "doc_count": 19
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/b0495f44-b05d-4bde-9dc5-34d7b5234d76",
+                "doc_count": 15
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/92c7a50c-6243-45d9-8b11-e79cbbda6305",
+                "doc_count": 11
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/94222751-6c90-4623-9c7e-09e21d885599",
+                "doc_count": 11
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/ec2682af-08a9-4ab1-a324-9dca5151e99f",
+                "doc_count": 9
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/5098cf0b-1c12-4a1b-a6d3-b3f29621e11d",
+                "doc_count": 8
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/6a15628c-0e59-43e3-9fc5-9a7f7fa261c4",
+                "doc_count": 8
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/9cf3c183-f37c-4b6b-8beb-65f530595dff",
+                "doc_count": 8
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/ab5b99ea-551c-42f3-995b-e4b5f469ad7e",
+                "doc_count": 6
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/0cef3ce9-e106-47ae-836a-48f9ed04384e",
+                "doc_count": 5
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/61462395-8303-44bf-95a4-6a4297013283",
+                "doc_count": 5
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/92dcc3ec-fe94-451c-95ac-ea305e0e7597",
+                "doc_count": 5
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/9a86beb5-1a65-48ca-99c8-e8c789cfe2f8",
+                "doc_count": 4
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/8aa00490-b9b9-453f-8fa7-55557507ab5f",
+                "doc_count": 3
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/dc5763ab-6f47-4aa3-9ff3-1303efbeef6e",
+                "doc_count": 3
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/1dc4ed81-718c-4b76-86cb-947a86875973",
+                "doc_count": 2
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/a33ef73d-9210-4305-97f9-7357bbf43486",
+                "doc_count": 2
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/a5897142-bf57-4cd0-bcd9-7d0f1932e87a",
+                "doc_count": 2
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/c022c920-c236-4234-bae1-e264a3e2bdf6",
+                "doc_count": 2
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/cefccf75-cba3-427d-9a0f-35b4fedcbba1",
+                "doc_count": 2
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/4735c61a-429b-4909-9f3c-cbf975e2aa0e",
+                "doc_count": 1
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/ac82dc13-3be1-464d-9cdc-88e608d99c39",
+                "doc_count": 1
+              }
+            ]
+          }
+        },
+        "4940d5da-9b21-4ec0-8824-d16e0409e629": {
+          "doc_count": 2429,
+          "material_type": {
+            "doc_count_error_upper_bound": 0,
+            "sum_other_doc_count": 0,
+            "buckets": [
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/7381f17f-50a6-4ce1-b3a0-9d85a482eec0",
+                "doc_count": 1101
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/d8c3ef03-b3ab-4a5e-bcc9-5a546fefa2e9",
+                "doc_count": 947
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/36e68792-6159-481d-a97b-2c00901f4f78",
+                "doc_count": 638
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/1846d876-d8fd-476a-b540-b8ffd713fedb",
+                "doc_count": 371
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/a6d1ac52-c557-4151-bc6f-0d99b0b96fb9",
+                "doc_count": 291
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/ef58097d-c1de-4e6a-b4da-6f10e3716d3d",
+                "doc_count": 227
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/4735c61a-429b-4909-9f3c-cbf975e2aa0e",
+                "doc_count": 225
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/b98c0c8c-5696-4537-82fa-dded7236081e",
+                "doc_count": 214
+              },
+              {
+                "key": "N/A",
+                "doc_count": 151
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/5098cf0b-1c12-4a1b-a6d3-b3f29621e11d",
+                "doc_count": 111
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/a0218a48-a008-4975-a62a-27b1a83d454f",
+                "doc_count": 81
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/7d591b84-9171-47cb-809a-74ef07f07261",
+                "doc_count": 73
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/477115fd-5042-4174-ac39-7c05f8a24766",
+                "doc_count": 69
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/6b9748e4-fb3b-4082-ae08-c7a11c717256",
+                "doc_count": 68
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/a33ef73d-9210-4305-97f9-7357bbf43486",
+                "doc_count": 45
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/0f519bd5-069c-4d32-b6d3-a373ac96724c",
+                "doc_count": 41
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/4e16015a-7862-49ed-9b5e-6c1c6e0ffcd1",
+                "doc_count": 36
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/3869b453-d3c1-4b34-8f25-9127e9d68766",
+                "doc_count": 34
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/7a6e9608-2554-4981-95dc-47ab9ba924de",
+                "doc_count": 34
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/e5ed8ec2-2c7e-4f46-aba9-e67148ef6656",
+                "doc_count": 27
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/a5897142-bf57-4cd0-bcd9-7d0f1932e87a",
+                "doc_count": 26
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/8aa00490-b9b9-453f-8fa7-55557507ab5f",
+                "doc_count": 21
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/1cac68e6-dafe-4ce4-a52f-f33cde26da59",
+                "doc_count": 20
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/2e4157ad-e29a-4f10-b4e6-370e0fd59d26",
+                "doc_count": 20
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/2e67ce4e-49ce-468b-bd94-96a74e4832aa",
+                "doc_count": 20
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/c022c920-c236-4234-bae1-e264a3e2bdf6",
+                "doc_count": 20
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/22823ca9-7175-4b24-892e-19ebbf5fe0e7",
+                "doc_count": 19
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/94222751-6c90-4623-9c7e-09e21d885599",
+                "doc_count": 19
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/cefccf75-cba3-427d-9a0f-35b4fedcbba1",
+                "doc_count": 16
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/b0495f44-b05d-4bde-9dc5-34d7b5234d76",
+                "doc_count": 15
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/9cf3c183-f37c-4b6b-8beb-65f530595dff",
+                "doc_count": 13
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/92c7a50c-6243-45d9-8b11-e79cbbda6305",
+                "doc_count": 11
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/6a15628c-0e59-43e3-9fc5-9a7f7fa261c4",
+                "doc_count": 8
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/ab5b99ea-551c-42f3-995b-e4b5f469ad7e",
+                "doc_count": 6
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/61462395-8303-44bf-95a4-6a4297013283",
+                "doc_count": 5
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/92dcc3ec-fe94-451c-95ac-ea305e0e7597",
+                "doc_count": 5
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/9a86beb5-1a65-48ca-99c8-e8c789cfe2f8",
+                "doc_count": 4
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/dc5763ab-6f47-4aa3-9ff3-1303efbeef6e",
+                "doc_count": 3
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/1dc4ed81-718c-4b76-86cb-947a86875973",
+                "doc_count": 2
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/29f0d682-38c6-4a64-a1fa-04e673c28128",
+                "doc_count": 2
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/ec2682af-08a9-4ab1-a324-9dca5151e99f",
+                "doc_count": 2
+              },
+              {
+                "key": "http://w3id.org/openeduhub/vocabs/new_lrt/ac82dc13-3be1-464d-9cdc-88e608d99c39",
+                "doc_count": 1
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

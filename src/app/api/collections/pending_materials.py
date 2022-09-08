@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.logging import logger
-from app.core.models import ElasticResourceAttribute
+from app.elastic.attributes import ElasticResourceAttribute
 from app.elastic.dsl import ElasticField
 from app.elastic.search import MaterialSearch
 
@@ -67,7 +67,7 @@ def materials_filter_params(*, missing_attr: MissingMaterialField = Path(...)) -
     return MissingAttributeFilter(attr=missing_attr)
 
 
-async def search_materials_with_missing_attributes(
+async def get_pending_materials(
     collection_id: uuid.UUID,
     missing: ElasticResourceAttribute,
 ) -> list[LearningMaterial]:

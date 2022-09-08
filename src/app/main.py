@@ -5,7 +5,7 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
 from starlette_context.middleware import RawContextMiddleware
 
-from app.api.analytics.background_task import background_task
+from app.api.collections.material_validation import background_task
 from app.api.api import router
 from app.core.config import (
     ALLOWED_HOSTS,

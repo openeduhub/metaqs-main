@@ -209,22 +209,6 @@ def test_create_properties_search():
     assert create_properties_search().to_dict() == expected_search
 
 
-def test_add_base_match_filters():
-    excpectation = {
-        "query": {
-            "bool": {
-                "filter": [
-                    {"term": {"permissions.Read.keyword": "GROUP_EVERYONE"}},
-                    {"term": {"properties.cm:edu_metadataset.keyword": "mds_oeh"}},
-                    {"term": {"nodeRef.storeRef.protocol": "workspace"}},
-                ]
-            }
-        }
-    }
-
-    assert Search().base_filters().to_dict() == excpectation
-
-
 def test_missing_fields_zero_division_error():
     with pytest.raises(ZeroDivisionError):
         missing_fields({"doc_count": 0}, 0, "dummy_source")

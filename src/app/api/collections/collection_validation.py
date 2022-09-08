@@ -1,244 +1,72 @@
 import datetime
 import uuid
-from typing import Union
+from enum import Enum
 
-from elasticsearch_dsl.aggs import Agg
-from elasticsearch_dsl.query import Q, Query
-from elasticsearch_dsl.response import AggResponse, Response
-from glom import merge
+from fastapi import HTTPException
+from pydantic import BaseModel
 
-from app.api.collections.models import (
-    CollectionValidationStats,
-    CountStatistics,
-    StatsNotFoundException,
-    StatsResponse,
-)
-from app.api.analytics.storage import (
-    _COLLECTION_COUNT,
-    _COLLECTION_COUNT_OER,
-    _COLLECTIONS,
-    StorageModel,
-    global_storage,
-    global_store,
-)
-from app.api.collections.counts import oer_ratio
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.models import (
-    ElasticResourceAttribute,
-    forbidden_licenses,
-    oer_license,
-    required_collection_properties,
-)
-from app.elastic.dsl import ElasticField, aterms
-from app.elastic.elastic import ResourceType
-from app.elastic.search import Search
+from app.elastic.attributes import ElasticResourceAttribute
+from app.elastic.search import CollectionSearch
 
 
-def qsimplequerystring(
-    query: str, qfields: list[Union[ElasticField, str]], **kwargs
-) -> Query:
-    kwargs["query"] = query
-    kwargs["fields"] = [
-        (qfield.path if isinstance(qfield, ElasticField) else qfield)
-        for qfield in qfields
-    ]
-    return Q("simple_query_string", **kwargs)
+class OehValidationError(str, Enum):
+    MISSING = "missing"
+    TOO_SHORT = "too_short"
+    TOO_FEW = "too_few"
 
 
-def search_materials(query_str: str) -> Query:
-    return qsimplequerystring(
-        query=query_str,
-        qfields=[
-            ElasticResourceAttribute.TITLE,
-            ElasticResourceAttribute.KEYWORDS,
-            ElasticResourceAttribute.DESCRIPTION,
-            ElasticResourceAttribute.CONTENT_FULLTEXT,
-            ElasticResourceAttribute.SUBJECTS_DE,
-            ElasticResourceAttribute.LEARNINGRESOURCE_TYPE_DE,
-            ElasticResourceAttribute.EDU_CONTEXT_DE,
-            ElasticResourceAttribute.EDU_ENDUSERROLE_DE,
-        ],
-        default_operator="and",
-    )
+class CollectionValidationStats(BaseModel):
+    node_id: uuid.UUID
+    derived_at: datetime.datetime  # fixme: eventually remove?
+    title: list[OehValidationError]
+    keywords: list[OehValidationError]
+    description: list[OehValidationError]
+    edu_context: list[OehValidationError]
 
 
-def agg_material_types(size: int = ELASTIC_TOTAL_SIZE) -> Agg:
-    # TODO: This is the key property we are aggregating for
-    return aterms(
-        qfield=ElasticResourceAttribute.LEARNINGRESOURCE_TYPE,
-        missing="N/A",
-        size=size,
-    )
+def get_collection_validation(collection_id: uuid.UUID) -> list[CollectionValidationStats]:
+    """
+    Get a list of collections (part of the sub-tree defined by given collection id, including the root of the subtree)
+    where one of the following attributes is missing:
 
+    - title # fixme: can a title be empty @tsimon
+    - description
+    - keywords
+    - edu_context # fixme: does this even make sense?
 
-def merge_agg_response(
-    agg: AggResponse, key: str = "key", result_field: str = "doc_count"
-) -> dict:
-    def op(carry: dict, bucket: dict):
-        carry[bucket[key]] = bucket[result_field]
-
-    return merge(agg.buckets, op=op)
-
-
-def search_hits_by_material_type(collection_title: str, oer_only: bool = False) -> dict:
-    """Title used here to shotgun search for any matches with the title of the material"""
-    search = build_material_search(collection_title, oer_only)
-    response: Response = search.extra(size=0, from_=0).execute()
-
-    if response.success():
-        # TODO: Clear and cleanup: what does this do?
-        stats = merge_agg_response(response.aggregations.material_types)
-        stats["total"] = sum(stats.values())
-        return stats
-
-
-def build_material_search(query_string: str, oer_only: bool = False):
+    TODO: Eventually align the return data structure with PendingMaterialsResponse as we do the same thing for
+          collections that is done for materials with PendingMaterialsResponse.
+    """
     search = (
-        Search()
-        .base_filters()
-        .type_filter(resource_type=ResourceType.MATERIAL)
-        .query(search_materials(query_string))
-    )
-    if oer_only:
-        search = search.filter(
-            {
-                "terms": {
-                    f"{ElasticResourceAttribute.LICENSES.path}.keyword": oer_license
-                }
-            }
+        CollectionSearch()
+        .collection_filter(collection_id=collection_id)
+        .missing_attribute_filter(
+            title=ElasticResourceAttribute.COLLECTION_TITLE,
+            description=ElasticResourceAttribute.COLLECTION_DESCRIPTION,
+            edu_context=ElasticResourceAttribute.EDU_CONTEXT,  # fixme: no edu context for collections?
+            keywords=ElasticResourceAttribute.KEYWORDS,  # fixme: no keywords for collection?
         )
-        # search = search.filter(Terms({f"{ElasticResourceAttribute.LICENSES.path}.keyword": oer_license})
-    search.aggs.bucket("material_types", agg_material_types())
-    return search
-
-
-def query_material_types(
-    node_id: uuid.UUID, storage_path: str
-) -> dict[str, CountStatistics]:
-    # get collections with parent id equal to node_id
-    # portal_id == node_id
-    collections = global_storage[_COLLECTIONS]
-    collections = filtered_collections(collections, node_id)
-
-    # collection id - learning_resource_type - counts
-    # Join filtered collections and filtered counts into one, now
-    stats = {}
-
-    counts = global_storage[storage_path]
-
-    # TODO: Refactor with filter and dict comprehension
-    for collection in collections:
-        for count in counts:
-            if collection.id == str(count.node_id):
-                stats.update(
-                    {str(collection.id): {"total": count.total, **count.counts}}
-                )
-    return stats
-
-
-def filtered_collections(collections: list[StorageModel], node_id: uuid.UUID):
-    return [
-        collection
-        for collection in collections
-        if str(node_id) in collection.doc["path"]
-    ]
-
-
-async def query_search_statistics(
-    node_id: uuid.UUID,
-) -> dict[str, CountStatistics]:
-    for stats in global_store.search:
-        if str(node_id) == str(stats.node_id):
-            return {str(key): value for key, value in stats.missing_materials.items()}
-    return {}
-
-
-async def oer_query_search_statistics(
-    node_id: uuid.UUID,
-) -> dict[str, CountStatistics]:
-    for stats in global_store.oer_search:
-        if str(node_id) == str(stats.node_id):
-            return {str(key): value for key, value in stats.missing_materials.items()}
-    return {}
-
-
-async def overall_stats(node_id: uuid.UUID) -> StatsResponse:
-    """
-    Calculating tree search counts
-
-    :param node_id:
-    :return:
-    """
-
-    search_stats = await query_search_statistics(node_id=node_id)
-    if not search_stats:
-        raise StatsNotFoundException
-
-    oer_search_stats = await oer_query_search_statistics(node_id=node_id)
-    if not search_stats:
-        raise StatsNotFoundException
-
-    material_types_stats = query_material_types(node_id, _COLLECTION_COUNT)
-    if not material_types_stats:
-        raise StatsNotFoundException
-
-    oer_material_types_stats = query_material_types(node_id, _COLLECTION_COUNT_OER)
-    if not oer_material_types_stats:
-        raise StatsNotFoundException
-
-    stats_output = transform_output(material_types_stats, search_stats)
-    oer_output = transform_output(oer_material_types_stats, oer_search_stats)
-
-    return StatsResponse(
-        derived_at=datetime.datetime.now(),
-        total_stats=stats_output,
-        oer_stats=oer_output,
-        oer_ratio=oer_ratio(node_id),
+        .source(
+            includes=["nodeRef.id", "properties.cm:title"]  # title is nice for debugging but actually not needed here
+        )
+        .extra(size=ELASTIC_TOTAL_SIZE, from_=0)
     )
 
+    result = search.execute()
 
-def transform_output(material_types_stats, search_stats):
-    stats_output = {key: {"search": value} for key, value in search_stats.items()}
-    for key, value in material_types_stats.items():
-        if key in stats_output.keys():
-            stats_output[key].update({"material_types": value})
-        else:
-            stats_output.update({key: {"material_types": value}})
-    return stats_output
+    if not result.success():
+        raise HTTPException(status_code=502, detail="Failed to run elastic search query.")
 
-
-def collections_with_missing_properties(
-    node_id: uuid.UUID,
-) -> list[CollectionValidationStats]:
-    """
-    Check whether any of the following are missing:
-    title, description, keywords, license, taxon_id, edu_context, learning_resource_type, ads_qualifier, object_type
-
-    """
-
-    collections = global_storage[_COLLECTIONS]
-    collections = filtered_collections(collections, node_id)
-
-    missing_properties = {}
-    for collection in collections:
-        missing_properties.update({collection.id: {}})
-        for entry in required_collection_properties.keys():
-            value = {required_collection_properties[entry]: ["missing"]}
-            if (
-                "properties" not in collection.doc.keys()
-                or entry.split(".")[-1] not in collection.doc["properties"].keys()
-            ):
-                missing_properties[collection.id].update(value)
-
-    if not missing_properties:
-        raise StatsNotFoundException
-
+    derived_at = datetime.datetime.now()
     return [
         CollectionValidationStats(
-            node_id=uuid.UUID(key),
-            **value,
+            node_id=uuid.UUID(hit["nodeRef"]["id"]),
+            derived_at=derived_at,
+            title=[OehValidationError.MISSING] if "title" in hit.meta.matched_queries else [],
+            description=[OehValidationError.MISSING] if "description" in hit.meta.matched_queries else [],
+            keywords=[OehValidationError.MISSING] if "keywords" in hit.meta.matched_queries else [],
+            edu_context=[OehValidationError.MISSING] if "edu_context" in hit.meta.matched_queries else [],
         )
-        for key, value in missing_properties.items()
+        for hit in result.hits
     ]
-
-

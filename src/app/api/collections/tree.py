@@ -5,6 +5,7 @@ from __future__ import (  # Needed for recursive type annotation, can be dropped
 import uuid
 from typing import Optional, Iterable
 
+from elasticsearch_dsl import Search
 from elasticsearch_dsl.response import Response
 from fastapi import HTTPException
 from pydantic import BaseModel
@@ -12,10 +13,9 @@ from pydantic import BaseModel
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import COLLECTION_NAME_TO_ID
 from app.core.logging import logger
-from app.core.models import ElasticResourceAttribute
+from app.elastic.attributes import ElasticResourceAttribute
 from app.elastic.dsl import qbool, qterm
-from app.elastic.elastic import ResourceType
-from app.elastic.search import Search
+from app.elastic.search import CollectionSearch
 
 
 class CollectionNode(BaseModel):
@@ -53,9 +53,7 @@ def tree_search(node_id: uuid.UUID) -> Search:
     # make search.to_dict() result JSON serializable
     node_id = str(node_id)
     return (
-        Search()
-        .base_filters()
-        .type_filter(ResourceType.COLLECTION)
+        CollectionSearch()
         .query(qbool(filter=qterm(qfield=ElasticResourceAttribute.PATH.path, value=node_id)))
         .source(
             [
@@ -70,7 +68,7 @@ def tree_search(node_id: uuid.UUID) -> Search:
     )
 
 
-def build_collection_tree(node_id: uuid.UUID) -> CollectionNode:
+def get_tree(node_id: uuid.UUID) -> CollectionNode:
     """
     Build the collection tree for given top level collection_id.
 

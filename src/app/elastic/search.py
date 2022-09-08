@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+from enum import Enum
 from pprint import pformat
 from uuid import UUID
 
@@ -9,10 +10,15 @@ from elasticsearch_dsl.query import Q, Term, Bool, Terms, Match, Query, Wildcard
 from elasticsearch_dsl.response import Response
 
 from app.core.config import ELASTIC_INDEX
+from app.core.constants import OER_LICENSES
 from app.core.logging import logger
-from app.core.models import ElasticResourceAttribute
+from app.elastic.attributes import ElasticResourceAttribute
 from app.elastic.dsl import qterm
-from app.elastic.elastic import ResourceType
+
+
+class ResourceType(str, Enum):
+    COLLECTION = "COLLECTION"
+    MATERIAL = "MATERIAL"
 
 
 class Search(elasticsearch_dsl.Search):  # todo remove entirely in favour of below Material and CollectionSearch
@@ -185,7 +191,7 @@ class MaterialSearch(_Search):
 
     def oer_filter(self) -> MaterialSearch:
         """Return a new search with an added filter to only return OER materials."""
-        return self.filter(Terms(**{ElasticResourceAttribute.LICENSES.keyword: ["CC_0", "PDM", "CC_BY", "CC_BY_SA"]}))
+        return self.filter(Terms(**{ElasticResourceAttribute.LICENSES.keyword: OER_LICENSES}))
 
     def collection_filter(self, collection_id: UUID, transitive: bool) -> MaterialSearch:
         """

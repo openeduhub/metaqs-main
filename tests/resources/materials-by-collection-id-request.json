@@ -1,0 +1,72 @@
+{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "term": {
+            "permissions.Read.keyword": "GROUP_EVERYONE"
+          }
+        },
+        {
+          "term": {
+            "properties.cm:edu_metadataset.keyword": "mds_oeh"
+          }
+        },
+        {
+          "term": {
+            "nodeRef.storeRef.protocol": "workspace"
+          }
+        },
+        {
+          "term": {
+            "type": "ccm:io"
+          }
+        },
+        {
+          "terms": {
+            "properties.ccm:commonlicense_key.keyword": [
+              "CC_0",
+              "PDM",
+              "CC_BY",
+              "CC_BY_SA"
+            ]
+          }
+        },
+        {
+          "bool": {
+            "should": [
+              {
+                "term": {
+                  "collections.nodeRef.id.keyword": "4940d5da-9b21-4ec0-8824-d16e0409e629"
+                }
+              },
+              {
+                "match": {
+                  "collections.path.keyword": "4940d5da-9b21-4ec0-8824-d16e0409e629"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "aggs": {
+    "material_type_and_collection": {
+      "multi_terms": {
+        "size": 50000,
+        "terms": [
+          {
+            "field": "properties.ccm:oeh_lrt.keyword",
+            "missing": "N/A"
+          },
+          {
+            "field": "collections.nodeRef.id.keyword"
+          }
+        ]
+      }
+    }
+  },
+  "size": 0,
+  "from": 0
+}

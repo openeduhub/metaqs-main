@@ -6,7 +6,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel
 
 from app.api.collections.tree import CollectionNode
-from app.core.models import ElasticResourceAttribute
+from app.elastic.attributes import ElasticResourceAttribute
 from app.elastic.search import MaterialSearch
 
 
@@ -16,7 +16,7 @@ class CollectionMaterialCount(BaseModel):
     materials_count: int
 
 
-async def get_collection_material_counts(collection: CollectionNode) -> list[CollectionMaterialCount]:
+async def get_material_counts(collection: CollectionNode) -> list[CollectionMaterialCount]:
     """
     Compute the number of materials for every node of the given collection tree.
     """

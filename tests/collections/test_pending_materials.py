@@ -3,19 +3,19 @@ import uuid
 import pytest
 
 from app.api.collections.pending_materials import (
-    search_materials_with_missing_attributes,
+    get_pending_materials,
 )
 from app.core.constants import COLLECTION_NAME_TO_ID
-from app.core.models import ElasticResourceAttribute
+from app.elastic.attributes import ElasticResourceAttribute
 from tests.conftest import elastic_search_mock
 
 
 @pytest.mark.asyncio
-async def test_search_materials_with_missing_description():
+async def test_pending_materials_description():
     biologie = uuid.UUID(COLLECTION_NAME_TO_ID["Biologie"])
 
-    with elastic_search_mock("materials-with-missing-attributes-description"):
-        materials = await search_materials_with_missing_attributes(
+    with elastic_search_mock("pending-materials-description"):
+        materials = await get_pending_materials(
             collection_id=biologie,
             missing=ElasticResourceAttribute.DESCRIPTION,
         )
@@ -27,11 +27,11 @@ async def test_search_materials_with_missing_description():
 
 
 @pytest.mark.asyncio
-async def test_search_materials_with_missing_license():
+async def test_pending_materials_license():
     biologie = uuid.UUID(COLLECTION_NAME_TO_ID["Biologie"])
 
-    with elastic_search_mock("materials-with-missing-attributes-license"):
-        materials = await search_materials_with_missing_attributes(
+    with elastic_search_mock("pending-materials-license"):
+        materials = await get_pending_materials(
             collection_id=biologie,
             missing=ElasticResourceAttribute.LICENSES,
         )
