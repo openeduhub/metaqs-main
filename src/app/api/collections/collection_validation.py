@@ -1,4 +1,3 @@
-import datetime
 import uuid
 from enum import Enum
 
@@ -16,16 +15,15 @@ class OehValidationError(str, Enum):
     TOO_FEW = "too_few"
 
 
-class CollectionValidationStats(BaseModel):
+class CollectionValidation(BaseModel):
     node_id: uuid.UUID
-    derived_at: datetime.datetime  # fixme: eventually remove?
     title: list[OehValidationError]
     keywords: list[OehValidationError]
     description: list[OehValidationError]
     edu_context: list[OehValidationError]
 
 
-def get_collection_validation(collection_id: uuid.UUID) -> list[CollectionValidationStats]:
+def collection_validation(collection_id: uuid.UUID) -> list[CollectionValidation]:
     """
     Get a list of collections (part of the sub-tree defined by given collection id, including the root of the subtree)
     where one of the following attributes is missing:
@@ -58,11 +56,9 @@ def get_collection_validation(collection_id: uuid.UUID) -> list[CollectionValida
     if not result.success():
         raise HTTPException(status_code=502, detail="Failed to run elastic search query.")
 
-    derived_at = datetime.datetime.now()
     return [
-        CollectionValidationStats(
+        CollectionValidation(
             node_id=uuid.UUID(hit["nodeRef"]["id"]),
-            derived_at=derived_at,
             title=[OehValidationError.MISSING] if "title" in hit.meta.matched_queries else [],
             description=[OehValidationError.MISSING] if "description" in hit.meta.matched_queries else [],
             keywords=[OehValidationError.MISSING] if "keywords" in hit.meta.matched_queries else [],

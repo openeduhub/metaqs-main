@@ -7,10 +7,9 @@ from elasticsearch_dsl.response import Response
 from fastapi import HTTPException
 from pydantic import BaseModel, Field
 
-from app.api.collections.tree import get_tree, CollectionNode
+from app.api.collections.tree import tree, Tree
 from app.api.collections.utils import oer_ratio
-from app.elastic.attributes import ElasticResourceAttribute
-from app.elastic.dsl import ElasticField
+from app.elastic.attributes import ElasticResourceAttribute, ElasticField
 from app.elastic.search import MaterialSearch
 
 
@@ -22,7 +21,7 @@ class SearchAndTotalStats(BaseModel):
     material_types: CountStatistics
 
 
-class StatsResponse(BaseModel):
+class Statistics(BaseModel):
     """
     In principle this class is a four-dimensional array with the dimension:
      # - collection (node_id, the most outer dictionary keys)
@@ -96,7 +95,7 @@ class StatsResponse(BaseModel):
     oer_ratio: int = Field(default=0)
 
 
-def materials_by_collection_title(nodes: list[CollectionNode], oer_only: bool) -> dict[UUID, CountStatistics]:
+def materials_by_collection_title(nodes: list[Tree], oer_only: bool) -> dict[UUID, CountStatistics]:
     """
     Fuzzy-Search for materials that have description, title, etc. similar to the titles of given collection nodes.
 
@@ -119,7 +118,7 @@ def materials_by_collection_title(nodes: list[CollectionNode], oer_only: bool) -
         ElasticResourceAttribute.CONTENT_FULLTEXT,
     ]
 
-    def filter_subquery(node: CollectionNode) -> Query:
+    def filter_subquery(node: Tree) -> Query:
         return SimpleQueryString(
             query=node.title,
             fields=[(field.path if isinstance(field, ElasticField) else field) for field in fields],
@@ -208,11 +207,11 @@ def materials_by_collection_id(collection_id: UUID, oer_only: bool) -> dict[UUID
     return result
 
 
-async def get_statistics(node_id: uuid.UUID) -> StatsResponse:
+async def statistics(node_id: uuid.UUID) -> Statistics:
     """
     See API /collections/{node_id}/statistics doc-string.
     """
-    nodes = {node.node_id: node for node in get_tree(node_id=node_id).flatten(root=True)}
+    nodes = {node.node_id: node for node in tree(node_id=node_id).flatten(root=True)}
 
     total_by_title = materials_by_collection_title(nodes=list(nodes.values()), oer_only=False)
     oer_by_title = materials_by_collection_title(nodes=list(nodes.values()), oer_only=True)
@@ -236,7 +235,7 @@ async def get_statistics(node_id: uuid.UUID) -> StatsResponse:
             for collection_id in collection_ids
         }
 
-    return StatsResponse(
+    return Statistics(
         derived_at=datetime.datetime.now(),
         total_stats=transform(total_by_collection, total_by_title),
         oer_stats=transform(oer_by_collection, oer_by_title),

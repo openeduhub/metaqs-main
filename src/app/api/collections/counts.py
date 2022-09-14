@@ -9,7 +9,7 @@ from app.core.config import ELASTIC_TOTAL_SIZE
 from app.elastic.search import MaterialSearch
 
 
-class CollectionTreeCount(BaseModel):
+class Counts(BaseModel):
     """
     A preliminary model to yield the total number of collections as well as counts for specific metrics,
     e.g. OER licence
@@ -34,7 +34,7 @@ class AggregationMappings(str, Enum):
     license = ("properties.ccm:commonlicense_key.keyword",)
 
 
-async def get_counts(node_id: uuid.UUID, facet: AggregationMappings) -> Optional[list[CollectionTreeCount]]:
+async def counts(node_id: uuid.UUID, facet: AggregationMappings) -> Optional[list[Counts]]:
     counts = await _collection_counts(node_id=node_id, facet=facet, oer_only=False)
     oer_counts = await _collection_counts(node_id=node_id, facet=facet, oer_only=True)
 
@@ -66,15 +66,15 @@ def _collection_counts_search(node_id: uuid.UUID, facet: AggregationMappings, oe
 
 async def _collection_counts(
     node_id: uuid.UUID, facet: AggregationMappings, oer_only: bool = False
-) -> Optional[list[CollectionTreeCount]]:
+) -> Optional[list[Counts]]:
     response = _collection_counts_search(node_id, facet, oer_only).execute()
     if response.success():
         return _build_counts(response)
 
 
-def _build_counts(response) -> list[CollectionTreeCount]:
+def _build_counts(response) -> list[Counts]:
     return [
-        CollectionTreeCount(
+        Counts(
             node_id=data["key"],
             counts={sub["key"]: sub["doc_count"] for sub in data.facet.buckets},
             total=data.doc_count,

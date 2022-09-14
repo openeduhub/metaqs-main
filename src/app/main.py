@@ -18,6 +18,7 @@ from app.core.config import (
 from app.core.constants import OPEN_API_VERSION
 from app.core.errors import http_422_error_handler, http_error_handler
 from app.core.logging import logger
+from app.core.meta_hierarchy import load_metadataset
 from app.core.tasks import create_start_app_handler, create_stop_app_handler
 from app.elastic.utils import connect_to_elastic
 
@@ -41,6 +42,8 @@ def api() -> FastAPI:
 
     _api.add_event_handler("startup", connect_to_elastic)
     _api.add_event_handler("startup", background_task)
+    # warmup cache and fail early in case we cannot reach edusharing
+    _api.add_event_handler("startup", load_metadataset)
 
     if ENABLE_DATABASE:
         _api.add_event_handler("startup", create_start_app_handler(_api))

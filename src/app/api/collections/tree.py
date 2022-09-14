@@ -6,6 +6,7 @@ import uuid
 from typing import Optional, Iterable
 
 from elasticsearch_dsl import Search
+from elasticsearch_dsl.query import Bool, Term
 from elasticsearch_dsl.response import Response
 from fastapi import HTTPException
 from pydantic import BaseModel
@@ -14,17 +15,17 @@ from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import COLLECTION_NAME_TO_ID
 from app.core.logging import logger
 from app.elastic.attributes import ElasticResourceAttribute
-from app.elastic.dsl import qbool, qterm
 from app.elastic.search import CollectionSearch
 
 
-class CollectionNode(BaseModel):
+class Tree(BaseModel):
     node_id: uuid.UUID
+    level: int
     title: str
-    children: list[CollectionNode]
+    children: list[Tree]
     parent_id: Optional[uuid.UUID]
 
-    def flatten(self, root: bool = True) -> Iterable[CollectionNode]:
+    def flatten(self, root: bool = True) -> Iterable[Tree]:
         """
         A generator that will iterate through all nodes of the tree in unspecified order.
         :param root: If true, the root node (self) will be included, if false, it will be skipped.
@@ -34,7 +35,7 @@ class CollectionNode(BaseModel):
         for child in self.children:
             yield from child.flatten(root=True)
 
-    def bft(self, root: bool = True) -> Iterable[CollectionNode]:
+    def bft(self, root: bool = True) -> Iterable[Tree]:
         """Traverse the tree in breadth-first order."""
         if root:
             yield self
@@ -54,7 +55,7 @@ def tree_search(node_id: uuid.UUID) -> Search:
     node_id = str(node_id)
     return (
         CollectionSearch()
-        .query(qbool(filter=qterm(qfield=ElasticResourceAttribute.PATH.path, value=node_id)))
+        .query(Bool(filter=Term(**{ElasticResourceAttribute.PATH.path: node_id})))
         .source(
             [
                 ElasticResourceAttribute.NODE_ID.path,
@@ -68,7 +69,7 @@ def tree_search(node_id: uuid.UUID) -> Search:
     )
 
 
-def get_tree(node_id: uuid.UUID) -> CollectionNode:
+def tree(node_id: uuid.UUID) -> Tree:
     """
     Build the collection tree for given top level collection_id.
 
@@ -90,23 +91,25 @@ def get_tree(node_id: uuid.UUID) -> CollectionNode:
 
     # note the "root" here is actually a toplevel collection (e.g. Chemie, Deutsch,...)
     # i.e. it is the root of the returned subtree.
-    root = CollectionNode(
+    root = Tree(
         node_id=node_id,
+        level=0,
         title=id_to_name[str(node_id)],
         children=[],  # will be filled in below
         parent_id=None,
     )
 
-    def try_node(hit) -> Optional[CollectionNode]:
+    def try_node(hit, level) -> Optional[Tree]:
         """
         Some hits from elasticsearch may be incomplete (e.g. missing title).
         For those hits this function can return None to skip them, or fill in the UUID as title if desired.
         """
         try:
-            return CollectionNode(
+            return Tree(
                 node_id=uuid.UUID(hit["nodeRef"]["id"]),
                 title=hit["properties"]["cm:title"],
-                children=[],
+                children=[],  # noqa will be appended upon in recursion below
+                level=level,
                 parent_id=uuid.UUID(hit["parentRef"]["id"]),
             )
         except KeyError as e:
@@ -114,19 +117,28 @@ def get_tree(node_id: uuid.UUID) -> CollectionNode:
             logger.warning(f"Collection node {node_id} will be skipped. Missing attribute: {e} ")
             return None
 
-    # gather all (valid) nodes in a dictionary by their id.
-    nodes = {node.node_id: node for hit in response.hits if (node := try_node(hit)) is not None}
+    # gather all nodes in a set to track if the tree building covers all nodes
+    node_ids = {uuid.UUID(hit["nodeRef"]["id"]) for hit in response.hits}
+
+    # gather all (valid) nodes in a dictionary by their parent id.
+    hits_by_parent_id: dict[uuid.UUID, list[dict]] = {}
+    for hit in response.hits:
+        parent_id = uuid.UUID(hit["parentRef"]["id"])
+        if parent_id not in hits_by_parent_id:
+            hits_by_parent_id[parent_id] = []
+        hits_by_parent_id[parent_id].append(hit)
 
     # build up tree
-    def recurse(node: CollectionNode):
-        node.children = [child for child in nodes.values() if child.parent_id == node.node_id]
-        for child in node.children:
-            nodes.pop(child.node_id)
-            recurse(child)
+    def recurse(parent: Tree):
+        for hit in hits_by_parent_id.get(parent.node_id, []):
+            if (node := try_node(hit, level=parent.level + 1)) is not None:
+                parent.children.append(node)
+                node_ids.remove(node.node_id)
+                recurse(node)
 
     recurse(root)  # actually initiate the recursion :)
 
-    if len(nodes) != 0:
-        logger.warning(f"Not all nodes could be arranged in the tree. Left over: {nodes}")
+    if len(node_ids) != 0:
+        logger.warning(f"Not all nodes could be arranged in the tree. Left over: {node_ids}")
 
     return root

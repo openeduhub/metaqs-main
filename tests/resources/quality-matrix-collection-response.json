@@ -1,0 +1,587 @@
+{
+  "took": 28,
+  "timed_out": false,
+  "_shards": {
+    "total": 1,
+    "successful": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": {
+      "value": 2332,
+      "relation": "eq"
+    },
+    "max_score": null,
+    "hits": []
+  },
+  "aggregations": {
+    "collection": {
+      "doc_count_error_upper_bound": 0,
+      "sum_other_doc_count": 0,
+      "buckets": [
+        {
+          "key": "4940d5da-9b21-4ec0-8824-d16e0409e629",
+          "doc_count": 2314,
+          "properties.ccm:oeh_quality_language": {
+            "doc_count": 2314
+          },
+          "properties.ccm:oeh_quality_correctness": {
+            "doc_count": 2314
+          },
+          "properties.ccm:educationaltypicalagerange": {
+            "doc_count": 2314
+          },
+          "properties.ccm:oeh_quality_neutralness": {
+            "doc_count": 2314
+          },
+          "properties.ccm:oeh_accessibility_security": {
+            "doc_count": 2314
+          },
+          "properties.ccm:published_date": {
+            "doc_count": 1940
+          },
+          "properties.virtual:editorial_publisher": {
+            "doc_count": 2314
+          },
+          "properties.ccm:price": {
+            "doc_count": 1542
+          },
+          "properties.ccm:oeh_languageTarget": {
+            "doc_count": 2314
+          },
+          "properties.ccm:oeh_accessibility_find": {
+            "doc_count": 2314
+          },
+          "properties.ccm:oeh_quality_transparentness": {
+            "doc_count": 2314
+          },
+          "properties.ccm:oeh_quality_currentness": {
+            "doc_count": 2314
+          },
+          "properties.ccm:accessibilitySummary": {
+            "doc_count": 2292
+          },
+          "properties.ccm:curriculum": {
+            "doc_count": 154
+          },
+          "properties.ccm:metadatacontributer_creator": {
+            "doc_count": 1566
+          },
+          "properties.ccm:commonlicense_key": {
+            "doc_count": 2
+          },
+          "properties.cclom:typicallearningtime": {
+            "doc_count": 2314
+          },
+          "properties.ccm:lifecyclecontributer_publisher": {
+            "doc_count": 1671
+          },
+          "properties.ccm:oeh_interoperability": {
+            "doc_count": 2314
+          },
+          "properties.ccm:published_handle_id": {
+            "doc_count": 2314
+          },
+          "properties.ccm:oeh_quality_didactics": {
+            "doc_count": 2314
+          },
+          "i18n.de_DE.ccm:educationalintendedenduserrole": {
+            "doc_count": 862
+          },
+          "properties.ccm:metadatacontributer_validator": {
+            "doc_count": 2314
+          },
+          "properties.cclom:general_language": {
+            "doc_count": 1621
+          },
+          "properties.ccm:collectionshorttitle": {
+            "doc_count": 2314
+          },
+          "properties.ccm:oeh_competence_check": {
+            "doc_count": 2314
+          },
+          "properties.ccm:competence": {
+            "doc_count": 2314
+          },
+          "properties.feedback_comment": {
+            "doc_count": 2314
+          },
+          "properties.ccm:taxonid": {
+            "doc_count": 1
+          },
+          "properties.ccm:license_to": {
+            "doc_count": 2314
+          },
+          "properties.ccm:oeh_usability": {
+            "doc_count": 2314
+          },
+          "properties.ccm:oeh_quality_data_privacy": {
+            "doc_count": 2314
+          },
+          "properties.cm:versionLabel": {
+            "doc_count": 2314
+          },
+          "properties.ccm:oeh_quality_criminal_law": {
+            "doc_count": 2314
+          },
+          "virtual:editorial_file_type": {
+            "doc_count": 2314
+          },
+          "preview": {
+            "doc_count": 2314
+          },
+          "properties.ccm:wwwurl": {
+            "doc_count": 54
+          },
+          "properties.cclom:classification_keyword": {
+            "doc_count": 2314
+          },
+          "properties.ccm:educationalcontext": {
+            "doc_count": 5
+          },
+          "properties.ccm:author_freetext": {
+            "doc_count": 823
+          },
+          "properties.cclom:title": {
+            "doc_count": 0
+          },
+          "properties.cclom:general_description": {
+            "doc_count": 816
+          },
+          "properties.ccm:oeh_quality_medial": {
+            "doc_count": 2314
+          },
+          "properties.cclom:general_keyword": {
+            "doc_count": 74
+          },
+          "properties.cclom:status": {
+            "doc_count": 2314
+          },
+          "properties.ccm:oeh_accessibility_open": {
+            "doc_count": 2314
+          },
+          "properties.ccm:oeh_lrt": {
+            "doc_count": 14
+          },
+          "properties.sys:node-uuid": {
+            "doc_count": 2314
+          },
+          "properties.ccm:oeh_quality_login": {
+            "doc_count": 2314
+          },
+          "properties.ccm:oeh_quality_protection_of_minors": {
+            "doc_count": 2314
+          },
+          "properties.cclom:duration": {
+            "doc_count": 1960
+          },
+          "properties.ccm:metadatacontributer_provider": {
+            "doc_count": 2314
+          },
+          "properties.ccm:oeh_publisher_combined": {
+            "doc_count": 956
+          },
+          "properties.cm:modified": {
+            "doc_count": 0
+          },
+          "properties.cm:created": {
+            "doc_count": 0
+          },
+          "properties.ccm:fskRating": {
+            "doc_count": 2314
+          },
+          "properties.ccm:oeh_quality_copyright_law": {
+            "doc_count": 2314
+          },
+          "properties.ccm:oeh_signatures": {
+            "doc_count": 2314
+          },
+          "content.mimetype": {
+            "doc_count": 1009
+          },
+          "properties.ccm:oeh_quality_personal_law": {
+            "doc_count": 2314
+          },
+          "properties.ccm:oeh_competence_requirements": {
+            "doc_count": 2314
+          }
+        },
+        {
+          "key": "481c9ce1-7f72-4598-a326-7dba785a065d",
+          "doc_count": 87,
+          "properties.ccm:oeh_quality_language": {
+            "doc_count": 87
+          },
+          "properties.ccm:oeh_quality_correctness": {
+            "doc_count": 87
+          },
+          "properties.ccm:educationaltypicalagerange": {
+            "doc_count": 87
+          },
+          "properties.ccm:oeh_quality_neutralness": {
+            "doc_count": 87
+          },
+          "properties.ccm:oeh_accessibility_security": {
+            "doc_count": 87
+          },
+          "properties.ccm:published_date": {
+            "doc_count": 0
+          },
+          "properties.virtual:editorial_publisher": {
+            "doc_count": 87
+          },
+          "properties.ccm:price": {
+            "doc_count": 87
+          },
+          "properties.ccm:oeh_languageTarget": {
+            "doc_count": 87
+          },
+          "properties.ccm:oeh_accessibility_find": {
+            "doc_count": 87
+          },
+          "properties.ccm:oeh_quality_transparentness": {
+            "doc_count": 87
+          },
+          "properties.ccm:oeh_quality_currentness": {
+            "doc_count": 87
+          },
+          "properties.ccm:accessibilitySummary": {
+            "doc_count": 87
+          },
+          "properties.ccm:curriculum": {
+            "doc_count": 0
+          },
+          "properties.ccm:metadatacontributer_creator": {
+            "doc_count": 87
+          },
+          "properties.ccm:commonlicense_key": {
+            "doc_count": 0
+          },
+          "properties.cclom:typicallearningtime": {
+            "doc_count": 87
+          },
+          "properties.ccm:lifecyclecontributer_publisher": {
+            "doc_count": 0
+          },
+          "properties.ccm:oeh_interoperability": {
+            "doc_count": 87
+          },
+          "properties.ccm:published_handle_id": {
+            "doc_count": 87
+          },
+          "properties.ccm:oeh_quality_didactics": {
+            "doc_count": 87
+          },
+          "i18n.de_DE.ccm:educationalintendedenduserrole": {
+            "doc_count": 0
+          },
+          "properties.ccm:metadatacontributer_validator": {
+            "doc_count": 87
+          },
+          "properties.cclom:general_language": {
+            "doc_count": 0
+          },
+          "properties.ccm:collectionshorttitle": {
+            "doc_count": 87
+          },
+          "properties.ccm:oeh_competence_check": {
+            "doc_count": 87
+          },
+          "properties.ccm:competence": {
+            "doc_count": 87
+          },
+          "properties.feedback_comment": {
+            "doc_count": 87
+          },
+          "properties.ccm:taxonid": {
+            "doc_count": 0
+          },
+          "properties.ccm:license_to": {
+            "doc_count": 87
+          },
+          "properties.ccm:oeh_usability": {
+            "doc_count": 87
+          },
+          "properties.ccm:oeh_quality_data_privacy": {
+            "doc_count": 87
+          },
+          "properties.cm:versionLabel": {
+            "doc_count": 87
+          },
+          "properties.ccm:oeh_quality_criminal_law": {
+            "doc_count": 87
+          },
+          "virtual:editorial_file_type": {
+            "doc_count": 87
+          },
+          "preview": {
+            "doc_count": 87
+          },
+          "properties.ccm:wwwurl": {
+            "doc_count": 0
+          },
+          "properties.cclom:classification_keyword": {
+            "doc_count": 87
+          },
+          "properties.ccm:educationalcontext": {
+            "doc_count": 0
+          },
+          "properties.ccm:author_freetext": {
+            "doc_count": 0
+          },
+          "properties.cclom:title": {
+            "doc_count": 0
+          },
+          "properties.cclom:general_description": {
+            "doc_count": 83
+          },
+          "properties.ccm:oeh_quality_medial": {
+            "doc_count": 87
+          },
+          "properties.cclom:general_keyword": {
+            "doc_count": 0
+          },
+          "properties.cclom:status": {
+            "doc_count": 87
+          },
+          "properties.ccm:oeh_accessibility_open": {
+            "doc_count": 87
+          },
+          "properties.ccm:oeh_lrt": {
+            "doc_count": 0
+          },
+          "properties.sys:node-uuid": {
+            "doc_count": 87
+          },
+          "properties.ccm:oeh_quality_login": {
+            "doc_count": 87
+          },
+          "properties.ccm:oeh_quality_protection_of_minors": {
+            "doc_count": 87
+          },
+          "properties.cclom:duration": {
+            "doc_count": 0
+          },
+          "properties.ccm:metadatacontributer_provider": {
+            "doc_count": 87
+          },
+          "properties.ccm:oeh_publisher_combined": {
+            "doc_count": 0
+          },
+          "properties.cm:modified": {
+            "doc_count": 0
+          },
+          "properties.cm:created": {
+            "doc_count": 0
+          },
+          "properties.ccm:fskRating": {
+            "doc_count": 87
+          },
+          "properties.ccm:oeh_quality_copyright_law": {
+            "doc_count": 87
+          },
+          "properties.ccm:oeh_signatures": {
+            "doc_count": 87
+          },
+          "content.mimetype": {
+            "doc_count": 0
+          },
+          "properties.ccm:oeh_quality_personal_law": {
+            "doc_count": 87
+          },
+          "properties.ccm:oeh_competence_requirements": {
+            "doc_count": 87
+          }
+        },
+        {
+          "key": "9b7299f9-31f5-477d-b10e-18a465295bdd",
+          "doc_count": 72,
+          "properties.ccm:oeh_quality_language": {
+            "doc_count": 72
+          },
+          "properties.ccm:oeh_quality_correctness": {
+            "doc_count": 72
+          },
+          "properties.ccm:educationaltypicalagerange": {
+            "doc_count": 72
+          },
+          "properties.ccm:oeh_quality_neutralness": {
+            "doc_count": 72
+          },
+          "properties.ccm:oeh_accessibility_security": {
+            "doc_count": 72
+          },
+          "properties.ccm:published_date": {
+            "doc_count": 44
+          },
+          "properties.virtual:editorial_publisher": {
+            "doc_count": 72
+          },
+          "properties.ccm:price": {
+            "doc_count": 38
+          },
+          "properties.ccm:oeh_languageTarget": {
+            "doc_count": 72
+          },
+          "properties.ccm:oeh_accessibility_find": {
+            "doc_count": 72
+          },
+          "properties.ccm:oeh_quality_transparentness": {
+            "doc_count": 72
+          },
+          "properties.ccm:oeh_quality_currentness": {
+            "doc_count": 72
+          },
+          "properties.ccm:accessibilitySummary": {
+            "doc_count": 72
+          },
+          "properties.ccm:curriculum": {
+            "doc_count": 0
+          },
+          "properties.ccm:metadatacontributer_creator": {
+            "doc_count": 39
+          },
+          "properties.ccm:commonlicense_key": {
+            "doc_count": 0
+          },
+          "properties.cclom:typicallearningtime": {
+            "doc_count": 72
+          },
+          "properties.ccm:lifecyclecontributer_publisher": {
+            "doc_count": 44
+          },
+          "properties.ccm:oeh_interoperability": {
+            "doc_count": 72
+          },
+          "properties.ccm:published_handle_id": {
+            "doc_count": 72
+          },
+          "properties.ccm:oeh_quality_didactics": {
+            "doc_count": 72
+          },
+          "i18n.de_DE.ccm:educationalintendedenduserrole": {
+            "doc_count": 10
+          },
+          "properties.ccm:metadatacontributer_validator": {
+            "doc_count": 72
+          },
+          "properties.cclom:general_language": {
+            "doc_count": 43
+          },
+          "properties.ccm:collectionshorttitle": {
+            "doc_count": 72
+          },
+          "properties.ccm:oeh_competence_check": {
+            "doc_count": 72
+          },
+          "properties.ccm:competence": {
+            "doc_count": 72
+          },
+          "properties.feedback_comment": {
+            "doc_count": 72
+          },
+          "properties.ccm:taxonid": {
+            "doc_count": 0
+          },
+          "properties.ccm:license_to": {
+            "doc_count": 72
+          },
+          "properties.ccm:oeh_usability": {
+            "doc_count": 72
+          },
+          "properties.ccm:oeh_quality_data_privacy": {
+            "doc_count": 72
+          },
+          "properties.cm:versionLabel": {
+            "doc_count": 72
+          },
+          "properties.ccm:oeh_quality_criminal_law": {
+            "doc_count": 72
+          },
+          "virtual:editorial_file_type": {
+            "doc_count": 72
+          },
+          "preview": {
+            "doc_count": 72
+          },
+          "properties.ccm:wwwurl": {
+            "doc_count": 0
+          },
+          "properties.cclom:classification_keyword": {
+            "doc_count": 72
+          },
+          "properties.ccm:educationalcontext": {
+            "doc_count": 0
+          },
+          "properties.ccm:author_freetext": {
+            "doc_count": 10
+          },
+          "properties.cclom:title": {
+            "doc_count": 0
+          },
+          "properties.cclom:general_description": {
+            "doc_count": 41
+          },
+          "properties.ccm:oeh_quality_medial": {
+            "doc_count": 72
+          },
+          "properties.cclom:general_keyword": {
+            "doc_count": 0
+          },
+          "properties.cclom:status": {
+            "doc_count": 72
+          },
+          "properties.ccm:oeh_accessibility_open": {
+            "doc_count": 72
+          },
+          "properties.ccm:oeh_lrt": {
+            "doc_count": 0
+          },
+          "properties.sys:node-uuid": {
+            "doc_count": 72
+          },
+          "properties.ccm:oeh_quality_login": {
+            "doc_count": 72
+          },
+          "properties.ccm:oeh_quality_protection_of_minors": {
+            "doc_count": 72
+          },
+          "properties.cclom:duration": {
+            "doc_count": 44
+          },
+          "properties.ccm:metadatacontributer_provider": {
+            "doc_count": 72
+          },
+          "properties.ccm:oeh_publisher_combined": {
+            "doc_count": 34
+          },
+          "properties.cm:modified": {
+            "doc_count": 0
+          },
+          "properties.cm:created": {
+            "doc_count": 0
+          },
+          "properties.ccm:fskRating": {
+            "doc_count": 72
+          },
+          "properties.ccm:oeh_quality_copyright_law": {
+            "doc_count": 72
+          },
+          "properties.ccm:oeh_signatures": {
+            "doc_count": 72
+          },
+          "content.mimetype": {
+            "doc_count": 35
+          },
+          "properties.ccm:oeh_quality_personal_law": {
+            "doc_count": 72
+          },
+          "properties.ccm:oeh_competence_requirements": {
+            "doc_count": 72
+          }
+        }
+      ]
+    }
+  }
+}

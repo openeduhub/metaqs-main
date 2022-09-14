@@ -28,3 +28,6 @@ BACKGROUND_TASK_TIME_INTERVAL = int(os.getenv("BACKGROUND_TASK_TIME_INTERVAL", 1
 
 # Whether to enable the database functionality for storing and loading historic quality matrix snapshots
 ENABLE_DATABASE = os.getenv("ENABLE_DATABASE", "True").lower() == "true"
+
+# Used to fetch the metadataset which determines the column names of some widgets.
+METADATASET_URL = os.getenv("METADATASET_URL")

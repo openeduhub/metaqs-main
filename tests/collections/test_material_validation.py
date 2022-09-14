@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from app.api.collections.material_validation import _get_material_validation_single_collection, IncompleteMaterials
+from app.api.collections.material_validation import _get_material_validation_single_collection, MaterialValidation
 from app.core.constants import COLLECTION_NAME_TO_ID
 from tests.conftest import elastic_search_mock
 
@@ -11,7 +11,7 @@ def test_get_material_validation_single_collection():
     with elastic_search_mock(resource="material-validation-single-collection"):
         response = _get_material_validation_single_collection(collection_id=chemie, title="Chemie")
 
-    assert response == IncompleteMaterials(
+    assert response == MaterialValidation(
         collection_id=chemie,
         # 'Materialien ohne Beschreibungstext'
         description=[UUID("6cc8e664-1bd6-4b75-838c-b4091f96676e")],

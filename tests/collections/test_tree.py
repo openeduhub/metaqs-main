@@ -3,8 +3,8 @@ import uuid
 import pytest
 from aiohttp import ClientSession
 
-from app.api.collections.tree import CollectionNode
-from app.api.collections.tree import get_tree
+from app.api.collections.tree import Tree
+from app.api.collections.tree import tree as load_tree
 from app.core.vocabs import tree_from_vocabs
 from tests.conftest import elastic_search_mock
 
@@ -22,36 +22,41 @@ async def test_collection_tree_vocabs():
 def test_tree_from_elastic():
     node_id_biology = uuid.UUID("15fce411-54d9-467f-8f35-61ea374a298d")
     with elastic_search_mock("tree"):
-        tree = get_tree(node_id_biology)
+        tree = load_tree(node_id_biology)
 
-    expected = CollectionNode(
+    expected = Tree(
         node_id=node_id_biology,
         title="Biologie",
         parent_id=None,
+        level=0,
         children=[
-            CollectionNode(
+            Tree(
                 node_id=uuid.UUID("220f48a8-4b53-4179-919d-7cd238ed567e"),
                 title="Chemische Grundlagen",
                 parent_id=node_id_biology,
+                level=1,
                 children=[
-                    CollectionNode(
+                    Tree(
                         node_id=uuid.UUID("81445550-fcc4-4f9e-99af-652dda269175"),
                         title="Luft und Atmosphäre",
                         parent_id=uuid.UUID("220f48a8-4b53-4179-919d-7cd238ed567e"),
+                        level=2,
                         children=[],
                     ),
-                    CollectionNode(
+                    Tree(
                         node_id=uuid.UUID("a5ce08a9-1e78-4028-bf5e-9205f598f11a"),
                         title="Wasser - Grundstoff des Lebens",
                         parent_id=uuid.UUID("220f48a8-4b53-4179-919d-7cd238ed567e"),
+                        level=2,
                         children=[],
                     ),
                 ],
             ),
-            CollectionNode(
+            Tree(
                 node_id=uuid.UUID("2e674483-0eae-4088-b51a-c4f4bbf86bcc"),
                 title="Evolution",
                 parent_id=node_id_biology,
+                level=1,
                 children=[],
             ),
         ],

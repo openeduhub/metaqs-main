@@ -31,9 +31,7 @@ def elastic_search_mock(resource: str):
         response = json.load(response)
 
     def execute_mock(self, ignore_cache=False):  # noqa
-        assert (
-            request is not None and self.to_dict() == request
-        ), "Executed request did not match expected request"
+        assert request is not None and self.to_dict() == request, "Executed request did not match expected request"
         # just use the dictionary deserialized from the resource file and pass it through the original
         # elasticsearch_dsl machinery. I.e. search.execute() should behave __exactly__ as if the result was
         # received via a http call.
