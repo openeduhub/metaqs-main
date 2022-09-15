@@ -123,11 +123,11 @@ material_validation_cache: dict[uuid.UUID, list[MaterialValidation]] = {}
 @repeat_every(seconds=BACKGROUND_TASK_TIME_INTERVAL, logger=logger)
 def background_task():
     logger.info(f"Updating material validation cache. Length: {len(COLLECTION_NAME_TO_ID)}")
-
-    for counter, (title, collection) in enumerate(COLLECTION_NAME_TO_ID.items()):
-        collection = uuid.UUID(collection)
-        logger.info(f"Working on: {title}")
-        material_validation_cache[collection] = material_validation(collection_id=collection)
-
-    logger.info("Storing in cache.")
-    logger.info("Background task done")
+#
+#     for counter, (title, collection) in enumerate(COLLECTION_NAME_TO_ID.items()):
+#         collection = uuid.UUID(collection)
+#         logger.info(f"Working on: {title}")
+#         material_validation_cache[collection] = material_validation(collection_id=collection)
+#
+#     logger.info("Storing in cache.")
+#     logger.info("Background task done")

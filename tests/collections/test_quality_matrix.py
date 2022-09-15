@@ -1,11 +1,21 @@
 import contextlib
+import os
 import uuid
 from unittest import mock
+from unittest.mock import MagicMock
 
 from app.api.collections.tree import Tree
-from app.api.collections.quality_matrix import QualityMatrix, QualityMatrixRow, QualityMatrixHeader
+from app.api.collections.quality_matrix import (
+    QualityMatrix,
+    QualityMatrixRow,
+    QualityMatrixHeader,
+    quality_backup,
+    past_quality_matrix,
+)
 from app.api.collections.quality_matrix import replication_source_quality_matrix
 from app.api.collections.quality_matrix import collection_quality_matrix
+from app.api.collections.quality_matrix import timestamps
+from app.core.constants import COLLECTION_NAME_TO_ID
 from tests.conftest import elastic_search_mock
 
 
@@ -25,6 +35,50 @@ def edusharing_mock():
 
     with mock.patch("app.api.collections.quality_matrix.load_metadataset", the_mock):
         yield
+
+
+def test_quality_matrix_history(tmpdir):
+    os.chdir(tmpdir)
+    from app.db.tasks import (
+        session_maker,
+    )  # import only after changedir to create the database in the temporary directory
+
+    matrix_mock = QualityMatrix(
+        columns=[QualityMatrixHeader(id="column-id", label="column-label", alt_label="alt-column-label", level=0)],
+        rows=[
+            QualityMatrixRow(
+                meta=QualityMatrixHeader(id="row-id", label="row-label", alt_label="alt-row-label", level=0),
+                counts={"column-id": 1},
+                total=1,
+            )
+        ],
+    )
+
+    def mock_matrix(node) -> QualityMatrix:
+        return matrix_mock
+
+    node_id = uuid.UUID(COLLECTION_NAME_TO_ID["Chemie"])
+    with (
+        mock.patch("app.api.collections.quality_matrix.replication_source_quality_matrix", mock_matrix),
+        mock.patch("app.api.collections.quality_matrix.collection_quality_matrix", mock_matrix),
+        mock.patch("app.api.collections.quality_matrix.tree", MagicMock(title="title", id=node_id)),
+        session_maker().context_session() as session,
+    ):
+        # save quality matrices for all collections and both modes
+        quality_backup(session)
+
+        # check that timestamps are loaded correctly
+        timestamp, *other = timestamps(session, mode="replication-source", node_id=node_id)
+        assert len(other) == 0, "there should be exactly one entry per mode and collection"
+        (count,) = session.execute("select count(*) from timeline").first()
+        assert count == len(COLLECTION_NAME_TO_ID) * 2, "there should be two entries per collection"
+
+        # check that we can load a quality matrix by timestamp, mode and collection
+        matrix = past_quality_matrix(session, timestamp=timestamp, mode="replication-source", collection_id=node_id)
+        assert isinstance(matrix, QualityMatrix)
+
+        # check that this is equal to what we mocked above
+        assert matrix == matrix_mock
 
 
 def test_replication_source_quality_matrix():

@@ -25,9 +25,10 @@ ELASTICSEARCH_TIMEOUT = int(os.getenv("ELASTICSEARCH_TIMEOUT", 20))
 
 # Time in seconds between consecutive background calls
 BACKGROUND_TASK_TIME_INTERVAL = int(os.getenv("BACKGROUND_TASK_TIME_INTERVAL", 10 * 60))
+QUALITY_MATRIX_STORE_INTERVAL = int(os.getenv("QUALITY_MATRIX_STORE_INTERVAL", 6 * 60 * 60))  # default to every 6 hours
 
-# Whether to enable the database functionality for storing and loading historic quality matrix snapshots
-ENABLE_DATABASE = os.getenv("ENABLE_DATABASE", "True").lower() == "true"
+# The Database URL to use for storing historic quality matrix information
+DATABASE_URL = os.getenv("DATABASE_URL", None)
 
 # Used to fetch the metadataset which determines the column names of some widgets.
 METADATASET_URL = os.getenv("METADATASET_URL")
