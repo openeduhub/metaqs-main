@@ -103,16 +103,12 @@ def material_validation(collection_id: uuid.UUID) -> list[MaterialValidation]:
 
     :param collection_id: The id of top level collection
     """
-    node = tree(node_id=collection_id)
-    logger.info(f"Working on {node.title} ({collection_id})")
-    children = node.flatten(root=False)
+    collection_tree = tree(node_id=collection_id)
+    logger.info(f"Working on {collection_tree.title} ({collection_id})")
 
     return [
-        # fixme: we need to include the top level node here because we use a really inadequate data model...
-        #        and it needs to be included, because there could be materials that are only in the top level
-        #        collection and those materials would otherwise not be included anywhere.
-        _get_material_validation_single_collection(collection_id, title=node.title),
-        *(_get_material_validation_single_collection(child.node_id, title=child.title) for child in children),
+        _get_material_validation_single_collection(collection_id, title=node.title)
+        for node in collection_tree.flatten(root=True)
     ]
 
 
