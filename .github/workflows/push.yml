@@ -74,6 +74,8 @@ jobs:
 
   run_tests:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: sqlite:///./metaqs-tests.sqlite
 
     steps:
       - uses: actions/checkout@v3

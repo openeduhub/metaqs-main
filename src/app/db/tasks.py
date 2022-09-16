@@ -1,35 +1,43 @@
-from databases import Database
-from fastapi import FastAPI
+from functools import cache
+from typing import Iterator
 
-from app.core.logging import logger
-from app.db.core import database_url
+from fastapi_utils.session import FastAPISessionMaker
+from sqlalchemy import create_engine, Column, Integer, Text, JSON
+from sqlalchemy.orm import Session, declarative_base
 
-
-async def connect_to_db(app: FastAPI) -> None:
-    logger.info("Instantiating database")
-    database = Database(database_url(), min_size=2, max_size=10)
-
-    try:
-        await database.connect()
-        await database.execute(
-            """
-        create table if not exists timeline
-        (
-            id        int,
-            timestamp int,
-            mode      text,
-            quality   json,
-            total     json,
-            node_id   uuid
-        );"""
-        )
-        app.state._db = database
-    except Exception as e:
-        logger.exception(f"Failed to connect to database and create table: {e}")
+from app.core.config import DATABASE_URL
 
 
-async def close_db_connection(app: FastAPI) -> None:
-    try:
-        await app.state._db.disconnect()
-    except Exception as e:
-        logger.exception(f"Failed to disconnect from database: {e}")
+Base = declarative_base()
+
+
+class Timeline(Base):
+    """Table will be automatically created at application start time if it does not exist."""
+
+    __tablename__ = "timeline"
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True,
+    )
+    timestamp = Column(Integer, nullable=False)
+    mode = Column(Text, nullable=False)
+    node_id = Column(Text, nullable=False)
+    quality_matrix = Column(JSON, nullable=False)
+
+
+@cache
+def session_maker():
+    mkr = FastAPISessionMaker(DATABASE_URL)
+
+    if DATABASE_URL.startswith("sqlite"):
+        # workaround for local testing. See https://fastapi.tiangolo.com/tutorial/sql-databases/#note
+        mkr._cached_engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+
+    Base.metadata.create_all(mkr.cached_engine, checkfirst=True)  # won't create if they already exist
+
+    return mkr
+
+
+def get_session() -> Iterator[Session]:
+    yield from session_maker().get_db()

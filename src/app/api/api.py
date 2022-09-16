@@ -1,28 +1,28 @@
-import json
 import uuid
-from typing import Mapping
 
-from databases import Database
 from fastapi import APIRouter, Depends, HTTPException, Path
 from fastapi.params import Param
 from pydantic import BaseModel, Field
-from sqlalchemy import select
-from starlette.requests import Request
+from sqlalchemy.orm import Session
 from starlette.status import (
     HTTP_200_OK,
     HTTP_404_NOT_FOUND,
 )
 
-from app.api.collections.material_validation import (
-    material_validation,
-    MaterialValidation,
-    material_validation_cache,
-)
 from app.api.collections.collection_validation import collection_validation, CollectionValidation
 from app.api.collections.counts import AggregationMappings, Counts, counts
 from app.api.collections.material_counts import (
     MaterialCounts,
     material_counts,
+)
+from app.api.collections.material_validation import (
+    material_validation,
+    MaterialValidation,
+    material_validation_cache,
+)
+from app.api.collections.pending_collections import (
+    pending_collections,
+    PendingCollection,
 )
 from app.api.collections.pending_materials import (
     PendingMaterial,
@@ -30,29 +30,21 @@ from app.api.collections.pending_materials import (
     materials_filter_params,
     pending_materials,
 )
-from app.api.collections.statistics import statistics, Statistics
-from app.api.collections.tree import Tree
-from app.api.collections.pending_collections import (
-    pending_collections,
-    PendingCollection,
-)
-from app.api.collections.tree import tree
 from app.api.collections.quality_matrix import (
     QualityMatrixMode,
     collection_quality_matrix,
     replication_source_quality_matrix,
     timestamps,
     QualityMatrix,
-    Timeline,
+    past_quality_matrix,
 )
 from app.api.collections.score import Score, score
+from app.api.collections.statistics import statistics, Statistics
+from app.api.collections.tree import Tree
+from app.api.collections.tree import tree
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
+from app.db.tasks import get_session
 from app.elastic.attributes import ElasticResourceAttribute
-
-
-def get_database(request: Request) -> Database:
-    return request.app.state._db
-
 
 router = APIRouter()
 
@@ -82,34 +74,32 @@ async def get_quality_matrix(*, node_id: uuid.UUID = Depends(toplevel_collection
     """
     Calculate the quality matrix w.r.t. the replication source, or collection.
 
-      A quality matrix is a tabular datastructure that has two possible layouts depending on whether it is computed for
-      the replication source ('replication-source') or collection ('collections').
+    A quality matrix is a tabular datastructure holding the number of materials that have a certain missing
+    meta data attribute. The rows of the matrix are defined by the mode. I.e. for 'replication-source', each row
+    will represent a different replication source (the content source domain (e.g. "YouTube", "Wikipedia", ...) from
+    which the content was crawled, for 'collection' each row will correspond to a specific collection (
+    [vocabulary](https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/oeh-topics/5e40e372-735c-4b17-bbf7-e827a5702b57.html).
 
-      - For the collection quality matrix, each column correspond to metadata fields and the rows correspond to
-        collections, identified via their UUID from the
-        [vocabulary](https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/oeh-topics/5e40e372-735c-4b17-bbf7-e827a5702b57.html).
-      - For the replication source quality matrix, the columns correspond to the content source domain (e.g. "YouTube",
-        "Wikipedia", ...) from which the content was crawled, the rows correspond to the metadata fields.
+    The columns of the matrix are defined by the meta data fields of the materials, and their counts denote how many
+    of the materials of the given row contain the metadata of the respective column. Together with the total number
+    of materials in each row, this allows to compute the completeness as `(row.counts[column])/row.total`
+    (and incompleteness as `(row.total-row.counts[column])/row.total`).
 
-      For both cases, the individual cells hold the rations of materials where the metadata is "OK". The definition of
-      "OK" depends on the meta data field (e.g. "non-empty string" for the title of a material).
-
-      Parameters:
-      - node_id: The toplevel collection for which to compute the quality matrix.
-                  It must come from the collection
-                  [vocabulary](https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/oeh-topics/5e40e372-735c-4b17-bbf7-e827a5702b57.html).
-                  In the "collections" mode, this essentially defines the rows of the output matrix.
-                  It serves as an overall filter for materials in both cases.
-      - mode: Defines the mode of the quality matrix, i.e. whether to compute the collection ("collections") or
-              replication source ("replication-source").
+    Parameters:
+    - node_id: The toplevel collection for which to compute the quality matrix.
+              It must come from the collection
+              [vocabulary](https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/oeh-topics/5e40e372-735c-4b17-bbf7-e827a5702b57.html).
+              In the "collections" mode, this essentially defines the rows of the output matrix.
+              It serves as an overall filter for materials in both cases.
+    - mode: Defines the mode of the quality matrix, i.e. whether to compute the collection ("collections") or
+          replication source ("replication-source").
     """
 
     root = tree(node_id)
     if mode == "replication-source":
         return replication_source_quality_matrix(root)
     elif mode == "collection":
-        a =  collection_quality_matrix(root)
-        return a
+        return collection_quality_matrix(root)
     else:
         raise HTTPException(status_code=400, detail=f"Invalid mode: {mode}")
 
@@ -127,7 +117,7 @@ async def get_quality_matrix_by_timestamp(
     node_id: uuid.UUID = Depends(toplevel_collections),
     mode: QualityMatrixMode,
     timestamp: int,
-    database: Database = Depends(get_database),
+    session: Session = Depends(get_session),
 ):
     """
     Return the quality matrix for the given timestamp.
@@ -135,26 +125,7 @@ async def get_quality_matrix_by_timestamp(
     This endpoint serves as a comparison to the current quality matrix. This way, differences due to automatic or
     manual work on the metadata can be seen.
     """
-    if not timestamp:
-        raise HTTPException(status_code=400, detail="Invalid or no timestamp given")
-
-    s = (
-        select([Timeline])
-        .where(Timeline.timestamp == timestamp)
-        .where(Timeline.mode == mode)
-        .where(Timeline.node_id == node_id)
-    )
-    await database.connect()
-    result: list[Mapping[Timeline]] = await database.fetch_all(s)
-
-    if len(result) == 0:
-        raise HTTPException(status_code=404, detail="Item not found")
-    elif len(result) > 1:
-        raise HTTPException(status_code=500, detail="More than one item found")
-
-    quality = json.loads(result[0].quality)
-    total = json.loads(result[0].total)
-    return QualityMatrix(data=quality, total=total)
+    return past_quality_matrix(session=session, mode=mode, collection_id=node_id, timestamp=timestamp)
 
 
 @router.get(
@@ -169,7 +140,7 @@ async def get_quality_matrix_timestamps(
     *,
     node_id: uuid.UUID = Depends(toplevel_collections),
     mode: QualityMatrixMode,
-    database: Database = Depends(get_database),
+    session: Session = Depends(get_session),
 ):
     """
     Return timestamps in seconds since epoch of past calculations of the quality matrix.
@@ -178,7 +149,7 @@ async def get_quality_matrix_timestamps(
       - mode: The desired mode of quality. This is used to query only the relevant type of data.
       - node_id: The id of the collection for which the timestamps should be queried.
     """
-    return await timestamps(database, mode, node_id)
+    return timestamps(session=session, mode=mode, node_id=node_id)
 
 
 @router.get(
@@ -240,10 +211,7 @@ async def get_score(*, node_id: uuid.UUID = Depends(toplevel_collections)):
 )
 async def get_tree(*, node_id: uuid.UUID = Depends(toplevel_collections)):
     """
-    Returns a list of the immediate child nodes of the provided parent node (`node_id` path parameter).
-
-    The individual entries of the list hold their respective child collections until the leafs of the collection tree
-    are reached.
+    Returns the collection tree starting at the provided parent node (`node_id` path parameter).
     """
     return tree(node_id)
 
@@ -302,18 +270,11 @@ async def get_pending_collections(
     Provides a list of missing entries for different types of materials by sub-collection.
 
     Searches for entries with one of the following properties being empty or missing:
-
-      - title (cm:title)
-      - name (cm:name)
       - keywords (cclom:general_keyword)
       - description (cclom:general_description)
-      - license (ccm:commonlicense_key)
-
     <b>
     TODO:
-      - how can a collection have a license? why is it part of the missing_attribute_filter?
       - why do we use cclom:general_description? Isn't this an attribute of a material?
-      - why do we use cm:name? According to T.S. cm:name does not have any user relevance.
       - why do we use cclom:general_keyword? I think this is an attribute of a material.
       - while cclom:general_keyword seems not to be a collection attribute, cclom:general_description is one?
     </b>
