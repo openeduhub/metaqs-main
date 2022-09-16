@@ -1,0 +1,194 @@
+{
+  "name": "Wir Lernen Online",
+  "create": null,
+  "widgets": [
+    {
+      "id": "virtual:collection_missing",
+      "caption": "Fehlende Metadaten"
+    },
+    {
+      "id": "virtual:collection_public",
+      "caption": "Sichtbarkeit"
+    },
+    {
+      "id": "virtual:collection_id_primary",
+      "caption": "Sammlungs-Inhalte"
+    },
+    {
+      "id": "virtual:collection_id_tree",
+      "caption": "Sammlungs-Inhalte + Unterebenen"
+    },
+    {
+      "id": "virtual:collection_id",
+      "caption": "Mein Fachbereich"
+    },
+    {
+      "id": "ccm:collection_proposal_status",
+      "caption": "Status des Vorschlags"
+    },
+    {
+      "id": "virtual:portal_type",
+      "caption": "Sammlungsart"
+    },
+    {
+      "id": "ccm:oeh_quality_correctness",
+      "caption": "Sachrichtigkeit"
+    },
+    {
+      "id": "ccm:published_handle_id",
+      "caption": "UID - im Internet eindeutige Adresse"
+    },
+    {
+      "id": "sys:node-uuid",
+      "caption": "URL"
+    },
+    {
+      "id": "sys:node-uuid",
+      "caption": "WLO-Identifier"
+    },
+    {
+      "id": "cm:versionLabel",
+      "caption": "Versionsnummer"
+    },
+    {
+      "id": "virtual:search_tasks",
+      "caption": null
+    },
+    {
+      "id": "virtual:author",
+      "caption": "Nach Autoren filtern"
+    },
+    {
+      "id": "virtual:time_after_modified",
+      "caption": "Zeitbereich filtern (Geändert)"
+    },
+    {
+      "id": "virtual:time_after_created",
+      "caption": "Zeitbereich filtern (Erstellt)"
+    },
+    {
+      "id": "virtual:editorial_exclusion",
+      "caption": "Redaktioneller Handlungsbedarf"
+    },
+    {
+      "id": "virtual:editorial_taxonid",
+      "caption": "Fach-/Sachgebiet",
+      "values": [
+        {
+          "id": "http://w3id.org/openeduhub/vocabs/discipline/720",
+          "caption": "Allgemein",
+          "description": null,
+          "parent": null,
+          "url": null,
+          "alternativeIds": null
+        },
+        {
+          "id": "http://w3id.org/openeduhub/vocabs/discipline/20003",
+          "caption": "Alt-Griechisch",
+          "description": null,
+          "parent": null,
+          "url": null,
+          "alternativeIds": null
+        },
+        {
+          "id": "http://w3id.org/openeduhub/vocabs/discipline/04001",
+          "caption": "Agrarwirtschaft",
+          "description": null,
+          "parent": null,
+          "url": null,
+          "alternativeIds": null
+        },
+        {
+          "id": "http://w3id.org/openeduhub/vocabs/discipline/oeh01",
+          "caption": "Arbeit, Ernährung, Soziales",
+          "description": null,
+          "parent": null,
+          "url": null,
+          "alternativeIds": null
+        },
+        {
+          "id": "http://w3id.org/openeduhub/vocabs/discipline/020",
+          "caption": "Arbeitslehre",
+          "description": null,
+          "parent": null,
+          "url": null,
+          "alternativeIds": null
+        }
+      ]
+    },
+    {
+      "id": "virtual:editorial_file_type",
+      "caption": "Datei-/Editorformat"
+    },
+    {
+      "id": "virtual:editorial_edit_type",
+      "caption": "Bearbeitungszustand"
+    },
+    {
+      "id": "virtual:editorial_filter",
+      "caption": "Eingangsweg"
+    },
+    {
+      "id": "ccm:replicationsource",
+      "caption": "Herkunft des Inhalts",
+      "values": [
+        {
+          "id": "http://w3id.org/openeduhub/vocabs/sources/5d693d03-d52f-4c9e-a2f0-11c08d8f4f3c",
+          "caption": "Arizona State University",
+          "description": null,
+          "parent": "http://w3id.org/openeduhub/vocabs/sources/f5da1c8f-094a-4914-a9a6-4fb123d598c5",
+          "url": "https://www.youtube.com/playlist?list=PLNrrxHpJhC8mNXjrAL3Ey1Q6iI35cymzl",
+          "alternativeIds": null
+        },
+        {
+          "id": "http://w3id.org/openeduhub/vocabs/sources/f5da1c8f-094a-4914-a9a6-4fb123d598c5",
+          "caption": "Youtube",
+          "description": null,
+          "parent": null,
+          "url": "https://youtube.com",
+          "alternativeIds": [
+            "youtube_spider"
+          ]
+        },
+        {
+          "id": "http://w3id.org/openeduhub/vocabs/sources/d2e5c825-4645-4d14-b33d-524b8d24621f",
+          "caption": "BayernEdu",
+          "description": null,
+          "parent": null,
+          "url": "https://bayernedu.net/",
+          "alternativeIds": null
+        },
+        {
+          "id": "http://w3id.org/openeduhub/vocabs/sources/432c9be5-eabd-4f50-9359-0a6afbc2e0d8",
+          "caption": "Biologie Lernprogramme",
+          "description": null,
+          "parent": null,
+          "url": "https://biologie-lernprogramme.de/",
+          "alternativeIds": [
+            "biologie_lernprogramme_spider"
+          ]
+        },
+        {
+          "id": "http://w3id.org/openeduhub/vocabs/sources/7d22f062-1718-4f8d-b2c0-32751bc6f24c",
+          "caption": "Digital Learning Lab",
+          "description": null,
+          "parent": null,
+          "url": "https://digitallearninglab.de/",
+          "alternativeIds": [
+            "digitallearninglab_spider"
+          ]
+        },
+        {
+          "id": "http://w3id.org/openeduhub/vocabs/sources/011766b1-07f8-4cbe-bef1-3316458ed7cb",
+          "caption": "DiLerTube",
+          "description": null,
+          "parent": null,
+          "url": "https://www.dilertube.de",
+          "alternativeIds": [
+            "dilertube_spider"
+          ]
+        }
+      ]
+    }
+  ]
+}

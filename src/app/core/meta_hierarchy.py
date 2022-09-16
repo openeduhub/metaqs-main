@@ -103,12 +103,13 @@ assert len(set(_ids())) == len(_ids()), "duplicate ids for different metadata fi
 
 
 @functools.cache
-def load_metadataset() -> dict[str, str]:
+def load_metadataset() -> dict:
     """
     Load the MetaDataSet from EDU-sharing.
-    Returns a dictionary from metadata field (e.g. "ccm:description") to german title (e.g. "Beschreibung").
+    See https://redaktion-staging.openeduhub.net/edu-sharing/swagger/#/MDS%20v1/getMetadataSet for more details.
     """
     import httpx
+
     logger.info(f"Loading MetaDataSet from {METADATASET_URL}")
     response = httpx.get(url=METADATASET_URL)
     if response.status_code != 200:
@@ -117,7 +118,4 @@ def load_metadataset() -> dict[str, str]:
             status_code=502,
             detail=f"Failed to load MetaDataSet from EDU-sharing: {METADATASET_URL}. Received: {response.status_code}.",
         )
-    data = response.json()
-    result = {widget["id"]: widget["caption"] for widget in data["widgets"]}
-    logger.info(f"Initialized captions of MetaDataSet from EDU-Sharing service with {len(result)} entries.")
-    return result
+    return response.json()

@@ -1,7 +1,8 @@
 import datetime
 import json
 import uuid
-from typing import Iterable, Literal, Optional, Iterator
+from functools import cache
+from typing import Iterable, Literal, Optional, Iterator, Any
 
 from elasticsearch_dsl import A
 from fastapi import HTTPException
@@ -49,8 +50,15 @@ def _flat_hierarchy() -> Iterator[tuple[int, str, Optional[ElasticResourceAttrib
             yield 1, name, attribute
 
 
+@cache
 def _quality_matrix_columns() -> list[QualityMatrixHeader]:
-    caption_map = load_metadataset()
+    """
+    Extracts the human readable names of the metadata fields from the metadataset provided by EDU-sharing and build the
+    column descriptors.
+    """
+    data = load_metadataset()
+    caption_map = {widget["id"]: widget["caption"] for widget in data["widgets"]}
+    logger.info(f"Initialized captions of MetaDataSet from EDU-Sharing service with {len(caption_map)} entries.")
     return [
         QualityMatrixHeader(
             id=name,
@@ -60,6 +68,48 @@ def _quality_matrix_columns() -> list[QualityMatrixHeader]:
         )
         for level, name, attribute in _flat_hierarchy()
     ]
+
+
+@cache
+def _replication_source_row_headers() -> dict[str, QualityMatrixHeader]:
+    """Build the row headers for the replication-source quality matrix."""
+    try:
+        replication_source_widget: Optional[dict[str, Any]] = next(
+            filter(lambda w: w["id"] == "ccm:replicationsource", load_metadataset()["widgets"]), None
+        )
+
+        def build(value: dict[str, Any]) -> Optional[QualityMatrixHeader]:
+            """
+            A value block in the MetaDataSet looks as follows:
+            {
+              "id": "http://w3id.org/openeduhub/vocabs/sources/003d68a3-1417-44eb-809c-dada652cbb05",
+              "caption": "DLRG",
+              "description": null,
+              "parent": null,
+              "url": "https://www.dlrg.de/",
+              "alternativeIds": null # or  ["<name>_spider"]
+            }
+            """
+            try:
+                if value["alternativeIds"] is None:
+                    return None
+
+                id = value["alternativeIds"][0]
+                return QualityMatrixHeader(id=id, label=value["caption"], alt_label=f'{id} ({value["id"]})', level=0)
+            except (KeyError, IndexError):
+                logger.warning(f"Failed to build column header for value: {value}")
+                return None
+
+        if replication_source_widget is not None:
+            return {
+                header.id: header for header in map(build, replication_source_widget["values"]) if header is not None
+            }
+        else:
+            logger.warning("Failed to build replication source headers. Returning empty dictionary.")
+            return {}
+    except Exception as e:
+        logger.exception("Failed to build replication-source headers, falling back to default headers.")
+        return {}
 
 
 def collection_quality_matrix(collection: Tree) -> QualityMatrix:
@@ -185,29 +235,29 @@ def replication_source_quality_matrix(collection: Tree) -> QualityMatrix:
     #       "sum_other_doc_count" : 0,
     #       "buckets" : [
     #         {
-    #           "key" : "http://w3id.org/openeduhub/vocabs/new_lrt/5098cf0b-1c12-4a1b-a6d3-b3f29621e11d",
+    #           "key" : "youtube_spider",
     #           "doc_count" : 92,
     #           "metadatacontributer_validator" : { "doc_count" : 92 },
     #           ...
     #           "metadatacontributer_provider" : { "doc_count" : 92 }
     #         },
     #         {
-    #           "key" : "http://w3id.org/openeduhub/vocabs/new_lrt/a0218a48-a008-4975-a62a-27b1a83d454f",
+    #           "key" : "serlo_spider",
     #           "doc_count" : 76,
     #           "metadatacontributer_validator" : { "doc_count" : 76 },
     #           ...
     #           "metadatacontributer_creator" : { "doc_count" : 55 }
     #         },
     #         ...
+    row_headers = _replication_source_row_headers()
 
     return QualityMatrix(
         rows=[
             QualityMatrixRow(
-                meta=QualityMatrixHeader(
-                    id=bucket["key"].split("/")[-1],
-                    label=bucket["key"].split("/")[-1],
-                    alt_label=bucket["key"],
-                    level=None,
+                meta=row_headers.get(
+                    bucket["key"],
+                    # default to the plain id as label in case we cannot look it up.
+                    QualityMatrixHeader(id=bucket["key"], label=bucket["key"], alt_label=bucket["key"], level=0),
                 ),
                 counts={
                     # return the number of materials where the meta data field is __NOT__ missing.

@@ -1,6 +1,8 @@
 import contextlib
+import json
 import os
 import uuid
+from pathlib import Path
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -22,16 +24,11 @@ from tests.conftest import elastic_search_mock
 @contextlib.contextmanager
 def edusharing_mock():
     """Avoid querrying the metadata set from edusharing during tests."""
+    with open(Path(__file__).parent.parent / "resources" / "edu-sharing-metadataset.json", "r") as f:
+        mds = json.load(f)
 
     def the_mock() -> dict[str, str]:
-        class Fake(dict):
-            def __getattr__(self, k):
-                return k
-
-            def get(self, k, v=None):
-                return k
-
-        return Fake()
+        return mds
 
     with mock.patch("app.api.collections.quality_matrix.load_metadataset", the_mock):
         yield
@@ -126,10 +123,7 @@ def test_replication_source_quality_matrix():
                 QualityMatrixHeader(id="learning_resource_type", label="ccm:oeh_lrt", alt_label="ccm:oeh_lrt", level=1),
                 QualityMatrixHeader(id="mimetype", label="mimetype", alt_label="mimetype", level=1),
                 QualityMatrixHeader(
-                    id="file_type",
-                    label="virtual:editorial_file_type",
-                    alt_label="virtual:editorial_file_type",
-                    level=1,
+                    id="file_type", label="Datei-/Editorformat", alt_label="virtual:editorial_file_type", level=1
                 ),
                 QualityMatrixHeader(
                     id="edu_context", label="ccm:educationalcontext", alt_label="ccm:educationalcontext", level=1
@@ -218,7 +212,7 @@ def test_replication_source_quality_matrix():
                 QualityMatrixHeader(id="Qualität", label="Qualität", alt_label=None, level=0),
                 QualityMatrixHeader(
                     id="oeh_quality_correctness",
-                    label="ccm:oeh_quality_correctness",
+                    label="Sachrichtigkeit",
                     alt_label="ccm:oeh_quality_correctness",
                     level=1,
                 ),
@@ -323,17 +317,17 @@ def test_replication_source_quality_matrix():
                 ),
                 QualityMatrixHeader(id="created", label="cm:created", alt_label="cm:created", level=1),
                 QualityMatrixHeader(id="modified", label="cm:modified", alt_label="cm:modified", level=1),
-                QualityMatrixHeader(id="versionLabel", label="cm:versionLabel", alt_label="cm:versionLabel", level=1),
+                QualityMatrixHeader(id="versionLabel", label="Versionsnummer", alt_label="cm:versionLabel", level=1),
                 QualityMatrixHeader(
                     id="publisher", label="ccm:oeh_publisher_combined", alt_label="ccm:oeh_publisher_combined", level=1
                 ),
                 QualityMatrixHeader(
                     id="Identifier und Signaturen", label="Identifier und Signaturen", alt_label=None, level=0
                 ),
-                QualityMatrixHeader(id="node_uuid", label="sys:node-uuid", alt_label="sys:node-uuid", level=1),
+                QualityMatrixHeader(id="node_uuid", label="WLO-Identifier", alt_label="sys:node-uuid", level=1),
                 QualityMatrixHeader(
                     id="published_handle_id",
-                    label="ccm:published_handle_id",
+                    label="UID - im Internet eindeutige Adresse",
                     alt_label="ccm:published_handle_id",
                     level=1,
                 ),
@@ -369,7 +363,10 @@ def test_replication_source_quality_matrix():
             rows=[
                 QualityMatrixRow(
                     meta=QualityMatrixHeader(
-                        id="youtube_spider", label="youtube_spider", alt_label="youtube_spider", level=None
+                        id="youtube_spider",
+                        label="Youtube",
+                        alt_label="youtube_spider (http://w3id.org/openeduhub/vocabs/sources/f5da1c8f-094a-4914-a9a6-4fb123d598c5)",
+                        level=0,
                     ),
                     counts={
                         "cover": 0,
@@ -438,7 +435,7 @@ def test_replication_source_quality_matrix():
                 ),
                 QualityMatrixRow(
                     meta=QualityMatrixHeader(
-                        id="oai_sodis_spider", label="oai_sodis_spider", alt_label="oai_sodis_spider", level=None
+                        id="oai_sodis_spider", label="oai_sodis_spider", alt_label="oai_sodis_spider", level=0
                     ),
                     counts={
                         "cover": 0,
@@ -506,7 +503,7 @@ def test_replication_source_quality_matrix():
                     total=227,
                 ),
                 QualityMatrixRow(
-                    meta=QualityMatrixHeader(id="rlp_spider", label="rlp_spider", alt_label="rlp_spider", level=None),
+                    meta=QualityMatrixHeader(id="rlp_spider", label="rlp_spider", alt_label="rlp_spider", level=0),
                     counts={
                         "cover": 0,
                         "short_title": 0,
@@ -621,10 +618,7 @@ def test_collection_quality_matrix():
                 QualityMatrixHeader(id="learning_resource_type", label="ccm:oeh_lrt", alt_label="ccm:oeh_lrt", level=1),
                 QualityMatrixHeader(id="mimetype", label="mimetype", alt_label="mimetype", level=1),
                 QualityMatrixHeader(
-                    id="file_type",
-                    label="virtual:editorial_file_type",
-                    alt_label="virtual:editorial_file_type",
-                    level=1,
+                    id="file_type", label="Datei-/Editorformat", alt_label="virtual:editorial_file_type", level=1
                 ),
                 QualityMatrixHeader(
                     id="edu_context", label="ccm:educationalcontext", alt_label="ccm:educationalcontext", level=1
@@ -713,7 +707,7 @@ def test_collection_quality_matrix():
                 QualityMatrixHeader(id="Qualität", label="Qualität", alt_label=None, level=0),
                 QualityMatrixHeader(
                     id="oeh_quality_correctness",
-                    label="ccm:oeh_quality_correctness",
+                    label="Sachrichtigkeit",
                     alt_label="ccm:oeh_quality_correctness",
                     level=1,
                 ),
@@ -818,17 +812,17 @@ def test_collection_quality_matrix():
                 ),
                 QualityMatrixHeader(id="created", label="cm:created", alt_label="cm:created", level=1),
                 QualityMatrixHeader(id="modified", label="cm:modified", alt_label="cm:modified", level=1),
-                QualityMatrixHeader(id="versionLabel", label="cm:versionLabel", alt_label="cm:versionLabel", level=1),
+                QualityMatrixHeader(id="versionLabel", label="Versionsnummer", alt_label="cm:versionLabel", level=1),
                 QualityMatrixHeader(
                     id="publisher", label="ccm:oeh_publisher_combined", alt_label="ccm:oeh_publisher_combined", level=1
                 ),
                 QualityMatrixHeader(
                     id="Identifier und Signaturen", label="Identifier und Signaturen", alt_label=None, level=0
                 ),
-                QualityMatrixHeader(id="node_uuid", label="sys:node-uuid", alt_label="sys:node-uuid", level=1),
+                QualityMatrixHeader(id="node_uuid", label="WLO-Identifier", alt_label="sys:node-uuid", level=1),
                 QualityMatrixHeader(
                     id="published_handle_id",
-                    label="ccm:published_handle_id",
+                    label="UID - im Internet eindeutige Adresse",
                     alt_label="ccm:published_handle_id",
                     level=1,
                 ),
