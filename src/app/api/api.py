@@ -74,26 +74,25 @@ async def get_quality_matrix(*, node_id: uuid.UUID = Depends(toplevel_collection
     """
     Calculate the quality matrix w.r.t. the replication source, or collection.
 
-      A quality matrix is a tabular datastructure that has two possible layouts depending on whether it is computed for
-      the replication source ('replication-source') or collection ('collections').
+    A quality matrix is a tabular datastructure holding the number of materials that have a certain missing
+    meta data attribute. The rows of the matrix are defined by the mode. I.e. for 'replication-source', each row
+    will represent a different replication source (the content source domain (e.g. "YouTube", "Wikipedia", ...) from
+    which the content was crawled, for 'collection' each row will correspond to a specific collection (
+    [vocabulary](https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/oeh-topics/5e40e372-735c-4b17-bbf7-e827a5702b57.html).
 
-      - For the collection quality matrix, each column correspond to metadata fields and the rows correspond to
-        collections, identified via their UUID from the
-        [vocabulary](https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/oeh-topics/5e40e372-735c-4b17-bbf7-e827a5702b57.html).
-      - For the replication source quality matrix, the columns correspond to the content source domain (e.g. "YouTube",
-        "Wikipedia", ...) from which the content was crawled, the rows correspond to the metadata fields.
+    The columns of the matrix are defined by the meta data fields of the materials, and their counts denote how many
+    of the materials of the given row contain the metadata of the respective column. Together with the total number
+    of materials in each row, this allows to compute the completeness as `(row.counts[column])/row.total`
+    (and incompleteness as `(row.total-row.counts[column])/row.total`).
 
-      For both cases, the individual cells hold the rations of materials where the metadata is "OK". The definition of
-      "OK" depends on the meta data field (e.g. "non-empty string" for the title of a material).
-
-      Parameters:
-      - node_id: The toplevel collection for which to compute the quality matrix.
-                  It must come from the collection
-                  [vocabulary](https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/oeh-topics/5e40e372-735c-4b17-bbf7-e827a5702b57.html).
-                  In the "collections" mode, this essentially defines the rows of the output matrix.
-                  It serves as an overall filter for materials in both cases.
-      - mode: Defines the mode of the quality matrix, i.e. whether to compute the collection ("collections") or
-              replication source ("replication-source").
+    Parameters:
+    - node_id: The toplevel collection for which to compute the quality matrix.
+              It must come from the collection
+              [vocabulary](https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/oeh-topics/5e40e372-735c-4b17-bbf7-e827a5702b57.html).
+              In the "collections" mode, this essentially defines the rows of the output matrix.
+              It serves as an overall filter for materials in both cases.
+    - mode: Defines the mode of the quality matrix, i.e. whether to compute the collection ("collections") or
+          replication source ("replication-source").
     """
 
     root = tree(node_id)
