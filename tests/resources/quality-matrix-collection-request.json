@@ -45,7 +45,7 @@
     "collection": {
       "terms": {
         "field": "collections.nodeRef.id.keyword",
-        "size": 10000
+        "size": 500000
       },
       "aggs": {
         "preview": {

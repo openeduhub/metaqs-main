@@ -45,7 +45,7 @@
     "replication_source": {
       "terms": {
         "field": "properties.ccm:replicationsource.keyword",
-        "size": 10000
+        "size": 500000
       },
       "aggs": {
         "preview": {
