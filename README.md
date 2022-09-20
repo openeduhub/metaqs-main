@@ -41,8 +41,8 @@ container or other environment constraints.
 
 ## Branching Model
 
-This repository follows the [GitHub Flow](http://scottchacon.com/2011/08/31/github-flow.html) branching model, but adds
-an additional `dev` branch for testing and discussion with the customer.
+This repository follows the [Git-Flow](https://www.atlassian.com/de/git/tutorials/comparing-workflows/gitflow-workflow) 
+branching model.
 
 > - Anything in the main branch is deployable
 > - To work on something new, create a descriptively named branch off of dev, ideally add the issue number to the name (
