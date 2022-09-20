@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.api.collections.tree import Tree, tree
-from app.core.config import QUALITY_MATRIX_STORE_INTERVAL
+from app.core.config import QUALITY_MATRIX_STORE_INTERVAL, ELASTIC_TOTAL_SIZE
 from app.core.constants import COLLECTION_NAME_TO_ID
 from app.core.logging import logger
 from app.core.meta_hierarchy import METADATA_HIERARCHY, load_metadataset
@@ -123,10 +123,10 @@ def collection_quality_matrix(collection: Tree) -> QualityMatrix:
         A(
             "terms",
             field="collections.nodeRef.id.keyword",
-            size=10000,
+            size=ELASTIC_TOTAL_SIZE,
             aggs={
                 attribute.path: {"missing": {"field": attribute.keyword}}
-                for _, name, attribute in _flat_hierarchy()
+                for _, _, attribute in _flat_hierarchy()
                 if attribute is not None
             },
         ),
@@ -213,7 +213,7 @@ def replication_source_quality_matrix(collection: Tree) -> QualityMatrix:
         A(
             "terms",
             field=ElasticResourceAttribute.REPLICATION_SOURCE.keyword,
-            size=10000,
+            size=ELASTIC_TOTAL_SIZE,
             aggs={
                 attribute.path: {"missing": {"field": attribute.keyword}}
                 for _, name, attribute in _flat_hierarchy()
