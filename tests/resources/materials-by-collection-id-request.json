@@ -23,6 +23,17 @@
           }
         },
         {
+          "bool": {
+            "must_not": [
+              {
+                "term": {
+                  "aspects": "ccm:io_childobject"
+                }
+              }
+            ]
+          }
+        },
+        {
           "terms": {
             "properties.ccm:commonlicense_key.keyword": [
               "CC_0",

@@ -23,11 +23,6 @@
           }
         },
         {
-          "term": {
-            "collections.nodeRef.id.keyword": "4940d5da-9b21-4ec0-8824-d16e0409e629"
-          }
-        },
-        {
           "bool": {
             "must_not": [
               {
@@ -36,6 +31,11 @@
                 }
               }
             ]
+          }
+        },
+        {
+          "term": {
+            "collections.nodeRef.id.keyword": "4940d5da-9b21-4ec0-8824-d16e0409e629"
           }
         },
         {

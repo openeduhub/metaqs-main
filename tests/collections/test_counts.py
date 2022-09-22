@@ -23,6 +23,7 @@ def test_query_collection_counts():
                     {"term": {"properties.cm:edu_metadataset.keyword": "mds_oeh"}},
                     {"term": {"nodeRef.storeRef.protocol": "workspace"}},
                     {"term": {"type": "ccm:io"}},
+                    {'bool': {'must_not': [{'term': {'aspects': 'ccm:io_childobject'}}]}},
                     {
                         "bool": {
                             "should": [
@@ -59,6 +60,7 @@ def test_query_collection_counts_oer():
                     {"term": {"properties.cm:edu_metadataset.keyword": "mds_oeh"}},
                     {"term": {"nodeRef.storeRef.protocol": "workspace"}},
                     {"term": {"type": "ccm:io"}},
+                    {'bool': {'must_not': [{'term': {'aspects': 'ccm:io_childobject'}}]}},
                     {
                         "terms": {
                             "properties.ccm:commonlicense_key.keyword": [

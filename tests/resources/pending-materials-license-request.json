@@ -22,6 +22,17 @@
             "type": "ccm:io"
           }
         },
+       {
+          "bool": {
+            "must_not": [
+              {
+                "term": {
+                  "aspects": "ccm:io_childobject"
+                }
+              }
+            ]
+          }
+        },
         {
           "bool": {
             "should": [
@@ -33,17 +44,6 @@
               {
                 "match": {
                   "collections.path.keyword": "15fce411-54d9-467f-8f35-61ea374a298d"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "bool": {
-            "must_not": [
-              {
-                "term": {
-                  "aspects": "ccm:io_childobject"
                 }
               }
             ]

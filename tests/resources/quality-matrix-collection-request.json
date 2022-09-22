@@ -24,6 +24,17 @@
         },
         {
           "bool": {
+            "must_not": [
+              {
+                "term": {
+                  "aspects": "ccm:io_childobject"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "bool": {
             "should": [
               {
                 "term": {

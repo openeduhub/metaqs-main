@@ -74,7 +74,6 @@ def _get_material_validation_single_collection(collection_id: uuid.UUID, title: 
     search = (
         MaterialSearch()
         .collection_filter(collection_id=collection_id, transitive=False)
-        .non_series_objects_filter()
         .missing_attribute_filter(**relevant_attributes)
         .extra(size=ELASTIC_TOTAL_SIZE, from_=0)
         .source(includes=["nodeRef.id"])
