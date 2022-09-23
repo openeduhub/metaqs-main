@@ -388,8 +388,8 @@ async def get_collection_validation(
     node_id: uuid.UUID = Depends(toplevel_collections),
 ):
     """
-    Returns the number of collections missing certain properties for this collection's 'node_id' and its
-    sub-collections.
+    Returns a list of child collections of the given parent collection where
+    `title`, `description`, `keywords`, or `edu_context` are missing.
     """
     return collection_validation(node_id)
 
@@ -406,11 +406,12 @@ async def get_material_validation(
     node_id: uuid.UUID = Depends(toplevel_collections),
 ):
     """
-    Returns the number of materials missing certain properties for this collection's 'node_id' and its
+    Returns the ids of materials missing certain properties for this collection's 'node_id' and its
     sub-collections.
 
-    This endpoint is similar to '/analytics/node_id/validation/collections', but instead of showing missing
-    properties in collections, it counts the materials inside each collection that are missing that property.
+    This endpoint is similar to '/collections/{node_id}/collection-validation', but instead of listing missing
+    properties in the child collections, it selects the materials inside each collection by the
+    w.r.t. the materials missing properties.
 
     This endpoint relies on an internal periodic background process which is scheduled to regularly update the data.
     Its frequency can be configured via the BACKGROUND_TASK_TIME_INTERVAL environment variable.

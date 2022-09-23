@@ -118,6 +118,7 @@ class MaterialSearch(_Search):
             filter=[
                 *_base_filters,
                 Term(**{ElasticResourceAttribute.TYPE.path: "ccm:io"}),  # fixme: why not keyword?
+                Bool(**{"must_not": [{"term": {"aspects": "ccm:io_childobject"}}]}),  # ignore child objects
             ]
         )
 
@@ -152,7 +153,3 @@ class MaterialSearch(_Search):
     #     # for attr in attributes:
     #     #     assert attr in material_attributes, f"{attr} is non a valid material attribute"
     #     return super().source(fields=[attr.path for attr in attributes])
-
-    def non_series_objects_filter(self) -> MaterialSearch:
-        """Only return materials that are not series objects."""
-        return self.filter(Bool(**{"must_not": [{"term": {"aspects": "ccm:io_childobject"}}]}))

@@ -90,7 +90,6 @@ async def pending_materials(
     search = (
         MaterialSearch()
         .collection_filter(collection_id=collection_id, transitive=True)
-        .non_series_objects_filter()
         .missing_attribute_filter(missing=missing)
         .source(includes=[attr.path for attr in source])
         .extra(size=ELASTIC_TOTAL_SIZE, from_=0)

@@ -10,6 +10,7 @@ def test_material_search():
                     {"term": {"properties.cm:edu_metadataset.keyword": "mds_oeh"}},
                     {"term": {"nodeRef.storeRef.protocol": "workspace"}},
                     {"term": {"type": "ccm:io"}},
+                    {'bool': {'must_not': [{'term': {'aspects': 'ccm:io_childobject'}}]}},
                 ]
             }
         }
