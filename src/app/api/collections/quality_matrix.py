@@ -2,16 +2,17 @@ import datetime
 import json
 import uuid
 from functools import cache
-from typing import Iterable, Literal, Optional, Iterator, Any
+from typing import Iterable, Literal, Optional, Iterator, Any, Tuple
 
+import aiocron
 from elasticsearch_dsl import A
 from fastapi import HTTPException
-from fastapi_utils.tasks import repeat_every
 from pydantic import BaseModel, Field
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.collections.tree import Tree, tree
-from app.core.config import QUALITY_MATRIX_STORE_INTERVAL, ELASTIC_TOTAL_SIZE
+from app.core.config import QUALITY_MATRIX_BACKUP_SCHEDULE, ELASTIC_TOTAL_SIZE
 from app.core.constants import COLLECTION_NAME_TO_ID
 from app.core.logging import logger
 from app.core.meta_hierarchy import METADATA_HIERARCHY, load_metadataset
@@ -41,6 +42,15 @@ class QualityMatrixRow(BaseModel):
 class QualityMatrix(BaseModel):
     columns: list[QualityMatrixHeader] = Field(description="Defines the columns of the matrix")
     rows: list[QualityMatrixRow]
+
+
+def quality_matrix(collection: Tree, mode: QualityMatrixMode) -> QualityMatrix:
+    if mode == "replication-source":
+        return _replication_source_quality_matrix(collection)
+    elif mode == "collection":
+        return _collection_quality_matrix(collection)
+    else:
+        raise RuntimeError(f"Unsupported quality matrix mode: {mode}")
 
 
 def _flat_hierarchy() -> Iterator[tuple[int, str, Optional[ElasticResourceAttribute]]]:
@@ -112,7 +122,7 @@ def _replication_source_row_headers() -> dict[str, QualityMatrixHeader]:
         return {}
 
 
-def collection_quality_matrix(collection: Tree) -> QualityMatrix:
+def _collection_quality_matrix(collection: Tree) -> QualityMatrix:
     """
     The collection quality matrix has the collections as rows and the attribute hierarchy as columns.
     """
@@ -202,7 +212,7 @@ def collection_quality_matrix(collection: Tree) -> QualityMatrix:
     )
 
 
-def replication_source_quality_matrix(collection: Tree) -> QualityMatrix:
+def _replication_source_quality_matrix(collection: Tree) -> QualityMatrix:
     """
     The replication source quality matrix has the replication source as rows, and the attribute hierarchy as columns.
     """
@@ -288,7 +298,7 @@ def replication_source_quality_matrix(collection: Tree) -> QualityMatrix:
 
 def timestamps(session: Session, mode: QualityMatrixMode, node_id: uuid.UUID) -> list[int]:
     return [
-        row[0]
+        row.timestamp
         for row in (
             session.query(Timeline.timestamp).where(Timeline.mode == mode).where(Timeline.node_id == str(node_id)).all()
         )
@@ -314,34 +324,47 @@ def past_quality_matrix(
     return QualityMatrix.parse_obj(json.loads(result[0].quality_matrix))
 
 
-def quality_backup(session: Session):
-    logger.info("Storing quality matrices in database")
+def quality_backup(session: Session, timestamp: datetime.datetime):
+    """
+    Note: If multiple instances of the app are running (e.g. via
+    multiple gunicorn workers), we should not store the quality
+    matrix multiple times.
+
+    Hence, we pass in the timestamp of the scheduled save and use
+    it as part of the primary key. The database will then make sure
+    we cannot write duplicate instances.
+    """
+    logger.info(f"Storing quality matrices in database for {timestamp}")
+
+    modes: Tuple[QualityMatrixMode, ...] = ("replication-source", "collection")
 
     for node_id in COLLECTION_NAME_TO_ID.values():
         root = tree(node_id=uuid.UUID(node_id))
-        logger.info(f"Storing quality matrix for: '{root.title} ({root.node_id})'")
-        timestamp = int(datetime.datetime.now().timestamp())
-        session.add(
-            Timeline(
-                timestamp=timestamp,
-                mode="replication-source",
-                node_id=str(node_id),
-                quality_matrix=replication_source_quality_matrix(root).json(),
-            )
-        )
-        session.add(
-            Timeline(
-                timestamp=timestamp,
-                mode="collection",
-                node_id=str(node_id),
-                quality_matrix=collection_quality_matrix(root).json(),
-            )
-        )
-        session.commit()
+        for mode in modes:
+            try:
+                logger.debug(f"Storing '{mode}' quality matrix for: '{root.title} ({root.node_id})'")
+                with session.begin():
+                    session.add(
+                        Timeline(
+                            timestamp=timestamp.timestamp(),
+                            mode=mode,
+                            node_id=str(node_id),
+                            quality_matrix=quality_matrix(root, mode=mode).json(),
+                        )
+                    )
+            except IntegrityError as e:
+                logger.debug(f"'{mode}' quality matrix already stored ('{root.title} / {root.node_id})': {e}")
 
 
-@repeat_every(seconds=QUALITY_MATRIX_STORE_INTERVAL, logger=logger)
-def quality_matrix_backup_job():
-    """Periodically store the quality matrices in the database"""
-    with session_maker().context_session() as session:
-        quality_backup(session)
+async def quality_matrix_backup_job():
+    """
+    Periodically store the quality matrices in the database.
+
+    When added as startup task, this method will run concurrently with the incoming requests in the main event loop.
+    """
+    cron = aiocron.crontab(QUALITY_MATRIX_BACKUP_SCHEDULE)
+    logger.info(f"Starting quality matrix backup schedule with `{QUALITY_MATRIX_BACKUP_SCHEDULE}")
+    while True:
+        await cron.next()  # yields control and waits until the next write is scheduled
+        with session_maker().context_session() as session:
+            quality_backup(session, timestamp=cron.croniter.get_current(ret_type=datetime.datetime))

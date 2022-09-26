@@ -32,8 +32,7 @@ from app.api.collections.pending_materials import (
 )
 from app.api.collections.quality_matrix import (
     QualityMatrixMode,
-    collection_quality_matrix,
-    replication_source_quality_matrix,
+    quality_matrix,
     timestamps,
     QualityMatrix,
     past_quality_matrix,
@@ -75,7 +74,6 @@ async def get_quality_matrix(*, node_id: uuid.UUID = Depends(toplevel_collection
     Calculate the quality matrix w.r.t. the replication source, or collection.
 
     A quality matrix is a tabular datastructure holding the number of materials that have a certain missing
-    meta data attribute. The rows of the matrix are defined by the mode. I.e. for 'replication-source', each row
     will represent a different replication source (the content source domain (e.g. "YouTube", "Wikipedia", ...) from
     which the content was crawled, for 'collection' each row will correspond to a specific collection (
     [vocabulary](https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/oeh-topics/5e40e372-735c-4b17-bbf7-e827a5702b57.html).
@@ -96,12 +94,7 @@ async def get_quality_matrix(*, node_id: uuid.UUID = Depends(toplevel_collection
     """
 
     root = tree(node_id)
-    if mode == "replication-source":
-        return replication_source_quality_matrix(root)
-    elif mode == "collection":
-        return collection_quality_matrix(root)
-    else:
-        raise HTTPException(status_code=400, detail=f"Invalid mode: {mode}")
+    return quality_matrix(collection=root, mode=mode)
 
 
 @router.get(

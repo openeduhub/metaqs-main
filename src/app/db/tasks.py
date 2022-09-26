@@ -15,14 +15,9 @@ class Timeline(Base):
     """Table will be automatically created at application start time if it does not exist."""
 
     __tablename__ = "timeline"
-    id = Column(
-        Integer,
-        primary_key=True,
-        index=True,
-    )
-    timestamp = Column(Integer, nullable=False)
-    mode = Column(Text, nullable=False)
-    node_id = Column(Text, nullable=False)
+    timestamp = Column(Integer, nullable=False, primary_key=True)
+    mode = Column(Text, nullable=False, primary_key=True)
+    node_id = Column(Text, nullable=False, primary_key=True)
     quality_matrix = Column(JSON, nullable=False)
 
 

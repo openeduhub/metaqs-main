@@ -19,6 +19,7 @@ fastapi-utils = "^0.2.1"
 python-dotenv = "^0.20.0"
 httpx = "^0.23.0"
 glom = "^22.1.0"
+aiocron = "^1.8"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.18.1"
