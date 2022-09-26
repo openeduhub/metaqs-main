@@ -249,25 +249,38 @@ def replication_source_quality_matrix(collection: Tree) -> QualityMatrix:
     #           "metadatacontributer_creator" : { "doc_count" : 55 }
     #         },
     #         ...
+
     row_headers = _replication_source_row_headers()
+
+    Bucket = dict[str, Any]
+
+    def rows() -> Iterator[tuple[QualityMatrixHeader, Optional[Bucket]]]:
+        """Returns None for buckets that are not part of the elastic query result."""
+        # first loop over all replication sources and insert empty rows in case we did not find anything
+        # See: https://github.com/openeduhub/metaqs-main/issues/121
+        buckets = {bucket["key"]: bucket for bucket in response.aggregations["replication_source"]["buckets"]}
+        for key, header in row_headers.items():
+            # remove bucket from dictionary to check what is left after this loop
+            yield header, buckets.pop(key, None)
+        # now, check if there are any buckets left (in case the set of
+        # replication sources from edusharing is not complete)
+        for key, bucket in buckets.items():
+            # use defaults for the rows as we have no alternative...
+            yield QualityMatrixHeader(id=bucket["key"], label=bucket["key"], alt_label=bucket["key"], level=0), bucket
 
     return QualityMatrix(
         rows=[
             QualityMatrixRow(
-                meta=row_headers.get(
-                    bucket["key"],
-                    # default to the plain id as label in case we cannot look it up.
-                    QualityMatrixHeader(id=bucket["key"], label=bucket["key"], alt_label=bucket["key"], level=0),
-                ),
+                meta=header,
                 counts={
                     # return the number of materials where the meta data field is __NOT__ missing.
-                    name: bucket["doc_count"] - bucket[attribute.path]["doc_count"]
+                    name: 0 if bucket is None else (bucket["doc_count"] - bucket[attribute.path]["doc_count"])
                     for _, name, attribute in _flat_hierarchy()
                     if attribute is not None
                 },
-                total=bucket["doc_count"],
+                total=0 if bucket is None else bucket["doc_count"],
             )
-            for bucket in response.aggregations["replication_source"]["buckets"]
+            for header, bucket in rows()
         ],
         columns=_quality_matrix_columns(),
     )
