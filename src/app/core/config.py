@@ -23,9 +23,13 @@ ELASTIC_INDEX = "workspace"
 ELASTIC_TOTAL_SIZE = 500_000  # Maximum number of entries elasticsearch queries, very large to query all entries
 ELASTICSEARCH_TIMEOUT = int(os.getenv("ELASTICSEARCH_TIMEOUT", 20))
 
-# Time in seconds between consecutive background calls
+
 BACKGROUND_TASK_TIME_INTERVAL = int(os.getenv("BACKGROUND_TASK_TIME_INTERVAL", 10 * 60))
-QUALITY_MATRIX_STORE_INTERVAL = int(os.getenv("QUALITY_MATRIX_STORE_INTERVAL", 6 * 60 * 60))  # default to every 6 hours
+# Cron like schedule when quality matrix should be stored. Default to every 6 hours
+# see https://crontab.guru/#0_0,6,12,18_*_*_*
+QUALITY_MATRIX_BACKUP_SCHEDULE = os.getenv(
+    "QUALITY_MATRIX_BACKUP_SCHEDULE", "0 0,6,12,18 * * *"
+)
 
 # The Database URL to use for storing historic quality matrix information
 DATABASE_URL = os.getenv("DATABASE_URL", None)

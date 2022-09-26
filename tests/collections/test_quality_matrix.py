@@ -2,6 +2,7 @@ import contextlib
 import json
 import os
 import uuid
+import datetime
 from pathlib import Path
 from unittest import mock
 from unittest.mock import MagicMock
@@ -14,8 +15,8 @@ from app.api.collections.quality_matrix import (
     quality_backup,
     past_quality_matrix,
 )
-from app.api.collections.quality_matrix import replication_source_quality_matrix
-from app.api.collections.quality_matrix import collection_quality_matrix
+from app.api.collections.quality_matrix import _replication_source_quality_matrix
+from app.api.collections.quality_matrix import _collection_quality_matrix
 from app.api.collections.quality_matrix import timestamps
 from app.core.constants import COLLECTION_NAME_TO_ID
 from tests.conftest import elastic_search_mock
@@ -51,18 +52,20 @@ def test_quality_matrix_history(tmpdir):
         ],
     )
 
-    def mock_matrix(node) -> QualityMatrix:
+    def mock_matrix(node, mode) -> QualityMatrix:
         return matrix_mock
 
     node_id = uuid.UUID(COLLECTION_NAME_TO_ID["Chemie"])
+    timestamp = datetime.datetime(year=2022, month=10, day=22, hour=10, minute=10, second=0)
     with (
-        mock.patch("app.api.collections.quality_matrix.replication_source_quality_matrix", mock_matrix),
-        mock.patch("app.api.collections.quality_matrix.collection_quality_matrix", mock_matrix),
+        mock.patch("app.api.collections.quality_matrix.quality_matrix", mock_matrix),
         mock.patch("app.api.collections.quality_matrix.tree", MagicMock(title="title", id=node_id)),
         session_maker().context_session() as session,
     ):
         # save quality matrices for all collections and both modes
-        quality_backup(session)
+        quality_backup(session, timestamp=timestamp)
+        # saving the same quality matrix should be a noop, as the integrity error should be ignored.
+        quality_backup(session, timestamp=timestamp)
 
         # check that timestamps are loaded correctly
         timestamp, *other = timestamps(session, mode="replication-source", node_id=node_id)
@@ -102,7 +105,7 @@ def test_replication_source_quality_matrix():
         ],
     )
     with elastic_search_mock("quality-matrix-replication-source"), edusharing_mock():
-        result = replication_source_quality_matrix(collection=collection)
+        result = _replication_source_quality_matrix(collection=collection)
         assert result == QualityMatrix(
             columns=[
                 QualityMatrixHeader(id="Beschreibendes", label="Beschreibendes", alt_label=None, level=0),
@@ -813,7 +816,7 @@ def test_collection_quality_matrix():
         ],
     )
     with elastic_search_mock("quality-matrix-collection"), edusharing_mock():
-        result = collection_quality_matrix(collection=collection)
+        result = _collection_quality_matrix(collection=collection)
         assert result == QualityMatrix(
             columns=[
                 QualityMatrixHeader(id="Beschreibendes", label="Beschreibendes", alt_label=None, level=0),
