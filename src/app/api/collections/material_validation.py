@@ -40,8 +40,6 @@ def _get_material_validation_single_collection(collection_id: uuid.UUID, title: 
     Note that this does not consider materials that are in any (nested-)child collection of the collection, the
     material has to be _exactly_ in the specified collection.
     """
-    logger.info(f" - Analyzing collection: {title} ({collection_id})")
-
     # the field names and attributes which to check, note that the keys have to exactly match the field
     # names of the PendingMaterials struct.
     relevant_attributes = {
@@ -121,7 +119,6 @@ def background_task():
 
     for counter, (title, collection) in enumerate(COLLECTION_NAME_TO_ID.items()):
         collection = uuid.UUID(collection)
-        logger.info(f"Working on: {title}")
         material_validation_cache[collection] = material_validation(collection_id=collection)
 
     logger.info("Storing in cache.")

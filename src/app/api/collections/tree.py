@@ -51,11 +51,9 @@ def tree_search(node_id: uuid.UUID) -> Search:
     Note: The result will _not_ include the actual root node of the queried subtree.
     :param node_id: The root node of the subtree for which to build the search.
     """
-    # make search.to_dict() result JSON serializable
-    node_id = str(node_id)
     return (
         CollectionSearch()
-        .query(Bool(filter=Term(**{ElasticResourceAttribute.PATH.path: node_id})))
+        .collection_filter(collection_id=node_id)
         .source(
             [
                 ElasticResourceAttribute.NODE_ID.path,

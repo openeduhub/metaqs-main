@@ -1,6 +1,7 @@
 import datetime
 import json
 import uuid
+from asyncio import ensure_future
 from functools import cache
 from typing import Iterable, Literal, Optional, Iterator, Any, Tuple
 
@@ -356,15 +357,21 @@ def quality_backup(session: Session, timestamp: datetime.datetime):
                 logger.debug(f"'{mode}' quality matrix already stored ('{root.title} / {root.node_id})': {e}")
 
 
-async def quality_matrix_backup_job():
+def quality_matrix_backup_job():
     """
     Periodically store the quality matrices in the database.
 
     When added as startup task, this method will run concurrently with the incoming requests in the main event loop.
     """
-    cron = aiocron.crontab(QUALITY_MATRIX_BACKUP_SCHEDULE)
-    logger.info(f"Starting quality matrix backup schedule with `{QUALITY_MATRIX_BACKUP_SCHEDULE}")
-    while True:
-        await cron.next()  # yields control and waits until the next write is scheduled
-        with session_maker().context_session() as session:
-            quality_backup(session, timestamp=cron.croniter.get_current(ret_type=datetime.datetime))
+
+    async def loop():
+        cron = aiocron.crontab(QUALITY_MATRIX_BACKUP_SCHEDULE)
+        logger.info(f"Starting quality matrix backup schedule with `{QUALITY_MATRIX_BACKUP_SCHEDULE}")
+        while True:
+            logger.info("waiting for next schedule of quality matrix backup")
+            await cron.next()  # yields control and waits until the next write is scheduled
+            logger.info(f"Backing up quality matrices for {cron.croniter.get_current(ret_type=datetime.datetime)}")
+            with session_maker().context_session() as session:
+                quality_backup(session, timestamp=cron.croniter.get_current(ret_type=datetime.datetime))
+
+    ensure_future(loop())

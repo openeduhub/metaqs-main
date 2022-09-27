@@ -23,8 +23,19 @@
           }
         },
         {
-          "term": {
-            "path": "15fce411-54d9-467f-8f35-61ea374a298d"
+          "bool": {
+            "should": [
+              {
+                "term": {
+                  "nodeRef.id.keyword": "15fce411-54d9-467f-8f35-61ea374a298d"
+                }
+              },
+              {
+                "term": {
+                  "path": "15fce411-54d9-467f-8f35-61ea374a298d"
+                }
+              }
+            ]
           }
         }
       ]
