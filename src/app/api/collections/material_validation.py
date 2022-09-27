@@ -106,7 +106,7 @@ def material_validation(collection_id: uuid.UUID) -> list[MaterialValidation]:
     logger.info(f"Working on {collection_tree.title} ({collection_id})")
 
     return [
-        _get_material_validation_single_collection(collection_id, title=node.title)
+        _get_material_validation_single_collection(node.node_id, title=node.title)
         for node in collection_tree.flatten(root=True)
     ]
 
