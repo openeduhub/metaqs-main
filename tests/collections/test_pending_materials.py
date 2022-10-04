@@ -44,7 +44,7 @@ async def test_pending_materials_license():
 
 @pytest.mark.asyncio
 async def test_pending_materials_for_unusual_license():
-    economics = uuid.UUID(COLLECTION_NAME_TO_ID["Wirtschaft"])
+    economics = uuid.UUID("8792be96-1362-4019-956c-60337457d32f")
 
     with elastic_search_mock("unusual-license"):
         materials = await pending_materials(
@@ -56,4 +56,4 @@ async def test_pending_materials_for_unusual_license():
     assert all(
         mat.licenses is None for mat in materials
     ), "material has a description for a query that should only return no material with missing license"
-    assert len(materials) == 1, "some of the response hits were dropped"
+    assert len(materials) == 0, "some response hits were found"

@@ -9,8 +9,8 @@ from tests.conftest import elastic_search_mock
 
 
 @pytest.mark.asyncio
-async def test_materials_by_collection_title():
-    with elastic_search_mock(resource="materials-by-collection-title"):
+async def test_materials_by_collection_title_oer():
+    with elastic_search_mock(resource="materials-by-collection-title-oer"):
         # fmt: off
         result: dict[UUID, dict[str, int]] = materials_by_collection_title(
             nodes=[
@@ -18,7 +18,8 @@ async def test_materials_by_collection_title():
                     node_id=UUID(COLLECTION_NAME_TO_ID["Chemie"]), title="Chemie", children=[], parent_id=None, level=0
                 ),
                 Tree(
-                    node_id=UUID(COLLECTION_NAME_TO_ID["Biologie"]), title="Biologie", children=[], parent_id=None, level=0
+                    node_id=UUID(COLLECTION_NAME_TO_ID["Biologie"]), title="Biologie", children=[], parent_id=None,
+                    level=0
                 ),
             ],
             oer_only=True,
@@ -30,12 +31,25 @@ async def test_materials_by_collection_title():
 
 
 @pytest.mark.asyncio
-async def test_materials_by_collection_id():
-    with elastic_search_mock(resource="materials-by-collection-id"):
+async def test_materials_by_collection_id_oer():
+    with elastic_search_mock(resource="materials-by-collection-id-oer"):
         result: dict[UUID, dict[str, int]] = materials_by_collection_id(
             collection_id=UUID(COLLECTION_NAME_TO_ID["Chemie"]),
             oer_only=True,
         )
+    assert len(result) == 251
+    assert UUID(COLLECTION_NAME_TO_ID["Chemie"]) in result
+    assert all(isinstance(value, dict) for value in result.values())
+
+
+@pytest.mark.asyncio
+async def test_materials_by_collection_id():
+    with elastic_search_mock(resource="materials-by-collection-id"):
+        result: dict[UUID, dict[str, int]] = materials_by_collection_id(
+            collection_id=UUID("8792be96-1362-4019-956c-60337457d32f"),
+            oer_only=False,
+        )
+    print(result)
     assert len(result) == 251
     assert UUID(COLLECTION_NAME_TO_ID["Chemie"]) in result
     assert all(isinstance(value, dict) for value in result.values())

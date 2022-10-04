@@ -46,7 +46,8 @@ def collection_validation(collection_id: uuid.UUID) -> list[CollectionValidation
             keywords=ElasticResourceAttribute.KEYWORDS,  # fixme: no keywords for collection?
         )
         .source(
-            includes=["nodeRef.id", "properties.cm:title"]  # title is nice for debugging but actually not needed here
+            includes=[ElasticResourceAttribute.NODE_ID, ElasticResourceAttribute.COLLECTION_TITLE]
+            # title is nice for debugging but actually not needed here
         )
         .extra(size=ELASTIC_TOTAL_SIZE, from_=0)
     )

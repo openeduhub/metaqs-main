@@ -38,12 +38,12 @@
             "should": [
               {
                 "term": {
-                  "collections.nodeRef.id.keyword": "f0109e16-a8fc-48b5-9461-369571fd59f2"
+                  "collections.nodeRef.id.keyword": "8792be96-1362-4019-956c-60337457d32f"
                 }
               },
               {
                 "match": {
-                  "collections.path.keyword": "f0109e16-a8fc-48b5-9461-369571fd59f2"
+                  "collections.path.keyword": "8792be96-1362-4019-956c-60337457d32f"
                 }
               }
             ]

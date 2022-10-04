@@ -3,10 +3,10 @@ from __future__ import annotations
 from uuid import UUID
 
 import elasticsearch_dsl
-from elasticsearch_dsl.query import Q, Term, Bool, Terms, Match, Query, Wildcard
+from elasticsearch_dsl.query import Term, Bool, Terms, Match, Query, Wildcard, Exists
 
 from app.core.config import ELASTIC_INDEX
-from app.core.constants import OER_LICENSES
+from app.core.constants import OER_LICENSES, FORBIDDEN_LICENSES
 from app.elastic.attributes import ElasticResourceAttribute
 
 
@@ -60,9 +60,9 @@ class _Search(elasticsearch_dsl.Search):
                 return Bool(
                     should=[
                         Terms(
-                            **{ElasticResourceAttribute.LICENSES.keyword: ["UNTERRICHTS_UND_LEHRMEDIEN", "NONE", ""]}
+                            **{ElasticResourceAttribute.LICENSES.keyword: FORBIDDEN_LICENSES}
                         ),
-                        Bool(must_not=Q("exists", field=ElasticResourceAttribute.LICENSES.path)),
+                        Bool(must_not=Exists(field=ElasticResourceAttribute.LICENSES.path)),
                     ],
                     minimum_should_match=1,
                     _name=name,
