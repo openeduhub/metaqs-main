@@ -40,3 +40,20 @@ async def test_pending_materials_license():
         mat.licenses is None for mat in materials
     ), "material has a description for a query that should only return materials with missing license"
     assert len(materials) == 4, "some of the response hits were dropped"
+
+
+@pytest.mark.asyncio
+async def test_pending_materials_for_unusual_license():
+    economics = uuid.UUID(COLLECTION_NAME_TO_ID["Wirtschaft"])
+
+    with elastic_search_mock("unusual-license"):
+        materials = await pending_materials(
+            collection_id=economics,
+            missing=ElasticResourceAttribute.LICENSES,
+        )
+
+    print(materials)
+    assert all(
+        mat.licenses is None for mat in materials
+    ), "material has a description for a query that should only return no material with missing license"
+    assert len(materials) == 1, "some of the response hits were dropped"

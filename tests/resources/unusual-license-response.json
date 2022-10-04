@@ -1,0 +1,266 @@
+{
+  "took": 21,
+  "timed_out": false,
+  "_shards": {
+    "total": 1,
+    "successful": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": {
+      "value": 4,
+      "relation": "eq"
+    },
+    "max_score": 0.0,
+    "hits": [
+      {
+        "_index": "workspace",
+        "_type": "_doc",
+        "_id": "2930538",
+        "_score": 12.774641,
+        "_source": {
+          "aclId": 606636,
+          "txnId": 12592203,
+          "dbid": 2930538,
+          "nodeRef": {
+            "storeRef": {
+              "protocol": "workspace",
+              "identifier": "SpacesStore"
+            },
+            "id": "d2af3a33-21a0-4c93-8c3d-369a0c595245"
+          },
+          "type": "ccm:io",
+          "i18n": {
+            "en_US": {
+              "ccm:objecttype": [
+                "Material"
+              ],
+              "ccm:price": [
+                "no"
+              ],
+              "ccm:taxonid": [
+                "Economics"
+              ],
+              "ccm:oeh_lrt": [
+                "Unterrichtsplanung"
+              ],
+              "ccm:editorial_checklist": [
+                "9. Tool angeschlossen, verfügbar"
+              ],
+              "ccm:curriculum": [
+                "Preisbildung"
+              ],
+              "ccm:educationalcontext": [
+                "Secondary II"
+              ],
+              "ccm:containsAdvertisement": [
+                null
+              ],
+              "ccm:educationalintendedenduserrole": [
+                "learner",
+                "teacher"
+              ],
+              "ccm:oeh_widgets": [
+                "Gut zu wissen",
+                "Unterrichtsplanung",
+                "Materialtyp"
+              ]
+            },
+            "de_DE": {
+              "ccm:objecttype": [
+                "Material"
+              ],
+              "ccm:price": [
+                "nein"
+              ],
+              "ccm:taxonid": [
+                "Wirtschaftskunde"
+              ],
+              "ccm:oeh_lrt": [
+                "Unterrichtsplanung"
+              ],
+              "ccm:editorial_checklist": [
+                "9. Tool angeschlossen, verfügbar"
+              ],
+              "ccm:curriculum": [
+                "Preisbildung"
+              ],
+              "ccm:educationalcontext": [
+                "Sekundarstufe II"
+              ],
+              "ccm:containsAdvertisement": [
+                null
+              ],
+              "ccm:educationalintendedenduserrole": [
+                "Lerner/in",
+                "Lehrer/in"
+              ],
+              "ccm:oeh_widgets": [
+                "Gut zu wissen",
+                "Unterrichtsplanung",
+                "Materialtyp"
+              ]
+            }
+          },
+          "path": [
+            "00abdb05-6c96-4604-831c-b9846eae7d2d",
+            "c73dd8be-e520-42bb-b6f1-f989714d09fc",
+            "d1afbeaa-1d20-4d1d-a1aa-8d8903edff38",
+            "3305f552-c931-4bcc-842b-939c99752bd5",
+            "ef7e295e-d931-49eb-b1e2-76475f849e8a",
+            "572c19f6-37df-4090-a116-cc93b648785d",
+            "7050d184-db61-4e4b-86a0-74f35604a7da",
+            "7dfccbf5-191f-4856-849a-0e6c11ff1a8d",
+            "4156d4d0-79ec-4606-aab3-0133f0602561",
+            "35054614-72c8-49b2-9924-7b04c7f3bf71",
+            "5e40e372-735c-4b17-bbf7-e827a5702b57",
+            "f0109e16-a8fc-48b5-9461-369571fd59f2",
+            "dd15f5a6-f749-4efa-94f5-4f0caf05a95d",
+            "8792be96-1362-4019-956c-60337457d32f"
+          ],
+          "permissions": {
+            "read": [
+              "GROUP_EVERYONE",
+              "helmut",
+              "GROUP_513e4a78-4a56-103a-84e4-2b017690ecd2",
+              "GROUP_cb6afe64-228b-103b-888b-2b6a146a3545"
+            ],
+            "Read": [
+              "GROUP_EVERYONE"
+            ],
+            "ReadChildren": [
+              "GROUP_EVERYONE"
+            ],
+            "Comment": [
+              "GROUP_EVERYONE"
+            ],
+            "RateRead": [
+              "GROUP_EVERYONE"
+            ],
+            "Consumer": [
+              "GROUP_EVERYONE"
+            ],
+            "Feedback": [
+              "GROUP_EVERYONE"
+            ],
+            "ReadAll": [
+              "GROUP_EVERYONE"
+            ],
+            "Rate": [
+              "GROUP_EVERYONE"
+            ],
+            "ReadProperties": [
+              "GROUP_EVERYONE"
+            ],
+            "Coordinator": [
+              "GROUP_cb6afe64-228b-103b-888b-2b6a146a3545",
+              "GROUP_513e4a78-4a56-103a-84e4-2b017690ecd2",
+              "helmut"
+            ],
+            "ReadPreview": [
+              "GROUP_EVERYONE"
+            ],
+            "ReadContent": [
+              "GROUP_EVERYONE"
+            ]
+          },
+          "properties": {
+            "ccm:editorial_checklist": [
+              "9"
+            ],
+            "cm:creator": "helmut",
+            "ccm:version_comment": "METADATA_UPDATE",
+            "cm:initialVersion": "false",
+            "cm:versionLabel": "1.0",
+            "cm:edu_forcemetadataset": "false",
+            "cm:autoVersionOnUpdateProps": "false",
+            "ccm:wf_receiver": [],
+            "cclom:location": [
+              "ccrep://local/07a1a2ba-29f3-4213-a54a-0713a30b29a2"
+            ],
+            "sys:node-dbid": "2930538",
+            "ccm:objecttype": "MATERIAL",
+            "ccm:price": "http://w3id.org/openeduhub/vocabs/price/no",
+            "cm:name": "www.teacheconomy.de_media_unterrichtsmaterial_preisbildung_Preisbildung_Material.pdf",
+            "ccm:taxonid": [
+              "http://w3id.org/openeduhub/vocabs/discipline/700"
+            ],
+            "ccm:linktype": "USER_GENERATED",
+            "cm:lastThumbnailModification": [
+              "imgpreview:1628761875330"
+            ],
+            "ccm:tracking_views": "4",
+            "cclom:general_keyword": [
+              "Preisbildung",
+              "Marktpreisbildung",
+              "Die Preisbildung bei vollkommener Konkurrenz",
+              "Nachfrage",
+              "Angebot"
+            ],
+            "ccm:educationalintendedenduserrole": [
+              "http://w3id.org/openeduhub/vocabs/intendedEndUserRole/learner",
+              "http://w3id.org/openeduhub/vocabs/intendedEndUserRole/teacher"
+            ],
+            "cclom:title": "Preisbildung_Material: DER MARKT IM GLEICHGEWICHT – WIE BILDEN SICH  PREISE?",
+            "cm:automaticUpdate": "true",
+            "ccm:original": "07a1a2ba-29f3-4213-a54a-0713a30b29a2",
+            "ccm:questionsallowed": "true",
+            "ccm:educontextname": [
+              "redaktion-oeh"
+            ],
+            "cm:modified": 1655390728503,
+            "ccm:author_freetext": [
+              "https://www.teacheconomy.de/ Das Portal für den Wirtschaftunterricht"
+            ],
+            "cm:created": 1628761867119,
+            "ccm:curriculum": [
+              "http://w3id.org/openeduhub/vocabs/oeh-topics/458ff124-ff34-4b70-9eed-b0efe8790717",
+              "http://w3id.org/openeduhub/vocabs/oeh-topics/8792be96-1362-4019-956c-60337457d32f"
+            ],
+            "sys:store-identifier": "SpacesStore",
+            "ccm:wwwurl": "https://www.teacheconomy.de/media/unterrichtsmaterial/preisbildung/Preisbildung_Material.pdf",
+            "cm:modifier": "System",
+            "ccm:oeh_widgets": [
+              "http://w3id.org/openeduhub/vocabs/widgets/good_to_know",
+              "http://w3id.org/openeduhub/vocabs/widgets/methods",
+              "http://w3id.org/openeduhub/vocabs/widgets/materialien"
+            ],
+            "sys:store-protocol": "workspace",
+            "cm:content": {
+              "contentId": "2741917",
+              "encoding": "UTF-8",
+              "locale": "en_US_",
+              "mimetype": "text/plain",
+              "size": "1"
+            },
+            "cm:autoVersion": "false",
+            "ccm:metadatacontributer_creator": [
+              "BEGIN:VCARD\nVERSION:3.0\nUID:urn:uuid:040ab60e-952e-40eb-acc7-20988398c129\nN:Schöbel;Helmut\nFN:Helmut Schöbel\nORG:\nURL:\nTITLE:\nTEL;TYPE=WORK,VOICE:\nADR;TYPE=intl,postal,parcel,work:;;;;;;\nEMAIL;TYPE=PREF,INTERNET:helmut@wirlernenonline.de\nEND:VCARD\n"
+            ],
+            "ccm:educationalcontext": [
+              "http://w3id.org/openeduhub/vocabs/educationalContext/sekundarstufe_2"
+            ],
+            "cm:edu_metadataset": "mds_oeh",
+            "ccm:create_version": "true",
+            "ccm:oeh_lrt": [
+              "http://w3id.org/openeduhub/vocabs/new_lrt/7381f17f-50a6-4ce1-b3a0-9d85a482eec0"
+            ],
+            "cclom:version": "1.0",
+            "sys:locale": "en_US_",
+            "ccm:containsAdvertisement": "http://w3id.org/openeduhub/vocabs/containsAdvertisement/no",
+            "ccm:commonlicense_key": [
+              "UNTERRICHTS_UND_LEHRMEDIEN"
+            ],
+            "sys:node-uuid": "d2af3a33-21a0-4c93-8c3d-369a0c595245",
+            "cclom:general_description": [
+              "Was haben der Wochenmarkt und Ebay gemeinsam? Beides sind Märkte, auf denen Güter und \nDienstleistungen getauscht werden und damit Angebot und Nachfrage zusammentreffen. So \nbilden sich die Preise. Die Zielsetzungen der Konsumenten (Nachfrager) und der Unternehmen \n(Anbieter) könnten dabei allerdings gegensätzlicher nicht sein. Die Konsumenten wollen möglichst wenig bezahlen, und die Unternehmen wollen einen möglichst hohen Preis erzielen, um die angefallenen Kosten zu decken und um einen Gewinn zu erwirtschaften. Aber trotz dieser Gegensätze kommt es auf Märkten zu Vertragsabschlüssen und es stellt sich für beide Seiten ein zufriedenstellendes Ergebnis ein. Wie dieser Mechanismus funktioniert zeigt eine digitale Marktsimulation."
+            ]
+          },
+          "statistic_RATING_null": 0.0,
+          "statistic_VIEW_MATERIAL_null": 4
+        }
+      }
+    ]
+  }
+}
