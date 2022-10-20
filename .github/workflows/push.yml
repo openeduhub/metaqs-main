@@ -8,7 +8,6 @@ on:
 env:
   docker_repository: "docker.edu-sharing.com"
   image_name: "/projects/oeh-redaktion/edusharing-projects-oeh-redaktion-metaqs-api"
-  image_tag: "dev"
 
 
 jobs:
@@ -20,9 +19,9 @@ jobs:
       - name: Log in to edu sharing
         run: docker login ${{env.docker_repository}} -u ${{ secrets.DOCKER_EDU_HUB_REGISTRY_USERNAME }} -p ${{ secrets.DOCKER_EDU_HUB_REGISTRY_PASSWORD }}
       - name: Build
-        run: docker build -t ${{env.docker_repository}}${{env.image_name}}:${{env.image_tag}} ./src
+        run: docker build -t ${{env.docker_repository}}${{env.image_name}}:${{env.GITHUB_REF_NAME}} ./src
       - name: Push
-        run: docker push ${{env.docker_repository}}${{env.image_name}}:${{env.image_tag}}
+        run: docker push ${{env.docker_repository}}${{env.image_name}}:${{env.GITHUB_REF_NAME}}
 
   analyze:
     name: Analyze
