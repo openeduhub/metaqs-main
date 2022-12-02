@@ -67,7 +67,7 @@ services:
     build:
       context: ./src/
       network: host
-    image: docker.edu-sharing.com/projects/oeh-redaktion/edusharing-projects-oeh-redaktion-metaqs-api:dev
+    image: docker.edu-sharing.com/projects/wlo/edu_sharing-projects-wlo-metaqs-api:dev
     <<: *restart-policy
     <<: *logging-config
     volumes:
@@ -86,7 +86,7 @@ services:
 
   yovisto:
     container_name: yovisto  # Container from https://github.com/openeduhub/meta-yovisto
-    image: docker.edu-sharing.com/projects/oeh-redaktion/edusharing-projects-oeh-redaktion-yovisto:dev
+    image: docker.edu-sharing.com/projects/wlo/edu_sharing-projects-wlo-yovisto:dev
     <<: *restart-policy
     <<: *logging-config
     environment:

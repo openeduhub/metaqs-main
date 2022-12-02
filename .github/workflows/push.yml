@@ -7,7 +7,7 @@ on:
 
 env:
   docker_repository: "docker.edu-sharing.com"
-  image_name: "/projects/oeh-redaktion/edusharing-projects-oeh-redaktion-metaqs-api"
+  image_name: "/projects/wlo/edu_sharing-projects-wlo-metaqs-api"
 
 
 jobs:

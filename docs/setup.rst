@@ -1,5 +1,5 @@
 The MetaQS Service is deployed as Docker container. The image will be build by the Github Action and is available at
-`docker.edu-sharing.com/projects/oeh-redaktion/edusharing-projects-oeh-redaktion-metaqs-api` .
+`docker.edu-sharing.com/projects/wlo/edu_sharing-projects-wlo-metaqs-api` .
 
 Bring up MetaQS together with nginx and postgres::
 
