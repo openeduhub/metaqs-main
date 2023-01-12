@@ -2,8 +2,6 @@ name: MetaQS push actions
 
 on:
   push:
-    branches:
-      - "**"
 
 env:
   docker_repository: "docker.edu-sharing.com"
