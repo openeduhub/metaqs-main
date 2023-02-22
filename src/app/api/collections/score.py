@@ -139,7 +139,7 @@ def material_search_score(collection_id: uuid.UUID) -> dict:
         "missing_license": A("filter", query_missing_material_license()),
         "missing_publisher": A("missing", field=ElasticResourceAttribute.PUBLISHER.keyword),
         "missing_description": A("missing", field=ElasticResourceAttribute.DESCRIPTION.keyword),
-        "missing_intended_end_user_role": A("missing", field=ElasticResourceAttribute.EDU_ENDUSERROLE_DE.keyword),
+        "missing_intended_end_user_role": A("missing", field=ElasticResourceAttribute.EDU_ENDUSERROLE.keyword),
         "missing_edu_context": A("missing", field=ElasticResourceAttribute.EDU_CONTEXT.keyword),
     }
 

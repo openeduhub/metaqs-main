@@ -43,7 +43,7 @@ missing_attributes_source_fields = {
     ElasticResourceAttribute.LICENSES,
     ElasticResourceAttribute.PUBLISHER,
     ElasticResourceAttribute.DESCRIPTION,
-    ElasticResourceAttribute.EDU_ENDUSERROLE_DE,
+    ElasticResourceAttribute.EDU_ENDUSERROLE,
     ElasticResourceAttribute.EDU_CONTEXT,
     ElasticResourceAttribute.COVER,
     ElasticResourceAttribute.KEYWORDS,
@@ -81,7 +81,7 @@ async def pending_materials(
         #        model to include the following three?
         # ElasticResourceAttribute.LEARNINGRESOURCE_TYPE,
         # ElasticResourceAttribute.PUBLISHER,
-        # ElasticResourceAttribute.EDU_ENDUSERROLE_DE,
+        # ElasticResourceAttribute.EDU_ENDUSERROLE,
     ]
 
     search = (

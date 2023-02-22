@@ -29,7 +29,7 @@ METADATA_HIERARCHY: dict[str, list[tuple[ElasticResourceAttribute, str]]] = {
         (ElasticResourceAttribute.KEYWORDS, "general_keywords"),
     ],
     "Pädagogisch": [
-        (ElasticResourceAttribute.EDU_ENDUSERROLE_DE, "intended_end_user_role"),
+        (ElasticResourceAttribute.EDU_ENDUSERROLE, "intended_end_user_role"),
         (ElasticResourceAttribute.CURRICULUM, "curriculum"),
         (ElasticResourceAttribute.LEARNING_TIME, "learning_time"),
         (ElasticResourceAttribute.DURATION, "duration"),
