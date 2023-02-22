@@ -50,7 +50,7 @@ def _get_material_validation_single_collection(collection_id: uuid.UUID, title: 
         "learning_resource_type": ElasticResourceAttribute.LEARNINGRESOURCE_TYPE,
         "taxon_id": ElasticResourceAttribute.SUBJECTS,
         "publisher": ElasticResourceAttribute.PUBLISHER,
-        "intended_end_user_role": ElasticResourceAttribute.EDU_ENDUSERROLE_DE,
+        "intended_end_user_role": ElasticResourceAttribute.EDU_ENDUSERROLE,
     }
 
     # to avoid looping through the results multiple times, we here initialize with empty lists

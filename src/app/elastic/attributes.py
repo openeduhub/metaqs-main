@@ -85,10 +85,7 @@ class ElasticResourceAttribute(ElasticField):
     )
     EDU_CONTEXT = ("properties.ccm:educationalcontext", ElasticFieldType.TEXT)
     EDU_CONTEXT_DE = ("i18n.de_DE.ccm:educationalcontext", ElasticFieldType.TEXT)
-    EDU_ENDUSERROLE_DE = (
-        "i18n.de_DE.ccm:educationalintendedenduserrole",
-        ElasticFieldType.TEXT,
-    )
+    EDU_ENDUSERROLE = ("properties.ccm:educationalintendedenduserrole", ElasticFieldType.TEXT)
     EDU_METADATASET = ("properties.cm:edu_metadataset", ElasticFieldType.TEXT)
     FEEDBACK = ("properties.feedback_comment", ElasticFieldType.TEXT)
     FSK = ("properties.ccm:fskRating", ElasticFieldType.KEYWORD)
