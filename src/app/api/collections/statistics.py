@@ -130,7 +130,7 @@ def materials_by_collection_title(nodes: list[Tree], oer_only: bool) -> dict[UUI
         {
             "filters": {"filters": {str(node.node_id): filter_subquery(node) for node in nodes}},
             "aggs": {
-                "material_type": {"terms": {"field": "properties.ccm:oeh_lrt.keyword", "missing": "N/A", "size": 50000}}
+                "material_type": {"terms": {"field": "properties.ccm:oeh_lrt_aggregated.keyword", "missing": "N/A", "size": 50000}}
             },
         },
     )
