@@ -56,8 +56,8 @@ valid_node_ids = {
 def toplevel_collections(
     node_id: uuid.UUID = Path(default=..., examples=valid_node_ids),
 ) -> uuid.UUID:
-    if str(node_id) not in {value["value"] for value in valid_node_ids.values()}:
-        raise HTTPException(status_code=404, detail=f"Could not find collection with node id {node_id}")
+    #if str(node_id) not in {value["value"] for value in valid_node_ids.values()}:
+    #    raise HTTPException(status_code=404, detail=f"Could not find collection with node id {node_id}")
     return node_id
 
 
