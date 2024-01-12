@@ -25,6 +25,7 @@ COLLECTION_NAME_TO_ID: dict[str, str] = {
     "Musik": "2eda0065-f69b-46c8-ae09-d258c8226a5e",
     "Philosophie": "9d364fd0-4374-40b4-a153-3c722b9cda35",
     "Geografie": "f1049950-bdda-45f5-9c73-38b51ea66c74",
+    "Beispiel-Community": "f6984401-3639-4adf-a84b-65696fefdca6",
 }
 
 OPEN_API_VERSION = "2.1.0"
