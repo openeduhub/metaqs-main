@@ -1,0 +1,44 @@
+{
+  "took": 4,
+  "timed_out": false,
+  "_shards": {
+    "total": 1,
+    "successful": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": {
+      "value": 209,
+      "relation": "eq"
+    },
+    "max_score": null,
+    "hits": []
+  },
+  "aggregations": {
+    "short_description": {
+      "meta": {},
+      "doc_count": 0
+    },
+    "short_title": {
+      "meta": {},
+      "doc_count": 0
+    },
+    "missing_edu_context": {
+      "doc_count": 58
+    },
+    "missing_description": {
+      "doc_count": 156
+    },
+    "few_keywords": {
+      "meta": {},
+      "doc_count": 0
+    },
+    "missing_keywords": {
+      "doc_count": 2
+    },
+    "missing_title": {
+      "doc_count": 0
+    }
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "term": {
+            "permissions.Read.keyword": "GROUP_EVERYONE"
+          }
+        },
+        {
+          "term": {
+            "properties.cm:edu_metadataset.keyword": "mds_oeh"
+          }
+        },
+        {
+          "term": {
+            "nodeRef.storeRef.protocol": "workspace"
+          }
+        },
+        {
+          "term": {
+            "type": "ccm:io"
+          }
+        },
+        {
+          "bool": {
+            "must_not": [
+              {
+                "term": {
+                  "aspects": "ccm:io_childobject"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "bool": {
+            "should": [
+              {
+                "term": {
+                  "collections.nodeRef.id.keyword": "4940d5da-9b21-4ec0-8824-d16e0409e629"
+                }
+              },
+              {
+                "match": {
+                  "collections.path.keyword": "4940d5da-9b21-4ec0-8824-d16e0409e629"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "aggs": {
+    "missing_title": {
+      "missing": {
+        "field": "properties.cclom:title.keyword"
+      }
+    },
+    "missing_material_type": {
+      "missing": {
+        "field": "properties.ccm:oeh_lrt.keyword"
+      }
+    },
+    "missing_subjects": {
+      "missing": {
+        "field": "properties.ccm:taxonid.keyword"
+      }
+    },
+    "missing_url": {
+      "missing": {
+        "field": "properties.ccm:wwwurl.keyword"
+      }
+    },
+    "missing_license": {
+      "filter": {
+        "bool": {
+          "should": [
+            {
+              "terms": {
+                "properties.ccm:commonlicense_key.keyword": [
+                  "UNTERRICHTS_UND_LEHRMEDIEN",
+                  "NONE",
+                  ""
+                ]
+              }
+            },
+            {
+              "bool": {
+                "must_not": [
+                  {
+                    "exists": {
+                      "field": "properties.ccm:commonlicense_key"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "minimum_should_match": 1,
+          "_name": "missing_license"
+        }
+      }
+    },
+    "missing_publisher": {
+      "missing": {
+        "field": "properties.ccm:oeh_publisher_combined.keyword"
+      }
+    },
+    "missing_description": {
+      "missing": {
+        "field": "properties.cclom:general_description.keyword"
+      }
+    },
+    "missing_intended_end_user_role": {
+      "missing": {
+        "field": "i18n.de_DE.ccm:educationalintendedenduserrole.keyword"
+      }
+    },
+    "missing_edu_context": {
+      "missing": {
+        "field": "properties.ccm:educationalcontext.keyword"
+      }
+    }
+  },
+  "size": 0,
+  "from": 0
+}

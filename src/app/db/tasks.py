@@ -1,66 +1,38 @@
-import uuid
-from datetime import datetime
+from functools import cache
+from typing import Iterator
 
-import sqlalchemy
-from databases import Database
-from fastapi import FastAPI
+from fastapi_utils.session import FastAPISessionMaker
+from sqlalchemy import create_engine, Column, Integer, Text, JSON
+from sqlalchemy.orm import Session, declarative_base
 
-from app.api.quality_matrix.models import Mode, Timeline, QualityMatrixRow
-from app.core.logging import logger
-from app.db.core import database_url
+from app.core.config import DATABASE_URL
 
 
-async def connect_to_db(app: FastAPI) -> None:
-    logger.info("Instantiating database")
-    database = Database(database_url(), min_size=2, max_size=10)
-
-    try:
-        await database.connect()
-        await database.execute('''
-        create table if not exists timeline
-        (
-            id        int,
-            timestamp int,
-            mode      text,
-            quality   json,
-            total     json,
-            node_id   uuid
-        );''')
-        app.state._db = database
-    except Exception as e:
-        logger.exception(f"Failed to connect to database and create table: {e}")
+Base = declarative_base()
 
 
-async def close_db_connection(app: FastAPI) -> None:
-    try:
-        await app.state._db.disconnect()
-    except Exception as e:
-        logger.exception(f"Failed to disconnect from database: {e}")
+class Timeline(Base):
+    """Table will be automatically created at application start time if it does not exist."""
+
+    __tablename__ = "timeline"
+    timestamp = Column(Integer, nullable=False, primary_key=True)
+    mode = Column(Text, nullable=False, primary_key=True)
+    node_id = Column(Text, nullable=False, primary_key=True)
+    quality_matrix = Column(JSON, nullable=False)
 
 
-async def store_in_timeline(
-    data: list[QualityMatrixRow],
-    database: Database,
-    mode: Mode,
-    node_id: uuid.UUID,
-    total: dict,
-):
-    await database.connect()
-    await database.execute(
-        sqlalchemy.insert(Timeline).values(
-            {
-                "timestamp": datetime.now().timestamp(),
-                "quality": [
-                    {
-                        "row_header": entry.row_header,
-                        "level": entry.level,
-                        "columns": entry.columns,
-                    }
-                    for entry in data
-                ],
-                "mode": mode,
-                "node_id": node_id,
-                "total": total,
-            }
-        )
-    )
+@cache
+def session_maker():
+    mkr = FastAPISessionMaker(DATABASE_URL)
+
+    if DATABASE_URL.startswith("sqlite"):
+        # workaround for local testing. See https://fastapi.tiangolo.com/tutorial/sql-databases/#note
+        mkr._cached_engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+
+    Base.metadata.create_all(mkr.cached_engine, checkfirst=True)  # won't create if they already exist
+
+    return mkr
+
+
+def get_session() -> Iterator[Session]:
+    yield from session_maker().get_db()

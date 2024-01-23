@@ -8,12 +8,11 @@ from pydantic import BaseModel
 
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.logging import logger
-from app.core.models import ElasticResourceAttribute
-from app.elastic.dsl import ElasticField
+from app.elastic.attributes import ElasticResourceAttribute, ElasticField
 from app.elastic.search import MaterialSearch
 
 
-class LearningMaterial(BaseModel):
+class PendingMaterial(BaseModel):
     # fixme: remove type attribute because pointless. Will always be ccm:io.
     # fixme: remove name attribute because pointless. It is only a technical name
     #        (e.g. filename inside ES) and has no relevance for end users or metadata quality.
@@ -44,12 +43,9 @@ missing_attributes_source_fields = {
     ElasticResourceAttribute.LICENSES,
     ElasticResourceAttribute.PUBLISHER,
     ElasticResourceAttribute.DESCRIPTION,
-    ElasticResourceAttribute.EDU_ENDUSERROLE_DE,
+    ElasticResourceAttribute.EDU_ENDUSERROLE,
     ElasticResourceAttribute.EDU_CONTEXT,
     ElasticResourceAttribute.COVER,
-    ElasticResourceAttribute.NODE_ID,
-    ElasticResourceAttribute.NAME,
-    ElasticResourceAttribute.TYPE,
     ElasticResourceAttribute.KEYWORDS,
 }
 
@@ -67,10 +63,10 @@ def materials_filter_params(*, missing_attr: MissingMaterialField = Path(...)) -
     return MissingAttributeFilter(attr=missing_attr)
 
 
-async def search_materials_with_missing_attributes(
+async def pending_materials(
     collection_id: uuid.UUID,
     missing: ElasticResourceAttribute,
-) -> list[LearningMaterial]:
+) -> list[PendingMaterial]:
 
     source = [
         ElasticResourceAttribute.NODE_ID,
@@ -85,13 +81,12 @@ async def search_materials_with_missing_attributes(
         #        model to include the following three?
         # ElasticResourceAttribute.LEARNINGRESOURCE_TYPE,
         # ElasticResourceAttribute.PUBLISHER,
-        # ElasticResourceAttribute.EDU_ENDUSERROLE_DE,
+        # ElasticResourceAttribute.EDU_ENDUSERROLE,
     ]
 
     search = (
         MaterialSearch()
         .collection_filter(collection_id=collection_id, transitive=True)
-        .non_series_objects_filter()
         .missing_attribute_filter(missing=missing)
         .source(includes=[attr.path for attr in source])
         .extra(size=ELASTIC_TOTAL_SIZE, from_=0)
@@ -129,12 +124,12 @@ async def search_materials_with_missing_attributes(
         ),
     }
 
-    def try_material(hit) -> Optional[LearningMaterial]:
+    def try_material(hit) -> Optional[PendingMaterial]:
         try:
             kwargs = glom(hit.to_dict(), missing_materials_spec)
             licenses: str = kwargs.pop("licenses")
             description: str = kwargs.pop("description")
-            return LearningMaterial(
+            return PendingMaterial(
                 # make sure node id is a UUID
                 node_id=uuid.UUID(hit["nodeRef"]["id"]),
                 type="ccm:io",

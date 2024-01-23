@@ -25,7 +25,13 @@ COLLECTION_NAME_TO_ID: dict[str, str] = {
     "Musik": "2eda0065-f69b-46c8-ae09-d258c8226a5e",
     "Philosophie": "9d364fd0-4374-40b4-a153-3c722b9cda35",
     "Geografie": "f1049950-bdda-45f5-9c73-38b51ea66c74",
+    "Community - GPM": "d5d3f64c-6ae6-4371-a95a-666db24ce7df",
+    "Community - RPI-Virtuell": "33502c70-b3f1-426f-b357-6128989cd380",
+    "Community - ComeIn": "3bf248cc-fb53-4f81-a99a-a40d6d3d2e71",
+    "Community - Schule im Aufbruch": "fcb7c826-02a0-46f2-8624-e7805ad82901",
 }
 
 OPEN_API_VERSION = "2.1.0"
 COLLECTION_ROOT_ID = "5e40e372-735c-4b17-bbf7-e827a5702b57"
+OER_LICENSES = ["CC_0", "PDM", "CC_BY", "CC_BY_SA"]
+FORBIDDEN_LICENSES = ["UNTERRICHTS_UND_LEHRMEDIEN", "NONE", ""]

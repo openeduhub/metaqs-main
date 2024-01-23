@@ -1,0 +1,104 @@
+{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "term": {
+            "permissions.Read.keyword": "GROUP_EVERYONE"
+          }
+        },
+        {
+          "term": {
+            "properties.cm:edu_metadataset.keyword": "mds_oeh"
+          }
+        },
+        {
+          "term": {
+            "nodeRef.storeRef.protocol": "workspace"
+          }
+        },
+        {
+          "term": {
+            "type": "ccm:io"
+          }
+        },
+       {
+          "bool": {
+            "must_not": [
+              {
+                "term": {
+                  "aspects": "ccm:io_childobject"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "bool": {
+            "should": [
+              {
+                "term": {
+                  "collections.nodeRef.id.keyword": "15fce411-54d9-467f-8f35-61ea374a298d"
+                }
+              },
+              {
+                "match": {
+                  "collections.path.keyword": "15fce411-54d9-467f-8f35-61ea374a298d"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "bool": {
+            "minimum_should_match": 1,
+            "should": [
+              {
+                "bool": {
+                  "should": [
+                    {
+                      "terms": {
+                        "properties.ccm:commonlicense_key.keyword": [
+                          "UNTERRICHTS_UND_LEHRMEDIEN",
+                          "NONE",
+                          ""
+                        ]
+                      }
+                    },
+                    {
+                      "bool": {
+                        "must_not": [
+                          {
+                            "exists": {
+                              "field": "properties.ccm:commonlicense_key"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "minimum_should_match": 1,
+                  "_name": "missing"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "size": 500000,
+  "from": 0,
+  "_source": {
+    "includes": [
+      "nodeRef.id",
+      "properties.cclom:title",
+      "properties.cclom:general_keyword",
+      "properties.ccm:educationalcontext",
+      "properties.ccm:taxonid",
+      "properties.ccm:wwwurl",
+      "properties.cclom:general_description",
+      "properties.ccm:commonlicense_key"
+    ]
+  }
+}

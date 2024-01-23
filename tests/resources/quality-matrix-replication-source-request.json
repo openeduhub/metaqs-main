@@ -1,0 +1,371 @@
+{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "term": {
+            "permissions.Read.keyword": "GROUP_EVERYONE"
+          }
+        },
+        {
+          "term": {
+            "properties.cm:edu_metadataset.keyword": "mds_oeh"
+          }
+        },
+        {
+          "term": {
+            "nodeRef.storeRef.protocol": "workspace"
+          }
+        },
+        {
+          "term": {
+            "type": "ccm:io"
+          }
+        },
+        {
+          "bool": {
+            "must_not": [
+              {
+                "term": {
+                  "aspects": "ccm:io_childobject"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "bool": {
+            "should": [
+              {
+                "term": {
+                  "collections.nodeRef.id.keyword": "4940d5da-9b21-4ec0-8824-d16e0409e629"
+                }
+              },
+              {
+                "match": {
+                  "collections.path.keyword": "4940d5da-9b21-4ec0-8824-d16e0409e629"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "aggs": {
+    "replication_source": {
+      "terms": {
+        "field": "properties.ccm:replicationsource.keyword",
+        "size": 500000
+      },
+      "aggs": {
+        "preview": {
+          "missing": {
+            "field": "preview.keyword"
+          }
+        },
+        "properties.ccm:collectionshorttitle": {
+          "missing": {
+            "field": "properties.ccm:collectionshorttitle.keyword"
+          }
+        },
+        "properties.cclom:title": {
+          "missing": {
+            "field": "properties.cclom:title.keyword"
+          }
+        },
+        "properties.cclom:general_description": {
+          "missing": {
+            "field": "properties.cclom:general_description.keyword"
+          }
+        },
+        "properties.cclom:status": {
+          "missing": {
+            "field": "properties.cclom:status.keyword"
+          }
+        },
+        "properties.ccm:wwwurl": {
+          "missing": {
+            "field": "properties.ccm:wwwurl.keyword"
+          }
+        },
+        "properties.cclom:general_language": {
+          "missing": {
+            "field": "properties.cclom:general_language.keyword"
+          }
+        },
+        "properties.ccm:oeh_lrt": {
+          "missing": {
+            "field": "properties.ccm:oeh_lrt.keyword"
+          }
+        },
+        "content.mimetype": {
+          "missing": {
+            "field": "content.mimetype.keyword"
+          }
+        },
+        "virtual:editorial_file_type": {
+          "missing": {
+            "field": "virtual:editorial_file_type.keyword"
+          }
+        },
+        "properties.ccm:educationalcontext": {
+          "missing": {
+            "field": "properties.ccm:educationalcontext.keyword"
+          }
+        },
+        "properties.ccm:educationaltypicalagerange": {
+          "missing": {
+            "field": "properties.ccm:educationaltypicalagerange.keyword"
+          }
+        },
+        "properties.ccm:fskRating": {
+          "missing": {
+            "field": "properties.ccm:fskRating.keyword"
+          }
+        },
+        "properties.ccm:taxonid": {
+          "missing": {
+            "field": "properties.ccm:taxonid.keyword"
+          }
+        },
+        "properties.cclom:classification_keyword": {
+          "missing": {
+            "field": "properties.cclom:classification_keyword.keyword"
+          }
+        },
+        "properties.cclom:general_keyword": {
+          "missing": {
+            "field": "properties.cclom:general_keyword.keyword"
+          }
+        },
+        "i18n.de_DE.ccm:educationalintendedenduserrole": {
+          "missing": {
+            "field": "i18n.de_DE.ccm:educationalintendedenduserrole.keyword"
+          }
+        },
+        "properties.ccm:curriculum": {
+          "missing": {
+            "field": "properties.ccm:curriculum.keyword"
+          }
+        },
+        "properties.cclom:typicallearningtime": {
+          "missing": {
+            "field": "properties.cclom:typicallearningtime.keyword"
+          }
+        },
+        "properties.cclom:duration": {
+          "missing": {
+            "field": "properties.cclom:duration.keyword"
+          }
+        },
+        "properties.ccm:oeh_languageTarget": {
+          "missing": {
+            "field": "properties.ccm:oeh_languageTarget.keyword"
+          }
+        },
+        "properties.ccm:competence": {
+          "missing": {
+            "field": "properties.ccm:competence.keyword"
+          }
+        },
+        "properties.ccm:oeh_competence_requirements": {
+          "missing": {
+            "field": "properties.ccm:oeh_competence_requirements.keyword"
+          }
+        },
+        "properties.ccm:oeh_competence_check": {
+          "missing": {
+            "field": "properties.ccm:oeh_competence_check.keyword"
+          }
+        },
+        "properties.ccm:oeh_quality_criminal_law": {
+          "missing": {
+            "field": "properties.ccm:oeh_quality_criminal_law.keyword"
+          }
+        },
+        "properties.ccm:oeh_quality_copyright_law": {
+          "missing": {
+            "field": "properties.ccm:oeh_quality_copyright_law.keyword"
+          }
+        },
+        "properties.ccm:oeh_quality_protection_of_minors": {
+          "missing": {
+            "field": "properties.ccm:oeh_quality_protection_of_minors.keyword"
+          }
+        },
+        "properties.ccm:oeh_quality_personal_law": {
+          "missing": {
+            "field": "properties.ccm:oeh_quality_personal_law.keyword"
+          }
+        },
+        "properties.ccm:oeh_quality_data_privacy": {
+          "missing": {
+            "field": "properties.ccm:oeh_quality_data_privacy.keyword"
+          }
+        },
+        "properties.ccm:oeh_quality_correctness": {
+          "missing": {
+            "field": "properties.ccm:oeh_quality_correctness.keyword"
+          }
+        },
+        "properties.ccm:oeh_quality_currentness": {
+          "missing": {
+            "field": "properties.ccm:oeh_quality_currentness.keyword"
+          }
+        },
+        "properties.ccm:oeh_quality_neutralness": {
+          "missing": {
+            "field": "properties.ccm:oeh_quality_neutralness.keyword"
+          }
+        },
+        "properties.ccm:oeh_quality_language": {
+          "missing": {
+            "field": "properties.ccm:oeh_quality_language.keyword"
+          }
+        },
+        "properties.ccm:oeh_quality_medial": {
+          "missing": {
+            "field": "properties.ccm:oeh_quality_medial.keyword"
+          }
+        },
+        "properties.ccm:oeh_quality_didactics": {
+          "missing": {
+            "field": "properties.ccm:oeh_quality_didactics.keyword"
+          }
+        },
+        "properties.ccm:oeh_quality_transparentness": {
+          "missing": {
+            "field": "properties.ccm:oeh_quality_transparentness.keyword"
+          }
+        },
+        "properties.ccm:oeh_accessibility_open": {
+          "missing": {
+            "field": "properties.ccm:oeh_accessibility_open.keyword"
+          }
+        },
+        "properties.ccm:oeh_accessibility_find": {
+          "missing": {
+            "field": "properties.ccm:oeh_accessibility_find.keyword"
+          }
+        },
+        "properties.ccm:accessibilitySummary": {
+          "missing": {
+            "field": "properties.ccm:accessibilitySummary.keyword"
+          }
+        },
+        "properties.ccm:oeh_usability": {
+          "missing": {
+            "field": "properties.ccm:oeh_usability.keyword"
+          }
+        },
+        "properties.ccm:oeh_interoperability": {
+          "missing": {
+            "field": "properties.ccm:oeh_interoperability.keyword"
+          }
+        },
+        "properties.ccm:price": {
+          "missing": {
+            "field": "properties.ccm:price.keyword"
+          }
+        },
+        "properties.ccm:oeh_quality_login": {
+          "missing": {
+            "field": "properties.ccm:oeh_quality_login.keyword"
+          }
+        },
+        "properties.ccm:oeh_accessibility_security": {
+          "missing": {
+            "field": "properties.ccm:oeh_accessibility_security.keyword"
+          }
+        },
+        "properties.ccm:license_to": {
+          "missing": {
+            "field": "properties.ccm:license_to.keyword"
+          }
+        },
+        "properties.ccm:commonlicense_key": {
+          "missing": {
+            "field": "properties.ccm:commonlicense_key.keyword"
+          }
+        },
+        "properties.ccm:author_freetext": {
+          "missing": {
+            "field": "properties.ccm:author_freetext.keyword"
+          }
+        },
+        "properties.virtual:editorial_publisher": {
+          "missing": {
+            "field": "properties.virtual:editorial_publisher.keyword"
+          }
+        },
+        "properties.ccm:published_date": {
+          "missing": {
+            "field": "properties.ccm:published_date.keyword"
+          }
+        },
+        "properties.ccm:lifecyclecontributer_publisher": {
+          "missing": {
+            "field": "properties.ccm:lifecyclecontributer_publisher.keyword"
+          }
+        },
+        "properties.cm:created": {
+          "missing": {
+            "field": "properties.cm:created.keyword"
+          }
+        },
+        "properties.cm:modified": {
+          "missing": {
+            "field": "properties.cm:modified.keyword"
+          }
+        },
+        "properties.cm:versionLabel": {
+          "missing": {
+            "field": "properties.cm:versionLabel.keyword"
+          }
+        },
+        "properties.ccm:oeh_publisher_combined": {
+          "missing": {
+            "field": "properties.ccm:oeh_publisher_combined.keyword"
+          }
+        },
+        "properties.sys:node-uuid": {
+          "missing": {
+            "field": "properties.sys:node-uuid.keyword"
+          }
+        },
+        "properties.ccm:published_handle_id": {
+          "missing": {
+            "field": "properties.ccm:published_handle_id.keyword"
+          }
+        },
+        "properties.ccm:oeh_signatures": {
+          "missing": {
+            "field": "properties.ccm:oeh_signatures.keyword"
+          }
+        },
+        "properties.feedback_comment": {
+          "missing": {
+            "field": "properties.feedback_comment.keyword"
+          }
+        },
+        "properties.ccm:metadatacontributer_creator": {
+          "missing": {
+            "field": "properties.ccm:metadatacontributer_creator.keyword"
+          }
+        },
+        "properties.ccm:metadatacontributer_provider": {
+          "missing": {
+            "field": "properties.ccm:metadatacontributer_provider.keyword"
+          }
+        },
+        "properties.ccm:metadatacontributer_validator": {
+          "missing": {
+            "field": "properties.ccm:metadatacontributer_validator.keyword"
+          }
+        }
+      }
+    }
+  },
+  "size": 0
+}

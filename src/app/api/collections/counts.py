@@ -6,12 +6,10 @@ from elasticsearch_dsl import A
 from pydantic import BaseModel
 
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.models import ElasticResourceAttribute, oer_license
-from app.elastic.elastic import ResourceType
-from app.elastic.search import Search
+from app.elastic.search import MaterialSearch
 
 
-class CollectionTreeCount(BaseModel):
+class Counts(BaseModel):
     """
     A preliminary model to yield the total number of collections as well as counts for specific metrics,
     e.g. OER licence
@@ -36,54 +34,9 @@ class AggregationMappings(str, Enum):
     license = ("properties.ccm:commonlicense_key.keyword",)
 
 
-def collection_counts_search(
-    node_id: uuid.UUID, facet: AggregationMappings, oer_only: bool = False
-) -> Search:
-    search = (
-        Search()
-        .base_filters()
-        .node_filter(resource_type=ResourceType.MATERIAL, node_id=node_id)
-    )
-    if oer_only:
-        # Match with keyword for exact match, contrary to direct text matching, which is partial
-        search = search.filter(
-            {
-                "terms": {
-                    f"{ElasticResourceAttribute.LICENSES.path}.keyword": oer_license
-                }
-            }
-        )
-        # search = search.filter(Terms({f"{ElasticResourceAttribute.LICENSES.path}.keyword": oer_license})
-
-    material_agg = A(
-        "terms", field="collections.nodeRef.id.keyword", size=ELASTIC_TOTAL_SIZE
-    )
-    material_agg.bucket(
-        "facet",
-        A(
-            "terms",
-            field=facet,
-            size=ELASTIC_TOTAL_SIZE,
-        ),
-    )
-
-    search.aggs.bucket(_AGGREGATION_NAME, material_agg)
-    return search.extra(size=0)
-
-
-async def collection_counts(
-    node_id: uuid.UUID, facet: AggregationMappings, oer_only: bool = False
-) -> Optional[list[CollectionTreeCount]]:
-    response = collection_counts_search(node_id, facet, oer_only).execute()
-    if response.success():
-        return build_counts(response)
-
-
-async def oer_collection_counts(
-    node_id: uuid.UUID, facet: AggregationMappings
-) -> Optional[list[CollectionTreeCount]]:
-    counts = await collection_counts(node_id=node_id, facet=facet, oer_only=False)
-    oer_counts = await collection_counts(node_id=node_id, facet=facet, oer_only=True)
+async def counts(node_id: uuid.UUID, facet: AggregationMappings) -> Optional[list[Counts]]:
+    counts = await _collection_counts(node_id=node_id, facet=facet, oer_only=False)
+    oer_counts = await _collection_counts(node_id=node_id, facet=facet, oer_only=True)
 
     if counts and oer_counts:
         # merge counts and oer_counts
@@ -96,26 +49,35 @@ async def oer_collection_counts(
     return counts
 
 
-def build_counts(response) -> list[CollectionTreeCount]:
+def _collection_counts_search(node_id: uuid.UUID, facet: AggregationMappings, oer_only: bool) -> MaterialSearch:
+    if oer_only:
+        search = MaterialSearch().oer_filter().collection_filter(collection_id=node_id, transitive=True)
+    else:
+        search = MaterialSearch().collection_filter(collection_id=node_id, transitive=True)
+    material_agg = A("terms", field="collections.nodeRef.id.keyword", size=ELASTIC_TOTAL_SIZE)
+    material_agg.bucket(
+        "facet",
+        A("terms", field=facet, size=ELASTIC_TOTAL_SIZE, missing="N/A"),
+    )
+
+    search.aggs.bucket(_AGGREGATION_NAME, material_agg)
+    return search.extra(size=0)
+
+
+async def _collection_counts(
+    node_id: uuid.UUID, facet: AggregationMappings, oer_only: bool = False
+) -> Optional[list[Counts]]:
+    response = _collection_counts_search(node_id, facet, oer_only).execute()
+    if response.success():
+        return _build_counts(response)
+
+
+def _build_counts(response) -> list[Counts]:
     return [
-        CollectionTreeCount(
+        Counts(
             node_id=data["key"],
             counts={sub["key"]: sub["doc_count"] for sub in data.facet.buckets},
             total=data.doc_count,
         )
         for data in response.aggregations[_AGGREGATION_NAME].buckets
     ]
-
-
-def oer_ratio(node_id: uuid.UUID) -> int:
-    oer_statistics = collection_counts_search(node_id, AggregationMappings.license)
-    response = oer_statistics.execute()
-    oer_elements = 0
-    oer_total = 0
-    for data in response.aggregations[_AGGREGATION_NAME].buckets:
-        for bucket in data["facet"]["buckets"]:
-            oer_total += bucket["doc_count"]
-            if bucket["key"] in oer_license:
-                oer_elements += bucket["doc_count"]
-
-    return round((oer_elements / oer_total) * 100)

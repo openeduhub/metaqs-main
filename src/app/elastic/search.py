@@ -1,78 +1,13 @@
 from __future__ import annotations
 
-import uuid
-from pprint import pformat
 from uuid import UUID
 
 import elasticsearch_dsl
 from elasticsearch_dsl.query import Q, Term, Bool, Terms, Match, Query, Wildcard
-from elasticsearch_dsl.response import Response
 
 from app.core.config import ELASTIC_INDEX
-from app.core.logging import logger
-from app.core.models import ElasticResourceAttribute
-from app.elastic.dsl import qterm
-from app.elastic.elastic import ResourceType
-
-
-class Search(elasticsearch_dsl.Search):  # todo remove entirely in favour of below Material and CollectionSearch
-    __base_filter = [
-        qterm(qfield=ElasticResourceAttribute.PERMISSION_READ, value="GROUP_EVERYONE"),
-        qterm(qfield=ElasticResourceAttribute.EDU_METADATASET, value="mds_oeh"),
-        qterm(qfield=ElasticResourceAttribute.PROTOCOL, value="workspace"),
-    ]
-
-    def __init__(self, index=ELASTIC_INDEX, **kwargs):
-        super(Search, self).__init__(index=index, **kwargs)
-
-    # TODO: These are always applied - make them part of the init itself
-    def base_filters(self) -> Search:
-        search = self
-        for entry in self.__base_filter:
-            search = search.filter(entry)
-        return search
-
-    def type_filter(self, resource_type: ResourceType) -> Search:
-        if resource_type == ResourceType.COLLECTION:
-            return self.filter(Term(**{ElasticResourceAttribute.TYPE.path: "ccm:map"}))
-        return self.filter(Term(**{ElasticResourceAttribute.TYPE.path: "ccm:io"}))
-
-    def node_filter(self, resource_type: ResourceType, node_id: uuid.UUID) -> Search:
-        # make self.to_dict() json serializable
-        node_id = str(node_id)
-        search = self.type_filter(resource_type=resource_type)
-
-        if resource_type is ResourceType.COLLECTION:
-            return search.filter(qterm(qfield=ElasticResourceAttribute.PATH, value=node_id))
-        return search.filter(qterm(qfield=ElasticResourceAttribute.COLLECTION_PATH, value=node_id))
-
-    def non_series_objects_filter(self):
-        return self.filter(Q("bool", **{"must_not": [{"term": {"aspects": "ccm:io_childobject"}}]}))
-
-    def text_only_filter(self):
-        return self.filter(
-            Q(
-                {
-                    "terms": {
-                        f"{ElasticResourceAttribute.MIMETYPE.path}.keyword": [
-                            "application/pdf",
-                            "application/msword",
-                            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                            "application/vnd.oasis.opendocument.text",
-                            "text/html",
-                            "application/vnd.ms-powerpoint",
-                        ]
-                    }
-                }
-            ),
-        )
-
-    def execute(self, ignore_cache=False) -> Response:
-        logger.debug(f"Sending query to elastic:\n{pformat(self.to_dict())}")
-        response = super(Search, self).execute(ignore_cache=ignore_cache)
-        logger.debug(f"Response received from elastic:\n{pformat(response.to_dict())}")
-        return response
+from app.core.constants import OER_LICENSES
+from app.elastic.attributes import ElasticResourceAttribute
 
 
 _base_filters = [
@@ -91,11 +26,6 @@ class _Search(elasticsearch_dsl.Search):
         - "not empty string"
         - "not null"
         - "not empty list"
-
-        fixme: We use this for both, Material- and CollectionSearch for now. However, the set of allowed attributes
-               obviously depends on the type of document that is searched. E.g. the following statement makes no sence:
-                    CollectionSearch().missing_attribute_filter(license=ElasticResourceAttribute.LICENSE)
-               because collections do not have a License attribute.
 
         This method will make used of [named queries](1) for every provided attribute. This allows to check for each
         hit which of the documents' attributes are considered missing.
@@ -118,7 +48,10 @@ class _Search(elasticsearch_dsl.Search):
         :param attributes: The keys will define the query names, the values define the attributes to check.
         """
 
-        # fixme: technically we could pass in attributes of collections here, which does not make any sense.
+        # fixme: We use this for both, Material- and CollectionSearch for now. However, the set of allowed attributes
+        #        obviously depends on the type of document that is searched. E.g. the following statement makes no
+        #        sense:  CollectionSearch().missing_attribute_filter(license=ElasticResourceAttribute.LICENSE)
+        #        because collections do not have a License attribute.
         #        Solution: separate the ElasticResourceAttributes into Collection and Material attributes!
 
         def attribute_specific_query(name: str, attribute: ElasticResourceAttribute) -> Query:
@@ -143,12 +76,6 @@ class _Search(elasticsearch_dsl.Search):
                 should=[attribute_specific_query(name, attribute) for name, attribute in attributes.items()],
             )
         )
-
-    def execute(self, ignore_cache=False) -> Response:
-        logger.debug(f"Sending query to elastic:\n{pformat(self.to_dict())}")
-        response = super(_Search, self).execute(ignore_cache=ignore_cache)
-        logger.debug(f"Response received from elastic:\n{pformat(response.to_dict())}")
-        return response
 
 
 class CollectionSearch(_Search):
@@ -180,12 +107,13 @@ class MaterialSearch(_Search):
             filter=[
                 *_base_filters,
                 Term(**{ElasticResourceAttribute.TYPE.path: "ccm:io"}),  # fixme: why not keyword?
+                Bool(**{"must_not": [{"term": {"aspects": "ccm:io_childobject"}}]}),  # ignore child objects
             ]
         )
 
     def oer_filter(self) -> MaterialSearch:
         """Return a new search with an added filter to only return OER materials."""
-        return self.filter(Terms(**{ElasticResourceAttribute.LICENSES.keyword: ["CC_0", "PDM", "CC_BY", "CC_BY_SA"]}))
+        return self.filter(Terms(**{ElasticResourceAttribute.LICENSES.keyword: OER_LICENSES}))
 
     def collection_filter(self, collection_id: UUID, transitive: bool) -> MaterialSearch:
         """
@@ -195,6 +123,14 @@ class MaterialSearch(_Search):
                            collection-nodes of the subtree defined by the collection.
         """
         collection_id = str(collection_id)
+        # fixme: See https://issues.edu-sharing.net/jira/browse/KBMBF-577
+        #        We would need some nested filters here to make sure that:
+        #          - the material is not only (transitively) within the respective collection
+        #          - but also, that the collection via which it (transitively) belongs to the base collection
+        #            complies with all the base filters.
+        #          - further, the relation of the collection and the material must not be something like "proposed for"
+        #            but the material must really be within that collection.
+        #            See https://github.com/openeduhub/metaqs-main/issues/100
         exact_collection = Term(**{ElasticResourceAttribute.COLLECTION_NODEREF_ID.keyword: collection_id})
         if transitive:
             collection_subtree = Match(**{ElasticResourceAttribute.COLLECTION_PATH.keyword: collection_id})
@@ -214,7 +150,3 @@ class MaterialSearch(_Search):
     #     # for attr in attributes:
     #     #     assert attr in material_attributes, f"{attr} is non a valid material attribute"
     #     return super().source(fields=[attr.path for attr in attributes])
-
-    def non_series_objects_filter(self) -> MaterialSearch:
-        """Only return materials that are not series objects."""
-        return self.filter(Bool(**{"must_not": [{"term": {"aspects": "ccm:io_childobject"}}]}))
