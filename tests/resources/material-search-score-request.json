@@ -115,7 +115,7 @@
     },
     "missing_intended_end_user_role": {
       "missing": {
-        "field": "i18n.de_DE.ccm:educationalintendedenduserrole.keyword"
+        "field": "properties.ccm:educationalintendedenduserrole.keyword"
       }
     },
     "missing_edu_context": {

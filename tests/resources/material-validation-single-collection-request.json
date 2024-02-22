@@ -159,7 +159,7 @@
                   "must_not": [
                     {
                       "wildcard": {
-                        "i18n.de_DE.ccm:educationalintendedenduserrole": {
+                        "properties.ccm:educationalintendedenduserrole": {
                           "value": "*"
                         }
                       }
