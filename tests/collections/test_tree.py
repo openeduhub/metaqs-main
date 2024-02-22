@@ -14,7 +14,8 @@ async def test_collection_tree_vocabs():
     root_node_id = uuid.UUID("5e40e372-735c-4b17-bbf7-e827a5702b57")
     async with ClientSession() as session:
         data = await tree_from_vocabs(session, root_node_id)
-    assert len(data) == 27
+    assert len(data) == 29  # as of 2024-02-22 there are 29 oeh-topics taxonomy trees
+    # see: https://vocabs.openeduhub.de/w3id.org/openeduhub/vocabs/oeh-topics/5e40e372-735c-4b17-bbf7-e827a5702b57.html
     count = sum(len(list(collection.flatten())) for collection in data)
     assert count >= 2200  # adapt this number to the current state, may change regularly
 
