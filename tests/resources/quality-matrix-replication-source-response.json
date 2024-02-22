@@ -86,7 +86,7 @@
           "properties.ccm:oeh_quality_didactics": {
             "doc_count": 382
           },
-          "i18n.de_DE.ccm:educationalintendedenduserrole": {
+          "properties.ccm:educationalintendedenduserrole": {
             "doc_count": 15
           },
           "properties.ccm:metadatacontributer_validator": {
@@ -273,7 +273,7 @@
           "properties.ccm:oeh_quality_didactics": {
             "doc_count": 227
           },
-          "i18n.de_DE.ccm:educationalintendedenduserrole": {
+          "properties.ccm:educationalintendedenduserrole": {
             "doc_count": 66
           },
           "properties.ccm:metadatacontributer_validator": {
@@ -460,7 +460,7 @@
           "properties.ccm:oeh_quality_didactics": {
             "doc_count": 189
           },
-          "i18n.de_DE.ccm:educationalintendedenduserrole": {
+          "properties.ccm:educationalintendedenduserrole": {
             "doc_count": 186
           },
           "properties.ccm:metadatacontributer_validator": {

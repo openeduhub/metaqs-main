@@ -139,9 +139,9 @@
             "field": "properties.cclom:general_keyword.keyword"
           }
         },
-        "i18n.de_DE.ccm:educationalintendedenduserrole": {
+        "properties.ccm:educationalintendedenduserrole": {
           "missing": {
-            "field": "i18n.de_DE.ccm:educationalintendedenduserrole.keyword"
+            "field": "properties.ccm:educationalintendedenduserrole.keyword"
           }
         },
         "properties.ccm:curriculum": {
