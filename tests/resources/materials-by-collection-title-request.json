@@ -79,7 +79,7 @@
       "aggs": {
         "material_type": {
           "terms": {
-            "field": "properties.ccm:oeh_lrt.keyword",
+            "field": "properties.ccm:oeh_lrt_aggregated.keyword",
             "missing": "N/A",
             "size": 50000
           }
