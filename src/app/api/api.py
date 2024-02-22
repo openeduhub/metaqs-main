@@ -4,43 +4,38 @@ from fastapi import APIRouter, Depends, HTTPException, Path
 from fastapi.params import Param
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
-from starlette.status import (
-    HTTP_200_OK,
-    HTTP_404_NOT_FOUND,
-)
+from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 
-from app.api.collections.collection_validation import collection_validation, CollectionValidation
-from app.api.collections.counts import AggregationMappings, Counts, counts
-from app.api.collections.material_counts import (
-    MaterialCounts,
-    material_counts,
+from app.api.collections.collection_validation import (
+    CollectionValidation,
+    collection_validation,
 )
+from app.api.collections.counts import AggregationMappings, Counts, counts
+from app.api.collections.material_counts import MaterialCounts, material_counts
 from app.api.collections.material_validation import (
-    material_validation,
     MaterialValidation,
     material_validation_cache,
 )
 from app.api.collections.pending_collections import (
-    pending_collections,
     PendingCollection,
+    pending_collections,
 )
 from app.api.collections.pending_materials import (
-    PendingMaterial,
     MissingAttributeFilter,
+    PendingMaterial,
     materials_filter_params,
     pending_materials,
 )
 from app.api.collections.quality_matrix import (
+    QualityMatrix,
     QualityMatrixMode,
+    past_quality_matrix,
     quality_matrix,
     timestamps,
-    QualityMatrix,
-    past_quality_matrix,
 )
 from app.api.collections.score import Score, score
-from app.api.collections.statistics import statistics, Statistics
-from app.api.collections.tree import Tree
-from app.api.collections.tree import tree
+from app.api.collections.statistics import Statistics, statistics
+from app.api.collections.tree import Tree, tree
 from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
 from app.db.tasks import get_session
 from app.elastic.attributes import ElasticResourceAttribute
@@ -56,7 +51,7 @@ valid_node_ids = {
 def toplevel_collections(
     node_id: uuid.UUID = Path(default=..., examples=valid_node_ids),
 ) -> uuid.UUID:
-    #if str(node_id) not in {value["value"] for value in valid_node_ids.values()}:
+    # if str(node_id) not in {value["value"] for value in valid_node_ids.values()}:
     #    raise HTTPException(status_code=404, detail=f"Could not find collection with node id {node_id}")
     return node_id
 
@@ -69,7 +64,9 @@ def toplevel_collections(
     tags=["Collections"],
     summary="Calculate the replication-source or collection quality matrix",
 )
-async def get_quality_matrix(*, node_id: uuid.UUID = Depends(toplevel_collections), mode: QualityMatrixMode):
+async def get_quality_matrix(
+    *, node_id: uuid.UUID = Depends(toplevel_collections), mode: QualityMatrixMode
+):
     """
     Calculate the quality matrix w.r.t. the replication source, or collection.
 
@@ -101,7 +98,11 @@ async def get_quality_matrix(*, node_id: uuid.UUID = Depends(toplevel_collection
     "/collections/{node_id}/quality-matrix/{mode}/timestamps/{timestamp}",
     status_code=HTTP_200_OK,
     response_model=QualityMatrix,
-    responses={HTTP_404_NOT_FOUND: {"description": "No quality matrix stored for given timestamp"}},
+    responses={
+        HTTP_404_NOT_FOUND: {
+            "description": "No quality matrix stored for given timestamp"
+        }
+    },
     tags=["Collections"],
     summary="Get a historic quality matrix for a given timestamp",
 )
@@ -118,14 +119,20 @@ async def get_quality_matrix_by_timestamp(
     This endpoint serves as a comparison to the current quality matrix. This way, differences due to automatic or
     manual work on the metadata can be seen.
     """
-    return past_quality_matrix(session=session, mode=mode, collection_id=node_id, timestamp=timestamp)
+    return past_quality_matrix(
+        session=session, mode=mode, collection_id=node_id, timestamp=timestamp
+    )
 
 
 @router.get(
     "/collections/{node_id}/quality-matrix/{mode}/timestamps",
     status_code=HTTP_200_OK,
     response_model=list[int],
-    responses={HTTP_404_NOT_FOUND: {"description": "Timestamps of old quality matrix results not determinable"}},
+    responses={
+        HTTP_404_NOT_FOUND: {
+            "description": "Timestamps of old quality matrix results not determinable"
+        }
+    },
     tags=["Collections"],
     summary="Get the timestamps for which history quality matrices are available",
 )
@@ -277,7 +284,9 @@ async def get_pending_collections(
     elif missing_attribute == ElasticResourceAttribute.COLLECTION_DESCRIPTION.path:
         missing_attribute = ElasticResourceAttribute.COLLECTION_DESCRIPTION
     else:
-        raise HTTPException(status_code=400, detail=f"Invalid collection attribute: {missing_attribute}")
+        raise HTTPException(
+            status_code=400, detail=f"Invalid collection attribute: {missing_attribute}"
+        )
     return await pending_collections(node_id, missing=missing_attribute)
 
 
@@ -410,8 +419,9 @@ async def get_material_validation(
     Its frequency can be configured via the BACKGROUND_TASK_TIME_INTERVAL environment variable.
     """
     try:
-        if False:  # Fixme: if possible optimize the query and return real time data
-            return material_validation(collection_id=node_id)  # noqa
+        # if False:  # Fixme: if possible optimize the query and return real time data
+        #     return material_validation(collection_id=node_id)  # noqa
+        # ToDo: this code could NEVER be reached, therefore I'm commenting it out so 'vulture' (CI) passes again.
         return material_validation_cache[node_id]
     except KeyError:
         raise HTTPException(
