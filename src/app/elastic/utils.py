@@ -1,7 +1,7 @@
 from elasticsearch_dsl import connections
 
 from app.core.config import ELASTICSEARCH_TIMEOUT, ELASTICSEARCH_URL
-from app.core.logging import logger
+from app.core.custom_logging import logger
 
 
 def connect_to_elastic():

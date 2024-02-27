@@ -3,7 +3,7 @@ import json
 import uuid
 from asyncio import ensure_future
 from functools import cache
-from typing import Iterable, Literal, Optional, Iterator, Any, Tuple
+from typing import Any, Iterable, Iterator, Literal, Optional, Tuple
 
 import aiocron
 from elasticsearch_dsl import A
@@ -13,9 +13,9 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.collections.tree import Tree, tree
-from app.core.config import QUALITY_MATRIX_BACKUP_SCHEDULE, ELASTIC_TOTAL_SIZE
+from app.core.config import ELASTIC_TOTAL_SIZE, QUALITY_MATRIX_BACKUP_SCHEDULE
 from app.core.constants import COLLECTION_NAME_TO_ID
-from app.core.logging import logger
+from app.core.custom_logging import logger
 from app.core.meta_hierarchy import METADATA_HIERARCHY, load_metadataset
 from app.db.tasks import Timeline, session_maker
 from app.elastic.attributes import ElasticResourceAttribute
@@ -119,7 +119,11 @@ def _replication_source_row_headers() -> dict[str, QualityMatrixHeader]:
             logger.warning("Failed to build replication source headers. Returning empty dictionary.")
             return {}
     except Exception as e:
-        logger.exception("Failed to build replication-source headers, falling back to default headers.")
+        logger.exception(
+            f"Failed to build replication-source headers, falling back to default headers. "
+            f"Exception caught: \n"
+            f"{e}"
+        )
         return {}
 
 

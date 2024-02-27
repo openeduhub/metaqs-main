@@ -3,17 +3,16 @@ from __future__ import (  # Needed for recursive type annotation, can be dropped
 )
 
 import uuid
-from typing import Optional, Iterable
+from typing import Iterable, Optional
 
 from elasticsearch_dsl import Search
-from elasticsearch_dsl.query import Bool, Term
 from elasticsearch_dsl.response import Response
 from fastapi import HTTPException
 from pydantic import BaseModel
 
 from app.core.config import ELASTIC_TOTAL_SIZE
 from app.core.constants import COLLECTION_NAME_TO_ID
-from app.core.logging import logger
+from app.core.custom_logging import logger
 from app.elastic.attributes import ElasticResourceAttribute
 from app.elastic.search import CollectionSearch
 

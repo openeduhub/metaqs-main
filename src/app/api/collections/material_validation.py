@@ -4,9 +4,9 @@ from fastapi_utils.tasks import repeat_every
 from pydantic import BaseModel
 
 from app.api.collections.tree import tree
-from app.core.config import ELASTIC_TOTAL_SIZE, BACKGROUND_TASK_TIME_INTERVAL
+from app.core.config import BACKGROUND_TASK_TIME_INTERVAL, ELASTIC_TOTAL_SIZE
 from app.core.constants import COLLECTION_NAME_TO_ID
-from app.core.logging import logger
+from app.core.custom_logging import logger
 from app.elastic.attributes import ElasticResourceAttribute
 from app.elastic.search import MaterialSearch
 

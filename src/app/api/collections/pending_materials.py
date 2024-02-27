@@ -7,8 +7,8 @@ from glom import Coalesce, Iter, glom
 from pydantic import BaseModel
 
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.logging import logger
-from app.elastic.attributes import ElasticResourceAttribute, ElasticField
+from app.core.custom_logging import logger
+from app.elastic.attributes import ElasticField, ElasticResourceAttribute
 from app.elastic.search import MaterialSearch
 
 

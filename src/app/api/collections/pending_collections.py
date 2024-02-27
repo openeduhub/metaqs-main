@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from app.api.collections.tree import Tree
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.logging import logger
+from app.core.custom_logging import logger
 from app.elastic.attributes import ElasticResourceAttribute
 from app.elastic.search import CollectionSearch
 
@@ -26,9 +26,7 @@ class PendingCollection(BaseModel):
     name: str
 
 
-async def pending_collections(
-    collection_id: uuid.UUID, missing: ElasticResourceAttribute
-) -> list[PendingCollection]:
+async def pending_collections(collection_id: uuid.UUID, missing: ElasticResourceAttribute) -> list[PendingCollection]:
     """
     Note: the returned list will be a flat list of nodes which are not organized in a tree structure and have no
     relations between each other.

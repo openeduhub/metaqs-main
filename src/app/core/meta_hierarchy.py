@@ -3,9 +3,8 @@ import functools
 from fastapi import HTTPException
 
 from app.core.config import METADATASET_URL
-from app.core.logging import logger
+from app.core.custom_logging import logger
 from app.elastic.attributes import ElasticResourceAttribute
-
 
 METADATA_HIERARCHY: dict[str, list[tuple[ElasticResourceAttribute, str]]] = {
     "Beschreibendes": [
