@@ -36,14 +36,17 @@ from app.api.collections.quality_matrix import (
 from app.api.collections.score import Score, score
 from app.api.collections.statistics import Statistics, statistics
 from app.api.collections.tree import Tree, tree
-from app.core.constants import COLLECTION_NAME_TO_ID, COLLECTION_ROOT_ID
+from app.core.constants import (
+    COLLECTION_NAME_TO_ID,
+    COLLECTION_TOPIC_PORTALS_ROOT_NODE_ID,
+)
 from app.db.tasks import get_session
 from app.elastic.attributes import ElasticResourceAttribute
 
 router = APIRouter()
 
 valid_node_ids = {
-    "Alle Fachportale": {"value": COLLECTION_ROOT_ID},
+    "Alle Fachportale": {"value": COLLECTION_TOPIC_PORTALS_ROOT_NODE_ID},
     **{key: {"value": value} for key, value in COLLECTION_NAME_TO_ID.items()},
 }
 
@@ -64,9 +67,7 @@ def toplevel_collections(
     tags=["Collections"],
     summary="Calculate the replication-source or collection quality matrix",
 )
-async def get_quality_matrix(
-    *, node_id: uuid.UUID = Depends(toplevel_collections), mode: QualityMatrixMode
-):
+async def get_quality_matrix(*, node_id: uuid.UUID = Depends(toplevel_collections), mode: QualityMatrixMode):
     """
     Calculate the quality matrix w.r.t. the replication source, or collection.
 
@@ -98,11 +99,7 @@ async def get_quality_matrix(
     "/collections/{node_id}/quality-matrix/{mode}/timestamps/{timestamp}",
     status_code=HTTP_200_OK,
     response_model=QualityMatrix,
-    responses={
-        HTTP_404_NOT_FOUND: {
-            "description": "No quality matrix stored for given timestamp"
-        }
-    },
+    responses={HTTP_404_NOT_FOUND: {"description": "No quality matrix stored for given timestamp"}},
     tags=["Collections"],
     summary="Get a historic quality matrix for a given timestamp",
 )
@@ -119,20 +116,14 @@ async def get_quality_matrix_by_timestamp(
     This endpoint serves as a comparison to the current quality matrix. This way, differences due to automatic or
     manual work on the metadata can be seen.
     """
-    return past_quality_matrix(
-        session=session, mode=mode, collection_id=node_id, timestamp=timestamp
-    )
+    return past_quality_matrix(session=session, mode=mode, collection_id=node_id, timestamp=timestamp)
 
 
 @router.get(
     "/collections/{node_id}/quality-matrix/{mode}/timestamps",
     status_code=HTTP_200_OK,
     response_model=list[int],
-    responses={
-        HTTP_404_NOT_FOUND: {
-            "description": "Timestamps of old quality matrix results not determinable"
-        }
-    },
+    responses={HTTP_404_NOT_FOUND: {"description": "Timestamps of old quality matrix results not determinable"}},
     tags=["Collections"],
     summary="Get the timestamps for which history quality matrices are available",
 )
@@ -284,9 +275,7 @@ async def get_pending_collections(
     elif missing_attribute == ElasticResourceAttribute.COLLECTION_DESCRIPTION.path:
         missing_attribute = ElasticResourceAttribute.COLLECTION_DESCRIPTION
     else:
-        raise HTTPException(
-            status_code=400, detail=f"Invalid collection attribute: {missing_attribute}"
-        )
+        raise HTTPException(status_code=400, detail=f"Invalid collection attribute: {missing_attribute}")
     return await pending_collections(node_id, missing=missing_attribute)
 
 
