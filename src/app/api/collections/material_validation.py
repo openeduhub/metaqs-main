@@ -4,8 +4,8 @@ from fastapi_utils.tasks import repeat_every
 from pydantic import BaseModel
 
 from app.api.collections.tree import tree
+from app.core import portals
 from app.core.config import BACKGROUND_TASK_TIME_INTERVAL, ELASTIC_TOTAL_SIZE
-from app.core.constants import COLLECTION_NAME_TO_ID
 from app.core.custom_logging import logger
 from app.elastic.attributes import ElasticResourceAttribute
 from app.elastic.search import MaterialSearch
@@ -115,9 +115,9 @@ material_validation_cache: dict[uuid.UUID, list[MaterialValidation]] = {}
 
 @repeat_every(seconds=BACKGROUND_TASK_TIME_INTERVAL, logger=logger)
 def background_task():
-    logger.info(f"Updating material validation cache. Length: {len(COLLECTION_NAME_TO_ID)}")
+    logger.info(f"Updating material validation cache. Length: {len(portals.portal_data_cache)}")
 
-    for counter, (title, collection) in enumerate(COLLECTION_NAME_TO_ID.items()):
+    for counter, (title, collection) in enumerate(portals.portal_data_cache.items()):
         collection = uuid.UUID(collection)
         material_validation_cache[collection] = material_validation(collection_id=collection)
 

@@ -13,6 +13,7 @@ from app.core.constants import OPEN_API_VERSION
 from app.core.custom_logging import logger
 from app.core.errors import http_422_error_handler, http_error_handler
 from app.core.meta_hierarchy import load_metadataset
+from app.core.portals import update_portal_data_cache
 from app.elastic.utils import connect_to_elastic
 
 
@@ -34,6 +35,7 @@ def api() -> FastAPI:
     _api.add_middleware(RawContextMiddleware)
 
     _api.add_event_handler("startup", connect_to_elastic)
+    _api.add_event_handler("startup", update_portal_data_cache)
     _api.add_event_handler("startup", background_task)
     _api.add_event_handler("startup", quality_matrix_backup_job)
     # warmup cache and fail early in case we cannot reach edusharing

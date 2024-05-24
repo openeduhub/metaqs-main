@@ -13,8 +13,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.collections.tree import Tree, tree
+from app.core import portals
 from app.core.config import ELASTIC_TOTAL_SIZE, QUALITY_MATRIX_BACKUP_SCHEDULE
-from app.core.constants import COLLECTION_NAME_TO_ID
 from app.core.custom_logging import logger
 from app.core.meta_hierarchy import METADATA_HIERARCHY, load_metadataset
 from app.db.tasks import Timeline, session_maker
@@ -343,7 +343,7 @@ def quality_backup(session: Session, timestamp: datetime.datetime):
 
     modes: Tuple[QualityMatrixMode, ...] = ("replication-source", "collection")
 
-    for node_id in COLLECTION_NAME_TO_ID.values():
+    for node_id in portals.portal_data_cache.values():
         root = tree(node_id=uuid.UUID(node_id))
         for mode in modes:
             try:

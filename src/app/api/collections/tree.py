@@ -10,8 +10,8 @@ from elasticsearch_dsl.response import Response
 from fastapi import HTTPException
 from pydantic import BaseModel
 
+from app.core import portals
 from app.core.config import ELASTIC_TOTAL_SIZE
-from app.core.constants import COLLECTION_NAME_TO_ID
 from app.core.custom_logging import logger
 from app.elastic.attributes import ElasticResourceAttribute
 from app.elastic.search import CollectionSearch
@@ -84,7 +84,7 @@ def tree(node_id: uuid.UUID) -> Tree:
             detail="Could not query elastic search to fetch collection tree.",
         )
 
-    id_to_name = {id: name for name, id in COLLECTION_NAME_TO_ID.items()}
+    id_to_name = {id: name for name, id in portals.portal_data_cache.items()}
 
     # note the "root" here is actually a toplevel collection (e.g. Chemie, Deutsch,...)
     # i.e. it is the root of the returned subtree.
