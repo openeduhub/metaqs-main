@@ -29,6 +29,7 @@ COLLECTION_NAME_TO_ID: dict[str, str] = {
     "Community - RPI-Virtuell": "33502c70-b3f1-426f-b357-6128989cd380",
     "Community - ComeIn": "3bf248cc-fb53-4f81-a99a-a40d6d3d2e71",
     "Community - Schule im Aufbruch": "fcb7c826-02a0-46f2-8624-e7805ad82901",
+    "Community - Seitenstark": "86db80bd-754f-4259-bd5a-f65087e53205",
 }
 
 OPEN_API_VERSION = "2.1.0"
